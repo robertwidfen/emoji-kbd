@@ -82,7 +82,7 @@ def show_status_group(term: Terminal, status_row: int, group: Group):
 
 def show_status_emoji(term: Terminal, status_row: int, emoji: Emoji):
     with term.location(0, status_row):
-        print(f"{emoji.char}, {emoji.unicode}, {emoji.annotation}" + term.clear_eol)
+        print(f"{emoji.char}, {emoji.unicode}, {emoji.name}" + term.clear_eol)
         tags = textwrap.wrap(emoji.tags, width=term.width - 2)
         for line in tags:
             print(f"{line}" + term.clear_eol)

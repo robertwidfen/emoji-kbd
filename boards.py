@@ -15,12 +15,12 @@ class Emoji:
         self.unicode = unicode
         self.group = group
         self.subgroup = subgroup
-        self.annotation = annotation
+        self.name = annotation
         self.tags = tags
         self.skintone: list[Emoji] = []
 
     def __repr__(self):
-        return f"Emoji({self.char}, {self.unicode}, {self.group} > {self.subgroup})"
+        return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup})"
 
 
 skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
@@ -39,64 +39,102 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
                     e = Emoji(*row[0:6])
                     emojis[-1].skintone.append(e)
                     continue
-                # if row[1].find("-200D-") > -1:
-                #     continue
-                # elif len(row[1]) != 5:
-                #     continue
                 e = Emoji(*row[0:6])
                 emojis.append(e)
     return emojis
 
 
 class Group:
-    def __init__(self, group_name: str, subgroup_name: str):
+
+    def __init__(self, group_name: str, char: str = ""):
         self.group_name = group_name
-        self.subgroup_name = subgroup_name
+        self.subgroup_name = ""
+        self.char = char
         self.emojis: list[Emoji] = []
 
     def append(self, emoji: Emoji):
+        if not self.char:
+            self.char = emoji.char
+        if emoji.subgroup not in self.subgroup_name:
+            if self.subgroup_name:
+                self.subgroup_name += ", "
+            self.subgroup_name += emoji.subgroup
         self.emojis.append(emoji)
 
     def __repr__(self):
-        return f"Group({self.group_name}, {self.subgroup_name}, {self.emojis[0]}[{len(self.emojis)}])"
+        return f"Group({self.group_name} {self.char})"
 
 
-def get_grouped_emojis(emojis: list[Emoji], max_count: int) -> list[Group]:
+def normalize_group(emoji: Emoji) -> str | None:
+    g, sg = (emoji.group, emoji.subgroup)
+    if g.startswith("extras-") or g == "component":
+        return None
+    if g == "smileys-emotion":
+        if sg in ("face-neutral-skeptical", "face-concerned", "face-negative"):
+            return "☹️"
+        if sg in ("face-costume", "cat-face", "monkey-face"):
+            return "😺"
+        if sg == "heart":
+            return "❤️"
+        else:
+            return "😀"
+    if g == "animals-nature":
+        if sg.startswith("animal-"):
+            return "🐒"
+        elif sg.startswith("plant-"):
+            return "🌸"
+        else:
+            return "🌲"
+    if g == "food-drink":
+        if sg == "dishware":
+            return "🍽️"
+        return "🍎"
+    if g == "objects":
+        if sg.startswith("tool-"):
+            return "🔧"
+        if sg.startswith("music") or sg in ("sound",):
+            return "🎶"
+        return g
+    if g == "travel-places":
+        if sg == "sky-weather":
+            return "☀️"
+        if sg == "time":
+            return "⌚️"
+        return "🏠"
+    if g == "symbols":
+        return ""
+    if g == "people-body":
+        if sg.startswith("hand"):
+            return "👍️"
+        else:
+            return "🧑"
+    if emoji.group == "flags" and emoji.subgroup != "flag":
+        return "🏳️‍🌈"
+    return emoji.group + ">" + emoji.subgroup
+
+
+def get_grouped_emojis(emojis: list[Emoji]) -> list[Group]:
     groups: list[Group] = []
-    g = None
-    sg = None
+    mapping: dict[str, Group] = {}
     for e in emojis:
-        if e.group != g or e.subgroup != sg or len(groups[-1].emojis) >= max_count:
-            groups.append(Group(e.group, e.subgroup))
-            g = e.group
-            sg = e.subgroup
+        g = normalize_group(e)
+        if g is None:
+            continue
+        if g not in mapping:
+            groups.append(Group(e.group, g if len(g) < 5 else ""))
+            mapping[g] = groups[-1]
         groups[-1].append(e)
     return groups
 
 
-def get_emojis_groups(max_count: int = 0) -> tuple[list[Emoji], list[Group]]:
+def get_emojis_groups() -> tuple[list[Emoji], list[Group]]:
     emojis = read_openmoji_csv("openmoji.csv")
-    groups = get_grouped_emojis(emojis, max_count)
-
-    # sqaush small groups together
-    if max_count > 0:
-        i = 0
-        while i < len(groups) - 1:
-            if (
-                groups[i].group_name == groups[i + 1].group_name
-                and len(groups[i].emojis) + len(groups[i + 1].emojis) < max_count
-            ):
-                groups[i].emojis.extend(groups[i + 1].emojis)
-                groups[i].subgroup_name += ", " + groups[i + 1].subgroup_name
-                del groups[i + 1]
-            else:
-                i += 1
-
+    groups = get_grouped_emojis(emojis)
     return (emojis, groups)
 
 
 def main():
-    (emojis, groups) = get_emojis_groups(12 * 4)
+    (emojis, groups) = get_emojis_groups()
     print(f"Total emojis loaded: {len(emojis)}")
     for emoji in emojis[:50]:
         print(emoji)
