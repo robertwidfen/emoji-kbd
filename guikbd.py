@@ -83,7 +83,7 @@ class KeyboardWidget(QWidget):
         self.emoji_input_field.installEventFilter(self)
 
         self.search_field = QLineEdit(self)
-        self.search_field.textChanged.connect(self.filter_emojis_by_name)
+        self.search_field.textChanged.connect(self.filter_emojis)
         # self.search_field.setTextMargins(4, 14, 4, 0)
         self.search_field.setPlaceholderText("Search emojis by name or tags...")
         self.search_field.installEventFilter(self)
@@ -143,10 +143,11 @@ class KeyboardWidget(QWidget):
         self.offset = 0
         self.mapping = make_mapping(self.top_groups, offset=self.offset)
 
-    def filter_emojis_by_name(self, search_term: str):
+    def filter_emojis(self, search_term: str):
         search_term = search_term.lower()
         if not search_term:
-            self.restore_top_mapping()
+            self.groups = self.emojis
+            self.mapping = make_mapping(self.groups)
         else:
             matches: list[Emoji] = []
             for e in self.emojis:
@@ -186,7 +187,16 @@ class KeyboardWidget(QWidget):
             self.current_char = ""
             self.set_status("Type to select category or insert emojis.")
         elif new == self.search_field:
-            self.mapping = make_mapping(self.search_results.emojis)
+            if self.search_field.text() != "":
+                if self.groups != self.search_results.emojis:
+                    self.groups = self.search_results.emojis
+                    self.offset = 0
+                    self.mapping = make_mapping(self.groups)
+            elif self.groups != self.emojis:
+                self.groups = self.emojis
+                self.offset = 0
+                self.mapping = make_mapping(self.groups)
+
             self.in_search = True
             self.current_char = ""
             self.set_status("Type to filter emojis by category, name and tags.")
@@ -278,22 +288,14 @@ class KeyboardWidget(QWidget):
         if direction > 0:
             if self.offset > 0:
                 self.offset -= self.max_chars
-                if self.in_search:
-                    self.mapping = make_mapping(self.search_results.emojis, self.offset)
-                else:
-                    self.mapping = make_mapping(self.groups, self.offset)
+                self.mapping = make_mapping(self.groups, self.offset)
                 self.update()
 
         if direction < 0:
-            if self.in_search:
-                if self.offset < len(self.search_results.emojis) - self.max_chars:
-                    self.offset += self.max_chars
-                self.mapping = make_mapping(self.search_results.emojis, self.offset)
-            else:
-                if self.offset < len(self.groups) - self.max_chars:
-                    self.offset += self.max_chars
+            if self.offset < len(self.groups) - self.max_chars:
+                self.offset += self.max_chars
                 self.mapping = make_mapping(self.groups, self.offset)
-            self.update()
+                self.update()
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:  # type: ignore
         if event:

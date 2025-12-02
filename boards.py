@@ -44,6 +44,25 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
     return emojis
 
 
+# hexcode;name;category;...
+def read_unicode_data(file_path: str) -> list[Emoji]:
+    emojis: list[Emoji] = []
+    with open(file_path, mode="r", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile, delimiter=";")
+        for row in reader:
+            if len(row) >= 3 and row[1].startswith("BOX DRAWINGS "):
+                e = Emoji(
+                    chr(int(row[0], 16)), row[0], "Box Drawing", "", row[1].lower(), ""
+                )
+                emojis.append(e)
+            if len(row) >= 3 and row[1].find("ARROW") > -1:
+                e = Emoji(
+                    chr(int(row[0], 16)), row[0], "Arrows", "", row[1].lower(), ""
+                )
+                emojis.append(e)
+    return emojis
+
+
 class Group:
 
     def __init__(self, group_name: str, char: str = ""):
@@ -70,46 +89,70 @@ def normalize_group(emoji: Emoji) -> str | None:
     if g.startswith("extras-") or g == "component":
         return None
     if g == "smileys-emotion":
-        if sg in ("face-neutral-skeptical", "face-concerned", "face-negative"):
+        if sg in ("face-costume", "cat-face", "monkey-face") or emoji.unicode in (
+            "1F608",
+            "1F47F",
+            "1F480",
+            "2620",
+        ):
+            return "🤡"
+        if sg in ("face-neutral-skeptical"):
+            return "😐️"
+        if sg in ("face-hat", "face-glasses"):
+            return "🥳"
+        if sg in ("face-concerned", "face-negative"):
             return "☹️"
-        if sg in ("face-costume", "cat-face", "monkey-face"):
-            return "😺"
         if sg == "heart":
             return "❤️"
         else:
             return "😀"
-    if g == "animals-nature":
-        if sg.startswith("animal-"):
-            return "🐒"
-        elif sg.startswith("plant-"):
-            return "🌸"
-        else:
-            return "🌲"
-    if g == "food-drink":
-        if sg == "dishware":
-            return "🍽️"
-        return "🍎"
-    if g == "objects":
-        if sg.startswith("tool-"):
-            return "🔧"
-        if sg.startswith("music") or sg in ("sound",):
-            return "🎶"
-        return g
-    if g == "travel-places":
-        if sg == "sky-weather":
-            return "☀️"
-        if sg == "time":
-            return "⌚️"
-        return "🏠"
-    if g == "symbols":
-        return ""
     if g == "people-body":
         if sg.startswith("hand"):
             return "👍️"
         else:
             return "🧑"
+    if g == "animals-nature":
+        if sg.startswith("animal-"):
+            return "🐒"
+        elif sg.startswith("plant-"):
+            return "🌿"
+    if g == "food-drink":
+        if sg == "dishware":
+            return "🍽️"
+        return "🍎"
+    if g == "activities":
+        if sg == "event":
+            return "🎄"
+    if g == "travel-places":
+        if sg == "sky-weather":
+            return "☀️"
+        if sg.startswith("transport-"):
+            return "🚂"
+        if sg == "time":
+            return "⌚️"
+        return "🏖️"
+    if g == "objects":
+        if sg == "light-video":
+            return "📸"
+        if sg == "science":
+            return "⚗️"
+        if sg == "tool" or emoji.tags.find("tool") > -1:
+            return "🔧"
+        if sg == "clothing":
+            return "👕"
+        if sg.startswith("music") or sg in ("sound",):
+            return "🎶"
+        if sg in ("phone", "computer"):
+            return "📱"
+        # return g
+    if g == "symbols":
+        return "☯️"
     if emoji.group == "flags" and emoji.subgroup != "flag":
-        return "🏳️‍🌈"
+        return "🇦🇨"
+    if g == "Box Drawing":
+        return "╬"
+    if g == "Arrows":
+        return "➹"
     return emoji.group + ">" + emoji.subgroup
 
 
@@ -123,12 +166,13 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Group]:
         if g not in mapping:
             groups.append(Group(e.group, g if len(g) < 5 else ""))
             mapping[g] = groups[-1]
-        groups[-1].append(e)
+        mapping[g].append(e)
     return groups
 
 
 def get_emojis_groups() -> tuple[list[Emoji], list[Group]]:
     emojis = read_openmoji_csv("openmoji.csv")
+    emojis.extend(read_unicode_data("UnicodeData.txt"))
     groups = get_grouped_emojis(emojis)
     return (emojis, groups)
 
@@ -140,7 +184,7 @@ def main():
         print(emoji)
     print(f"Total groups: {len(groups)}")
     for g in groups:
-        print(f"{g.emojis[0].char}[{len(g.emojis)}] {g.group_name} > {g.subgroup_name}")
+        print(f"{g.char}[{len(g.emojis)}] {g.group_name} > {g.subgroup_name}")
 
 
 if __name__ == "__main__":
