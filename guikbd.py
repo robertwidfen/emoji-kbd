@@ -12,9 +12,15 @@ from PyQt5.QtCore import Qt, QRect, QObject, QEvent
 
 from boards import get_emojis_groups, Group, Emoji
 
+# TODO add more layouts
+# TODO add config
+# TODO add recent emojis
+# TODO add skin tone support
+# TODO add "scrollbar"
+
 kbd = """
 1234567890ß´
-qwert zuiopü+
+qwertzuiopü+
 asdfghjklöä#
 <yxcvbnm,.-
 """.strip()
