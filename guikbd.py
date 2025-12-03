@@ -53,13 +53,16 @@ class KeyboardWidget(QWidget):
         super().__init__()
         self.max_chars = sum(1 for char in kbd if not char.isspace())
         (self.emojis, self.groups) = get_emojis_groups()
+        self.recent_list = Group("Recent", "⟲")
+        self.search_results = Group("Search Results", "🔎")
+        self.groups.insert(0, self.recent_list)
+        self.groups.insert(1, self.search_results)
+
         self.mapping: dict[str, Group | Emoji] = make_mapping(self.groups)
         self.offset = 0
         self.top_groups = self.groups
-        self.top_mapping = self.mapping
-        self.search_results = Group("Search Results", "Matches")
-        self.in_search = False
         self.current_char = ""
+        self.prefix_key = False
 
         board_cols = max(len(line) for line in kbd.splitlines())
         board_rows = len(kbd.splitlines())
@@ -85,7 +88,7 @@ class KeyboardWidget(QWidget):
         self.search_field = QLineEdit(self)
         self.search_field.textChanged.connect(self.filter_emojis)
         # self.search_field.setTextMargins(4, 14, 4, 0)
-        self.search_field.setPlaceholderText("Search emojis by name or tags...")
+        self.search_field.setPlaceholderText("Search by category, name or tags...")
         self.search_field.installEventFilter(self)
 
         self.status_label = QLabel("Status: Ready", self)
@@ -107,8 +110,9 @@ class KeyboardWidget(QWidget):
         x = start_x
         y = start_y
 
-        self.key_font = QFont("Arial", 9)
+        self.key_font = QFont("Arial", 8)
         self.emoji_font = QFont("Noto Color Emoji", 22)
+        self.mark_font = QFont("Noto Color Emoji", 6)
 
         for row in kbd_board:
             for char in row:
@@ -124,8 +128,15 @@ class KeyboardWidget(QWidget):
                     if char in self.mapping:
                         e = self.mapping[char]
                         painter.setFont(self.emoji_font)
-                        rect = QRect(x + 2, y + 2, key_width, key_height)
+                        rect = QRect(x + 1, y + 4, key_width, key_height)
                         painter.drawText(rect, Qt.AlignCenter, e.char)  # type: ignore
+
+                        if e.mark is not None:
+                            painter.setFont(self.mark_font)
+                            rect = QRect(x, y + 4, key_width - 2, key_height)
+                            painter.drawText(
+                                rect, Qt.AlignRight | Qt.AlignTop, e.mark  # type: ignore
+                            )
 
                     if char != "ß" and char.isalpha():
                         char = char.upper()
@@ -138,10 +149,10 @@ class KeyboardWidget(QWidget):
             x = start_x
             y += key_height + key_padding
 
-    def restore_top_mapping(self):
+    def restore_top(self):
         self.groups = self.top_groups
         self.offset = 0
-        self.mapping = make_mapping(self.top_groups, offset=self.offset)
+        self.mapping = make_mapping(self.top_groups)
 
     def filter_emojis(self, search_term: str):
         search_term = search_term.lower()
@@ -174,6 +185,8 @@ class KeyboardWidget(QWidget):
             clipboard.setText(self.emoji_input_field.text())
 
     def set_status(self, obj: str | Group | Emoji):
+        if isinstance(obj, str) and obj in self.mapping:
+            obj = self.mapping[obj]
         if isinstance(obj, Group):
             obj = f"Group: {obj.group_name}\nSubgroup: {obj.subgroup_name}"
         elif isinstance(obj, Emoji):
@@ -182,8 +195,7 @@ class KeyboardWidget(QWidget):
 
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
-            self.restore_top_mapping()
-            self.in_search = False
+            self.restore_top()
             self.current_char = ""
             self.set_status("Type to select category or insert emojis.")
         elif new == self.search_field:
@@ -197,12 +209,13 @@ class KeyboardWidget(QWidget):
                 self.offset = 0
                 self.mapping = make_mapping(self.groups)
 
-            self.in_search = True
             self.current_char = ""
-            self.set_status("Type to filter emojis by category, name and tags.")
+            self.set_status(
+                "Type to filter emojis by category, subcategory, name and tags."
+            )
         elif new == self:
             self.set_status(
-                "Select an emoji by cursor movement, insert/open by Enter, go back by Backspace."
+                "Select category/emoji by cursor movement, open/insert by Enter, scroll by PageUp/PageDown, go back by Esc/Backspace."
             )
         self.update()
 
@@ -219,38 +232,54 @@ class KeyboardWidget(QWidget):
 
     def insert_emoji(self, emoji: Emoji):
         self.emoji_input_field.insert(emoji.char)
+        self.recent_list.append(emoji)
         self.copy_to_clipboard()
         self.set_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
 
     def handle_key(self, key: str):
+        if key == " ":
+            self.prefix_key = True
         if key not in self.mapping:
             return
+
         self.current_char = key
         e = self.mapping[key]
-
         if isinstance(e, Group):
             self.mapping = make_mapping(e.emojis)
             self.groups = e.emojis
             self.update()
         elif isinstance(e, Emoji):  # type: ignore
-            self.insert_emoji(e)
+            if not self.prefix_key:
+                self.insert_emoji(e)
+            else:
+                if e.skintone:
+                    self.mapping = make_mapping(e.skintone)
+                    self.groups = e.skintone
+                    self.update()
+                else:
+                    self.insert_emoji(e)
 
-        self.set_status(e)
+        if key in self.mapping:
+            e = self.mapping[key]
+            self.set_status(e)
+        self.update()
 
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()
         key_text = event.text()
-
-        if (
-            source is self.emoji_input_field or source is self
-        ) and key_text in self.mapping:
+        print(f"Key pressed: {key} '{key_text}' from {source}")
+        if (source in (self, self.emoji_input_field)) and (
+            key_text in self.mapping or key_text == " "
+        ):
             self.handle_key(key_text)
 
         elif key == Qt.Key_Tab:  # type: ignore
             if source is self.emoji_input_field:
-                self.search_field.setFocus()
-            elif source is self.search_field:
+                if not self.current_char:
+                    self.current_char = self.get_nearest_char(0, 0)
                 self.setFocus()
+            elif source is self:
+                self.search_field.setFocus()
             else:
                 self.emoji_input_field.setFocus()
             self.update()
@@ -259,8 +288,8 @@ class KeyboardWidget(QWidget):
             return self.handle_cursor_navigation(source, key)
 
         elif key == Qt.Key_Escape or (key == Qt.Key_Backspace and source == self):  # type: ignore
-            self.restore_top_mapping()
-            self.in_search = False
+            self.restore_top()
+            self.set_status(self.current_char)
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
             self.update()
@@ -297,34 +326,46 @@ class KeyboardWidget(QWidget):
                 self.mapping = make_mapping(self.groups, self.offset)
                 self.update()
 
+        self.set_status(self.current_char)
+
     def wheelEvent(self, event: QWheelEvent | None) -> None:  # type: ignore
         if event:
             self.scroll_board(event.angleDelta().y())
         return super().wheelEvent(event)
 
-    def get_nearest_char(self, row: str, col: int, left_only: bool = False) -> str:
+    def get_nearest_char(self, col: int, row: int, left_only: bool = False) -> str:
+        kbrow = kbd_board[row]
         if col < 0:
-            col = 0
-        elif col >= len(row):
-            col = len(row) - 1
-        if row[col] != " ":
-            return row[col]
-        for i in range(len(row)):
-            if not left_only and col + i < len(row) and row[col + i] != " ":
-                return row[col + i]
-            if col - i >= 0 and row[col - i] != " ":
-                return row[col - i]
+            col = len(kbrow) - 1
+        elif col >= len(kbrow):
+            col = len(kbrow) - 1
+        if kbrow[col] != " ":
+            return kbrow[col]
+        for i in range(len(kbrow)):
+            if not left_only and col + i < len(kbrow) and kbrow[col + i] != " ":
+                return kbrow[col + i]
+            if col - i >= 0 and kbrow[col - i] != " ":
+                return kbrow[col - i]
         return ""
+
+    def get_key_pos(self, char: str) -> tuple[int, int] | None:
+        for row, line in enumerate(kbd_board):
+            col = line.find(char)
+            if col > -1:
+                return (col, row)
+        return None
 
     def handle_cursor_navigation(self, source: QObject, key: int):
         (left, right, up, down, home, end) = (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_Home, Qt.Key_End)  # type: ignore
         if key == down and source is self.emoji_input_field:
-            self.current_char = self.get_nearest_char(kbd_board[0], 0)
+            if not self.current_char:
+                self.current_char = self.get_nearest_char(0, 0)
             self.setFocus()
             self.update()
             return True
         elif key == up and source is self.search_field:
-            self.current_char = self.get_nearest_char(kbd_board[0], 0)
+            if not self.current_char:
+                self.current_char = self.get_nearest_char(0, 0)
             if self.current_char in self.mapping:
                 self.setFocus()
             else:
@@ -333,92 +374,64 @@ class KeyboardWidget(QWidget):
             self.update()
             return True
         elif source is self:
-            if key == home and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > -1:
-                        self.current_char = self.get_nearest_char(kbd_board[i], 0)
-                        break
-            elif key == end and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > -1:
-                        self.current_char = self.get_nearest_char(
-                            kbd_board[i], len(kbd_board[i])
-                        )
-                        break
-            elif key == up and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > -1 and i == 0:
-                        self.emoji_input_field.setFocus()
-                        self.current_char = ""
-                        break
-                    if col > -1 and i > 0:
-                        self.current_char = self.get_nearest_char(kbd_board[i - 1], col)
-                        break
-            elif key == down and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > -1 and i + 1 < len(kbd_board):
-                        self.current_char = self.get_nearest_char(kbd_board[i + 1], col)
-                        if self.current_char in self.mapping:
-                            break
+            pos = self.get_key_pos(self.current_char)
+            if not pos:
+                return False
+            if key == home:
+                self.current_char = self.get_nearest_char(0, pos[1])
+            elif key == end:
+                self.current_char = self.get_nearest_char(-1, pos[1], True)
+            elif key == up:
+                if pos[1] == 0:
+                    self.emoji_input_field.setFocus()
                 else:
-                    self.current_char = ""
+                    self.current_char = self.get_nearest_char(pos[0], pos[1] - 1)
+            elif key == down:
+                if pos[1] + 1 == len(kbd_board):
                     self.search_field.setFocus()
-            elif key == left and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > 0:
-                        self.current_char = self.get_nearest_char(row, col - 1, True)
-                        break
-            elif key == right and self.current_char:
-                for i, row in enumerate(kbd_board):
-                    col = row.find(self.current_char)
-                    if col > -1 and col + 1 < len(row):
-                        self.current_char = self.get_nearest_char(row, col + 1)
-                        break
-            self.show_char_props_in_status(self.current_char)
+                else:
+                    self.current_char = self.get_nearest_char(pos[0], pos[1] + 1)
+            elif key == left:
+                if pos[0] > 0:
+                    self.current_char = self.get_nearest_char(pos[0] - 1, pos[1], True)
+                elif pos[1] > 0:
+                    self.current_char = self.get_nearest_char(-1, pos[1] - 1, True)
+            elif key == right:
+                if pos[0] + 1 < len(kbd_board[pos[1]]):
+                    self.current_char = self.get_nearest_char(pos[0] + 1, pos[1])
+                elif pos[1] + 1 < len(kbd_board):
+                    self.current_char = self.get_nearest_char(0, pos[1] + 1)
+            self.set_status(self.current_char)
             self.update()
             return True
         return False
 
     def get_char_from_position(self, x: int, y: int) -> str | None:
-        row = (y - start_y) // (key_height + key_padding)
         col = (x - start_x) // (key_width + key_padding)
+        row = (y - start_y) // (key_height + key_padding)
         if row >= 0 and col >= 0 and row < len(kbd_board) and col < len(kbd_board[row]):
+            xp = start_x + col * (key_width + key_padding) + key_width - 2 * key_padding
+            yp = start_y + row * (key_height + key_padding) + 2 * key_padding
+            # print(f"Mouse at row {row}, col {col} {x},{y} vs {xp},{yp}")
+            if x >= xp and y <= yp:
+                # print("On the padding area, ignoring.")
+                self.prefix_key = True
+            else:
+                self.prefix_key = False
             return kbd_board[row][col]
         return None
-
-    def handle_char_press(self, char: str):
-        if char in self.mapping:
-            e = self.mapping[char]
-
-            if isinstance(e, Group):
-                self.mapping = make_mapping(e.emojis)
-                self.groups = e.emojis
-                self.update()
-
-            elif isinstance(e, Emoji):  # type: ignore
-                self.emoji_input_field.insert(e.char)
-                self.copy_to_clipboard()
-
-        self.show_char_props_in_status(char)
-
-    def show_char_props_in_status(self, char: str):
-        if char in self.mapping:
-            e = self.mapping[char]
-            self.set_status(e)
 
     def mousePressEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
         if event and event.button() == Qt.LeftButton:  # type: ignore
             char = self.get_char_from_position(event.x(), event.y())
             if char:
-                self.handle_char_press(char)
+                self.handle_key(char)
                 self.current_char = char
         elif event and event.button() == Qt.RightButton:  # type: ignore
-            self.restore_top_mapping()
+            self.restore_top()
+            char = self.get_char_from_position(event.x(), event.y())
+            if char in self.mapping:
+                self.set_status(self.mapping[char])
             self.update()
 
         self.setFocus()
@@ -429,7 +442,7 @@ class KeyboardWidget(QWidget):
         if event:
             char = self.get_char_from_position(event.x(), event.y())
             if char and char != self.current_char:
-                self.show_char_props_in_status(char)
+                self.set_status(char)
                 self.current_char = char
                 self.update()
         return super().mouseMoveEvent(event)

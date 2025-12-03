@@ -2,74 +2,85 @@ import csv
 
 
 class Emoji:
+
     def __init__(
         self,
         char: str,
         unicode: str,
         group: str,
         subgroup: str,
-        annotation: str,
+        name: str,
         tags: str,
     ):
         self.char = char
         self.unicode = unicode
         self.group = group
         self.subgroup = subgroup
-        self.name = annotation
+        self.name = name
         self.tags = tags
-        self.skintone: list[Emoji] = []
+        self.skintone: list[Emoji] | None = None
+        self.mark: str | None = None
 
     def __repr__(self):
         return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup})"
+
+    def addSkintone(self, emoji: "Emoji"):
+        if not self.skintone:
+            self.skintone = []
+            self.mark = "🟤"
+        self.skintone.append(emoji)
 
 
 skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
 
 
+# openmoji.csv format:
 # emoji,hexcode,group,subgroups,annotation,tags,openmoji_tags
 def read_openmoji_csv(file_path: str) -> list[Emoji]:
     emojis: list[Emoji] = []
     with open(file_path, mode="r", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
-        # Skip header
-        next(reader)
+        next(reader)  # Skip header
         for row in reader:
-            if len(row) >= 3:  # Ensure there are enough columns
-                if any(st in row[1] for st in skintones):
-                    e = Emoji(*row[0:6])
-                    emojis[-1].skintone.append(e)
-                    continue
+            if len(row) <= 3:
+                continue  # Ensure there are enough columns
+            if any(st in row[1] for st in skintones):
                 e = Emoji(*row[0:6])
-                emojis.append(e)
+                emojis[-1].addSkintone(e)
+                continue
+            e = Emoji(*row[0:6])
+            emojis.append(e)
     return emojis
 
 
+# UnicodeData.txt format:
 # hexcode;name;category;...
 def read_unicode_data(file_path: str) -> list[Emoji]:
     emojis: list[Emoji] = []
     with open(file_path, mode="r", encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile, delimiter=";")
         for row in reader:
-            if len(row) >= 3 and row[1].startswith("BOX DRAWINGS "):
-                e = Emoji(
-                    chr(int(row[0], 16)), row[0], "Box Drawing", "", row[1].lower(), ""
-                )
+            if len(row) < 3:
+                continue
+            char = chr(int(row[0], 16))
+            unicode = row[0]
+            name = row[1].lower()
+            if name.startswith("box drawings "):
+                e = Emoji(char, unicode, "Box Drawing", "", name, "")
                 emojis.append(e)
-            if len(row) >= 3 and row[1].find("ARROW") > -1:
-                e = Emoji(
-                    chr(int(row[0], 16)), row[0], "Arrows", "", row[1].lower(), ""
-                )
+            elif name.find("arrow") > -1:
+                e = Emoji(char, unicode, "Arrows", "", name, "")
                 emojis.append(e)
     return emojis
 
 
 class Group:
-
     def __init__(self, group_name: str, char: str = ""):
         self.group_name = group_name
         self.subgroup_name = ""
         self.char = char
         self.emojis: list[Emoji] = []
+        self.mark: str | None = None
 
     def append(self, emoji: Emoji):
         if not self.char:
@@ -100,9 +111,9 @@ def normalize_group(emoji: Emoji) -> str | None:
             return "😐️"
         if sg in ("face-hat", "face-glasses"):
             return "🥳"
-        if sg in ("face-concerned", "face-negative"):
+        if sg in ("face-concerned", "face-negative", "face-unwell", "face-fearful"):
             return "☹️"
-        if sg == "heart":
+        if sg == "emotion" or sg == "heart":
             return "❤️"
         else:
             return "😀"
