@@ -69,9 +69,10 @@ class KeyboardWidget(QWidget):
         self.groups.insert(0, self.recent_list)
         self.groups.insert(1, self.search_results)
 
-        self.mapping: dict[str, Emoji] = make_mapping(self.groups)
+        self.groups_path: list[list[Emoji]] = []
+        self.mapping: dict[str, Emoji] = {}
         self.offset = 0
-        self.top_groups = self.groups
+        self.push_group(self.groups)
         self.current_char = ""
         self.prefix_key = False
 
@@ -164,11 +165,6 @@ class KeyboardWidget(QWidget):
             x = start_x
             y += key_height + key_padding
 
-    def restore_top(self):
-        self.groups = self.top_groups
-        self.offset = 0
-        self.mapping = make_mapping(self.top_groups)
-
     def match(self, haystack: str, needle: str) -> int:
         pos = haystack.find(needle)
         if pos == -1:
@@ -233,19 +229,14 @@ class KeyboardWidget(QWidget):
 
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
-            self.restore_top()
             self.current_char = ""
             self.show_status("Type to select category or insert emojis.")
         elif new == self.search_field:
             if self.search_field.text() != "":
                 if self.groups != self.search_results.emojis:
-                    self.groups = self.search_results.emojis
-                    self.offset = 0
-                    self.mapping = make_mapping(self.groups)
+                    self.push_group(self.search_results.emojis)
             elif self.groups != self.emojis:
-                self.groups = self.emojis
-                self.offset = 0
-                self.mapping = make_mapping(self.groups)
+                self.push_group(self.emojis)
 
             self.current_char = ""
             self.show_status(
@@ -312,6 +303,21 @@ class KeyboardWidget(QWidget):
         self.copy_to_clipboard()
         self.show_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
 
+    def push_group(self, emojis: list[Emoji]):
+        self.mapping = make_mapping(emojis)
+        self.groups_path.append(emojis)
+        self.groups = emojis
+        self.offset = 0
+        self.update()
+
+    def pop_group(self):
+        if len(self.groups_path) > 1:
+            self.groups_path.pop()
+        emojis = self.groups_path[-1]
+        self.mapping = make_mapping(emojis)
+        self.groups = emojis
+        self.update()
+
     def handle_key(self, key: str):
         self.prefix_key = key == " "
         if key not in self.mapping:
@@ -320,16 +326,12 @@ class KeyboardWidget(QWidget):
         self.current_char = key
         e = self.mapping[key]
         if e.emojis:
-            self.mapping = make_mapping(e.emojis)
-            self.groups = e.emojis
-            self.update()
+            self.push_group(e.emojis)
         else:
             if not self.prefix_key and e.unicode:
                 self.insert_emoji(e)
             elif e.emojis:
-                self.mapping = make_mapping(e.emojis)
-                self.groups = e.emojis
-                self.update()
+                self.push_group(e.emojis)
         if key in self.mapping:
             e = self.mapping[key]
             self.show_status(e)
@@ -373,7 +375,7 @@ class KeyboardWidget(QWidget):
         elif key == Qt.Key.Key_Escape or (
             key == Qt.Key.Key_Backspace and source == self
         ):
-            self.restore_top()
+            self.pop_group()
             self.show_status(self.current_char)
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
@@ -513,7 +515,7 @@ class KeyboardWidget(QWidget):
                 self.handle_key(char)
                 self.current_char = char
         elif event and event.button() == Qt.MouseButton.RightButton:
-            self.restore_top()
+            self.pop_group()
             char = self.get_char_from_position(event.pos().x(), event.pos().y())
             if char in self.mapping:
                 self.show_status(self.mapping[char])
