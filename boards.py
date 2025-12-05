@@ -6,31 +6,39 @@ class Emoji:
     def __init__(
         self,
         char: str,
-        unicode: str,
-        group: str,
-        subgroup: str,
-        name: str,
-        tags: str,
+        unicode: str = "",
+        group: str = "",
+        subgroup: str = "",
+        name: str = "",
+        tags: str = "",
+        order: int = 0,
     ):
-        self.char = char
-        self.unicode = unicode
-        self.group = group
-        self.subgroup = subgroup
-        self.name = name
-        self.tags = tags
-        self.skintone: list[Emoji] | None = None
-        self.mark: str | None = None
+        self.char = char  # the emoji character
+        self.unicode = unicode  # the unicode codepoint(s) as string
+        self.group = group  # the emoji group
+        self.subgroup = subgroup  # the emoji subgroup
+        self.name = name  # the emoji name/annotation
+        self.tags = tags  # the emoji tags
+        self.emojis: list[Emoji] = []  # list of sub emjojis, e.g. skintone variants
+        self.mark: str = ""  # mark for skintone variants, etc.
+        self.order = order  # order for sorting
 
     def __repr__(self):
-        return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup})"
+        return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup}, tags={self.tags}, emojis={len(self.emojis) if self.emojis else 0}, order={self.order})"
 
-    def addSkintone(self, emoji: "Emoji"):
-        if not self.skintone:
-            self.skintone = []
-            self.mark = "🟤"
-        self.skintone.append(emoji)
+    def add(self, emoji: "Emoji"):
+        if not self.emojis:
+            self.emojis = []
+        if not self.char:
+            self.char = emoji.char
+        if emoji.subgroup not in self.subgroup:
+            if self.subgroup:
+                self.subgroup += ", "
+            self.subgroup += emoji.subgroup
+        self.emojis.append(emoji)
 
 
+#             👍🏻        👍🏼        👍🏽        👍🏾        👍🏿
 skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
 
 
@@ -46,7 +54,9 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
                 continue  # Ensure there are enough columns
             if any(st in row[1] for st in skintones):
                 e = Emoji(*row[0:6])
-                emojis[-1].addSkintone(e)
+                if not emojis[-1].mark:
+                    emojis[-1].mark = "🟤"
+                emojis[-1].add(e)
                 continue
             e = Emoji(*row[0:6])
             emojis.append(e)
@@ -72,27 +82,6 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
                 e = Emoji(char, unicode, "Arrows", "", name, "")
                 emojis.append(e)
     return emojis
-
-
-class Group:
-    def __init__(self, group_name: str, char: str = ""):
-        self.group_name = group_name
-        self.subgroup_name = ""
-        self.char = char
-        self.emojis: list[Emoji] = []
-        self.mark: str | None = None
-
-    def append(self, emoji: Emoji):
-        if not self.char:
-            self.char = emoji.char
-        if emoji.subgroup not in self.subgroup_name:
-            if self.subgroup_name:
-                self.subgroup_name += ", "
-            self.subgroup_name += emoji.subgroup
-        self.emojis.append(emoji)
-
-    def __repr__(self):
-        return f"Group({self.group_name} {self.char})"
 
 
 def normalize_group(emoji: Emoji) -> str | None:
@@ -167,21 +156,22 @@ def normalize_group(emoji: Emoji) -> str | None:
     return emoji.group + ">" + emoji.subgroup
 
 
-def get_grouped_emojis(emojis: list[Emoji]) -> list[Group]:
-    groups: list[Group] = []
-    mapping: dict[str, Group] = {}
+def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
+    groups: list[Emoji] = []
+    mapping: dict[str, Emoji] = {}
     for e in emojis:
         g = normalize_group(e)
         if g is None:
             continue
         if g not in mapping:
-            groups.append(Group(e.group, g if len(g) < 5 else ""))
+            char = g if len(g) < 5 else ""
+            groups.append(Emoji(char, group=e.group, subgroup=e.subgroup))
             mapping[g] = groups[-1]
-        mapping[g].append(e)
+        mapping[g].add(e)
     return groups
 
 
-def get_emojis_groups() -> tuple[list[Emoji], list[Group]]:
+def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
     emojis = read_openmoji_csv("openmoji.csv")
     emojis.extend(read_unicode_data("UnicodeData.txt"))
     groups = get_grouped_emojis(emojis)
@@ -190,12 +180,10 @@ def get_emojis_groups() -> tuple[list[Emoji], list[Group]]:
 
 def main():
     (emojis, groups) = get_emojis_groups()
-    print(f"Total emojis loaded: {len(emojis)}")
-    for emoji in emojis[:50]:
-        print(emoji)
-    print(f"Total groups: {len(groups)}")
+    print(f"{len(emojis)} emojis loaded.")
+    print(f"{len(groups)} groups generated.")
     for g in groups:
-        print(f"{g.char}[{len(g.emojis)}] {g.group_name} > {g.subgroup_name}")
+        print(f"{g!r}")
 
 
 if __name__ == "__main__":

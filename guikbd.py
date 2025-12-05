@@ -1,3 +1,4 @@
+import json
 import sys
 import qdarktheme  # type: ignore
 from PyQt5.QtWidgets import (
@@ -10,7 +11,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRect, QObject, QEvent
 
-from boards import get_emojis_groups, Group, Emoji
+from boards import get_emojis_groups, Emoji
 
 # TODO add more layouts
 # TODO add config
@@ -28,10 +29,8 @@ asdfghjklöä#
 kbd_board = kbd.splitlines()
 
 
-def make_mapping(
-    objs: list[Group] | list[Emoji], offset: int = 0
-) -> dict[str, Group | Emoji]:
-    mapping: dict[str, Group | Emoji] = {}
+def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
+    mapping: dict[str, Emoji] = {}
     i = offset
     for k in kbd:
         if k not in (" ", "\n"):
@@ -53,12 +52,15 @@ class KeyboardWidget(QWidget):
         super().__init__()
         self.max_chars = sum(1 for char in kbd if not char.isspace())
         (self.emojis, self.groups) = get_emojis_groups()
-        self.recent_list = Group("Recent", "⟲")
-        self.search_results = Group("Search Results", "🔎")
+        self.recent_list = Emoji(name="Recent", char="⟲")
+        self.recent_list.emojis = []
+        self.load_recent()
+        self.search_results = Emoji(name="Search Results", char="🔎")
+        self.search_results.emojis = []
         self.groups.insert(0, self.recent_list)
         self.groups.insert(1, self.search_results)
 
-        self.mapping: dict[str, Group | Emoji] = make_mapping(self.groups)
+        self.mapping: dict[str, Emoji] = make_mapping(self.groups)
         self.offset = 0
         self.top_groups = self.groups
         self.current_char = ""
@@ -111,7 +113,7 @@ class KeyboardWidget(QWidget):
         y = start_y
 
         self.key_font = QFont("Arial", 8)
-        self.emoji_font = QFont("Noto Color Emoji", 22)
+        self.emoji_font = QFont("Noto Color Emoji", 20)
         self.mark_font = QFont("Noto Color Emoji", 6)
 
         for row in kbd_board:
@@ -128,10 +130,10 @@ class KeyboardWidget(QWidget):
                     if char in self.mapping:
                         e = self.mapping[char]
                         painter.setFont(self.emoji_font)
-                        rect = QRect(x + 1, y + 4, key_width, key_height)
+                        rect = QRect(x + 1, y, key_width, key_height)
                         painter.drawText(rect, Qt.AlignCenter, e.char)  # type: ignore
 
-                        if e.mark is not None:
+                        if e.mark:
                             painter.setFont(self.mark_font)
                             rect = QRect(x, y + 4, key_width - 2, key_height)
                             painter.drawText(
@@ -171,12 +173,12 @@ class KeyboardWidget(QWidget):
             if matches:
                 self.search_results.emojis.clear()
                 for e in matches:
-                    self.search_results.append(e)
+                    self.search_results.add(e)
                 self.mapping = make_mapping(self.search_results.emojis)
-                self.set_status(f"Found {len(matches)} matching emojis.")
+                self.show_status(f"Found {len(matches)} matching emojis.")
             else:
                 self.mapping = {}
-                self.set_status("No matching emojis found.")
+                self.show_status("No matching emojis found.")
         self.update()
 
     def copy_to_clipboard(self):
@@ -184,20 +186,32 @@ class KeyboardWidget(QWidget):
         if clipboard:
             clipboard.setText(self.emoji_input_field.text())
 
-    def set_status(self, obj: str | Group | Emoji):
+    def show_status(self, obj: str | Emoji):
         if isinstance(obj, str) and obj in self.mapping:
             obj = self.mapping[obj]
-        if isinstance(obj, Group):
-            obj = f"Group: {obj.group_name}\nSubgroup: {obj.subgroup_name}"
-        elif isinstance(obj, Emoji):
-            obj = f"{obj.unicode}, {obj.name}, {obj.group} > {obj.subgroup} \nTags: {obj.tags}"
+        if isinstance(obj, Emoji):
+            msg: list[str] = []
+            if obj.unicode:
+                msg.append(f"{obj.unicode}")
+            if obj.name:
+                msg.append(f"{obj.name}")
+            if obj.group:
+                if obj.subgroup:
+                    msg.append(f"{obj.group} > {obj.subgroup}")
+                else:
+                    msg.append(f"{obj.group}")
+            if obj.tags:
+                msg.append(f" \n{obj.tags}")
+            obj = ", ".join(msg)
+        if len(obj) == 1:
+            obj = ""
         self.status_label.setText(obj)
 
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
             self.restore_top()
             self.current_char = ""
-            self.set_status("Type to select category or insert emojis.")
+            self.show_status("Type to select category or insert emojis.")
         elif new == self.search_field:
             if self.search_field.text() != "":
                 if self.groups != self.search_results.emojis:
@@ -210,11 +224,11 @@ class KeyboardWidget(QWidget):
                 self.mapping = make_mapping(self.groups)
 
             self.current_char = ""
-            self.set_status(
+            self.show_status(
                 "Type to filter emojis by category, subcategory, name and tags."
             )
         elif new == self:
-            self.set_status(
+            self.show_status(
                 "Select category/emoji by cursor movement, open/insert by Enter, scroll by PageUp/PageDown, go back by Esc/Backspace."
             )
         self.update()
@@ -230,38 +244,68 @@ class KeyboardWidget(QWidget):
 
         return super().eventFilter(source, event)
 
+    def add_to_recent(self, emoji: Emoji):
+        if emoji not in self.recent_list.emojis:
+            self.recent_list.emojis.append(emoji)
+        if emoji.order < 100:
+            emoji.order += 10
+        if emoji.order >= 100:
+            emoji.order = 100
+            emoji.mark = "⭐️"
+        else:
+            emoji.mark = str(emoji.order)
+        self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
+        for e in self.recent_list.emojis:
+            if e != emoji and e.order < 100:
+                if e.order > -100:
+                    e.order -= 1
+                e.mark = str(e.order)
+
+    def load_recent(self):
+        try:
+            with open("recent.txt", "r", encoding="utf-8") as f:
+                for l in f.readlines():
+                    (order, unicode, char) = l.strip().split(",", 2)
+                    e = Emoji(char=char, unicode=unicode, order=int(order))
+                    self.recent_list.emojis.append(e)
+        except Exception as ex:
+            print(f"Error restoring recent emojis: {ex}")
+
+    def save_recent(self):
+        try:
+            with open("recent.txt", "w", encoding="utf-8") as f:
+                for e in self.recent_list.emojis:
+                    f.write(f"{e.order},{e.unicode},{e.char}\n")
+        except Exception as ex:
+            print(f"Error saving recent emojis: {ex}")
+
     def insert_emoji(self, emoji: Emoji):
         self.emoji_input_field.insert(emoji.char)
-        self.recent_list.append(emoji)
+        self.add_to_recent(emoji)
         self.copy_to_clipboard()
-        self.set_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
+        self.show_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
 
     def handle_key(self, key: str):
-        if key == " ":
-            self.prefix_key = True
+        self.prefix_key = key == " "
         if key not in self.mapping:
             return
 
         self.current_char = key
         e = self.mapping[key]
-        if isinstance(e, Group):
+        if e.emojis:
             self.mapping = make_mapping(e.emojis)
             self.groups = e.emojis
             self.update()
-        elif isinstance(e, Emoji):  # type: ignore
-            if not self.prefix_key:
+        else:
+            if not self.prefix_key and e.unicode:
                 self.insert_emoji(e)
-            else:
-                if e.skintone:
-                    self.mapping = make_mapping(e.skintone)
-                    self.groups = e.skintone
-                    self.update()
-                else:
-                    self.insert_emoji(e)
-
+            elif e.emojis:
+                self.mapping = make_mapping(e.emojis)
+                self.groups = e.emojis
+                self.update()
         if key in self.mapping:
             e = self.mapping[key]
-            self.set_status(e)
+            self.show_status(e)
         self.update()
 
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
@@ -289,7 +333,7 @@ class KeyboardWidget(QWidget):
 
         elif key == Qt.Key_Escape or (key == Qt.Key_Backspace and source == self):  # type: ignore
             self.restore_top()
-            self.set_status(self.current_char)
+            self.show_status(self.current_char)
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
             self.update()
@@ -297,6 +341,7 @@ class KeyboardWidget(QWidget):
         elif key in (Qt.Key_Return, Qt.Key_Enter):  # type: ignore
             if source is self.emoji_input_field:
                 self.copy_to_clipboard()
+                self.save_recent()
                 print(self.emoji_input_field.text())
                 self.close()
             if source is self and self.current_char:
@@ -326,7 +371,7 @@ class KeyboardWidget(QWidget):
                 self.mapping = make_mapping(self.groups, self.offset)
                 self.update()
 
-        self.set_status(self.current_char)
+        self.show_status(self.current_char)
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:  # type: ignore
         if event:
@@ -401,7 +446,7 @@ class KeyboardWidget(QWidget):
                     self.current_char = self.get_nearest_char(pos[0] + 1, pos[1])
                 elif pos[1] + 1 < len(kbd_board):
                     self.current_char = self.get_nearest_char(0, pos[1] + 1)
-            self.set_status(self.current_char)
+            self.show_status(self.current_char)
             self.update()
             return True
         return False
@@ -431,7 +476,7 @@ class KeyboardWidget(QWidget):
             self.restore_top()
             char = self.get_char_from_position(event.x(), event.y())
             if char in self.mapping:
-                self.set_status(self.mapping[char])
+                self.show_status(self.mapping[char])
             self.update()
 
         self.setFocus()
@@ -442,7 +487,7 @@ class KeyboardWidget(QWidget):
         if event:
             char = self.get_char_from_position(event.x(), event.y())
             if char and char != self.current_char:
-                self.set_status(char)
+                self.show_status(char)
                 self.current_char = char
                 self.update()
         return super().mouseMoveEvent(event)
