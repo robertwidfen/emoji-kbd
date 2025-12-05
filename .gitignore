@@ -1,5 +1,6 @@
 venv
 __pycache__
+.local
 openmoji.csv
 UnicodeData.txt*
 NamesList.txt

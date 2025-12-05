@@ -1,15 +1,14 @@
-import json
 import sys
 import qdarktheme  # type: ignore
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
     QVBoxLayout,
     QLineEdit,
     QLabel,
 )
-from PyQt5.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
-from PyQt5.QtCore import Qt, QRect, QObject, QEvent
+from PyQt6.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
+from PyQt6.QtCore import Qt, QRect, QObject, QEvent
 
 from boards import get_emojis_groups, Emoji
 
@@ -84,17 +83,21 @@ class KeyboardWidget(QWidget):
 
         self.emoji_input_field = QLineEdit(self)
         self.emoji_input_field.setFont(QFont("Noto Color Emoji", 16))
-        self.emoji_input_field.setAlignment(Qt.AlignTop | Qt.AlignLeft)  # type: ignore
+        self.emoji_input_field.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
         self.emoji_input_field.installEventFilter(self)
 
         self.search_field = QLineEdit(self)
-        self.search_field.textChanged.connect(self.filter_emojis)
+        self.search_field.textChanged.connect(self.filter_emojis)  # type: ignore
         # self.search_field.setTextMargins(4, 14, 4, 0)
         self.search_field.setPlaceholderText("Search by category, name or tags...")
         self.search_field.installEventFilter(self)
 
         self.status_label = QLabel("Status: Ready", self)
-        self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # type: ignore
+        self.status_label.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         self.status_label.setFont(QFont("Arial", 9))
         self.status_label.setWordWrap(True)
         self.status_label.setFixedHeight(30)
@@ -131,20 +134,20 @@ class KeyboardWidget(QWidget):
                         e = self.mapping[char]
                         painter.setFont(self.emoji_font)
                         rect = QRect(x + 1, y, key_width, key_height)
-                        painter.drawText(rect, Qt.AlignCenter, e.char)  # type: ignore
+                        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, e.char)  # type: ignore
 
                         if e.mark:
                             painter.setFont(self.mark_font)
                             rect = QRect(x, y + 4, key_width - 2, key_height)
                             painter.drawText(
-                                rect, Qt.AlignRight | Qt.AlignTop, e.mark  # type: ignore
+                                rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, e.mark  # type: ignore
                             )
 
                     if char != "ß" and char.isalpha():
                         char = char.upper()
                     painter.setFont(self.key_font)
                     rect = QRect(x + 2, y + 2, key_width, key_height)
-                    painter.drawText(rect, Qt.AlignLeft | Qt.AlignTop, char)  # type: ignore
+                    painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, char)  # type: ignore
 
                 x += key_width + key_padding
 
@@ -156,6 +159,14 @@ class KeyboardWidget(QWidget):
         self.offset = 0
         self.mapping = make_mapping(self.top_groups)
 
+    def match(self, haystack: str, needle: str) -> int:
+        pos = haystack.find(needle)
+        if pos == -1:
+            return 0
+        if pos == 0 or not haystack[pos - 1].isalpha():
+            return 2
+        return 1
+
     def filter_emojis(self, search_term: str):
         search_term = search_term.lower()
         if not search_term:
@@ -164,16 +175,19 @@ class KeyboardWidget(QWidget):
         else:
             matches: list[Emoji] = []
             for e in self.emojis:
-                if search_term in e.name.lower() or search_term in e.tags.lower():
+                match = self.match(e.name, search_term) or self.match(
+                    e.tags, search_term
+                )
+                if match and e not in matches:
+                    e.score = match  # type: ignore
                     matches.append(e)
                 # TODO search in group and subgroup too when ","" is used?
                 # TODO search for each term when multiple terms are given?
                 # TODO fuzzy search?
-                # TODO rank by relevance?
             if matches:
                 self.search_results.emojis.clear()
-                for e in matches:
-                    self.search_results.add(e)
+                matches.sort(key=lambda e: e.score)  # type: ignore
+                self.search_results.emojis.extend(matches)
                 self.mapping = make_mapping(self.search_results.emojis)
                 self.show_status(f"Found {len(matches)} matching emojis.")
             else:
@@ -236,7 +250,7 @@ class KeyboardWidget(QWidget):
     def eventFilter(self, source: QObject, event: QEvent):  # type: ignore
         if (
             event
-            and event.type() == event.KeyPress  # type: ignore
+            and event.type() == QEvent.Type.KeyPress
             and isinstance(event, QKeyEvent)
         ):
             if self.handle_keyboard_press(source, event):
@@ -267,6 +281,9 @@ class KeyboardWidget(QWidget):
                 for l in f.readlines():
                     (order, unicode, char) = l.strip().split(",", 2)
                     e = Emoji(char=char, unicode=unicode, order=int(order))
+                    if e.order >= 100:
+                        e.order = 100
+                        e.mark = "⭐️"
                     self.recent_list.emojis.append(e)
         except Exception as ex:
             print(f"Error restoring recent emojis: {ex}")
@@ -311,13 +328,12 @@ class KeyboardWidget(QWidget):
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()
         key_text = event.text()
-        print(f"Key pressed: {key} '{key_text}' from {source}")
         if (source in (self, self.emoji_input_field)) and (
             key_text in self.mapping or key_text == " "
         ):
             self.handle_key(key_text)
 
-        elif key == Qt.Key_Tab:  # type: ignore
+        elif key == Qt.Key.Key_Tab:
             if source is self.emoji_input_field:
                 if not self.current_char:
                     self.current_char = self.get_nearest_char(0, 0)
@@ -328,17 +344,26 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
             self.update()
 
-        elif key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_Home, Qt.Key_End):  # type: ignore
+        elif key in (
+            Qt.Key.Key_Left,
+            Qt.Key.Key_Right,
+            Qt.Key.Key_Up,
+            Qt.Key.Key_Down,
+            Qt.Key.Key_Home,
+            Qt.Key.Key_End,
+        ):
             return self.handle_cursor_navigation(source, key)
 
-        elif key == Qt.Key_Escape or (key == Qt.Key_Backspace and source == self):  # type: ignore
+        elif key == Qt.Key.Key_Escape or (
+            key == Qt.Key.Key_Backspace and source == self
+        ):
             self.restore_top()
             self.show_status(self.current_char)
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
             self.update()
 
-        elif key in (Qt.Key_Return, Qt.Key_Enter):  # type: ignore
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if source is self.emoji_input_field:
                 self.copy_to_clipboard()
                 self.save_recent()
@@ -347,10 +372,10 @@ class KeyboardWidget(QWidget):
             if source is self and self.current_char:
                 self.handle_key(self.current_char)
 
-        elif key == Qt.Key_PageUp:  # type: ignore
+        elif key == Qt.Key.Key_PageUp:
             self.scroll_board(1)
 
-        elif key == Qt.Key_PageDown:  # type: ignore
+        elif key == Qt.Key.Key_PageDown:
             self.scroll_board(-1)
 
         else:
@@ -401,14 +426,13 @@ class KeyboardWidget(QWidget):
         return None
 
     def handle_cursor_navigation(self, source: QObject, key: int):
-        (left, right, up, down, home, end) = (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_Home, Qt.Key_End)  # type: ignore
-        if key == down and source is self.emoji_input_field:
+        if key == Qt.Key.Key_Down and source is self.emoji_input_field:
             if not self.current_char:
                 self.current_char = self.get_nearest_char(0, 0)
             self.setFocus()
             self.update()
             return True
-        elif key == up and source is self.search_field:
+        elif key == Qt.Key.Key_Up and source is self.search_field:
             if not self.current_char:
                 self.current_char = self.get_nearest_char(0, 0)
             if self.current_char in self.mapping:
@@ -422,26 +446,26 @@ class KeyboardWidget(QWidget):
             pos = self.get_key_pos(self.current_char)
             if not pos:
                 return False
-            if key == home:
+            if key == Qt.Key.Key_Home:
                 self.current_char = self.get_nearest_char(0, pos[1])
-            elif key == end:
+            elif key == Qt.Key.Key_End:
                 self.current_char = self.get_nearest_char(-1, pos[1], True)
-            elif key == up:
+            elif key == Qt.Key.Key_Up:
                 if pos[1] == 0:
                     self.emoji_input_field.setFocus()
                 else:
                     self.current_char = self.get_nearest_char(pos[0], pos[1] - 1)
-            elif key == down:
+            elif key == Qt.Key.Key_Down:
                 if pos[1] + 1 == len(kbd_board):
                     self.search_field.setFocus()
                 else:
                     self.current_char = self.get_nearest_char(pos[0], pos[1] + 1)
-            elif key == left:
+            elif key == Qt.Key.Key_Left:
                 if pos[0] > 0:
                     self.current_char = self.get_nearest_char(pos[0] - 1, pos[1], True)
                 elif pos[1] > 0:
                     self.current_char = self.get_nearest_char(-1, pos[1] - 1, True)
-            elif key == right:
+            elif key == Qt.Key.Key_Right:
                 if pos[0] + 1 < len(kbd_board[pos[1]]):
                     self.current_char = self.get_nearest_char(pos[0] + 1, pos[1])
                 elif pos[1] + 1 < len(kbd_board):
@@ -467,14 +491,14 @@ class KeyboardWidget(QWidget):
         return None
 
     def mousePressEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
-        if event and event.button() == Qt.LeftButton:  # type: ignore
-            char = self.get_char_from_position(event.x(), event.y())
+        if event and event.button() == Qt.MouseButton.LeftButton:
+            char = self.get_char_from_position(event.pos().x(), event.pos().y())
             if char:
                 self.handle_key(char)
                 self.current_char = char
-        elif event and event.button() == Qt.RightButton:  # type: ignore
+        elif event and event.button() == Qt.MouseButton.RightButton:
             self.restore_top()
-            char = self.get_char_from_position(event.x(), event.y())
+            char = self.get_char_from_position(event.pos().x(), event.pos().y())
             if char in self.mapping:
                 self.show_status(self.mapping[char])
             self.update()
@@ -485,7 +509,7 @@ class KeyboardWidget(QWidget):
 
     def mouseMoveEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
         if event:
-            char = self.get_char_from_position(event.x(), event.y())
+            char = self.get_char_from_position(event.pos().x(), event.pos().y())
             if char and char != self.current_char:
                 self.show_status(char)
                 self.current_char = char
@@ -498,4 +522,4 @@ if __name__ == "__main__":
     qdarktheme.setup_theme()  # type: ignore
     window = KeyboardWidget()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
