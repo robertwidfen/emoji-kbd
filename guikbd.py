@@ -338,10 +338,16 @@ class KeyboardWidget(QWidget):
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()
         key_text = event.text()
-        if (source in (self, self.emoji_input_field)) and (
-            key_text in self.mapping or key_text == " "
+
+        if (
+            source in (self, self.emoji_input_field)
+            and len(key_text) == 1
+            and ord(key_text[0]) >= 32  # space
+            and ord(key_text[0]) != 127  # delete
+            and ord(key_text[0]) <= 255  # latin-1
         ):
-            self.handle_key(key_text)
+            if key_text in self.mapping or key_text == " ":
+                self.handle_key(key_text)
 
         elif key == Qt.Key.Key_Tab:
             if source is self.emoji_input_field:
