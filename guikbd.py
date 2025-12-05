@@ -1,5 +1,7 @@
 import sys
-import qdarktheme  # type: ignore
+# import qdarktheme  # type: ignore
+import qdarkstyle
+
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -519,7 +521,9 @@ class KeyboardWidget(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    qdarktheme.setup_theme()  # type: ignore
+    # Use Fusion style instead of Kvantum to avoid plugin compatibility issues in venv
+    app.setStyle("Fusion")
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
     window = KeyboardWidget()
     window.show()
     sys.exit(app.exec())
