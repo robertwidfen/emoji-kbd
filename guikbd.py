@@ -20,11 +20,19 @@ from boards import get_emojis_groups, Emoji
 # TODO add skin tone support
 # TODO add "scrollbar"
 
+# DE QWERTZ keyboard layout
 kbd = """
 1234567890ß´
 qwertzuiopü+
 asdfghjklöä#
 <yxcvbnm,.-
+""".strip()
+
+# Corne bone keyboard layout
+kbd = """
+jduax phlmw
+ctieo bnrsg
+?,vfq ykz.-
 """.strip()
 
 kbd_board = kbd.splitlines()
