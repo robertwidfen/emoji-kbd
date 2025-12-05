@@ -42,6 +42,17 @@ class Emoji:
 skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
 
 
+def make_emoji_from_row(row: list[str]) -> Emoji:
+    return Emoji(
+        char=row[0],
+        unicode=row[1],
+        group=row[2],
+        subgroup=row[3],
+        name=row[4],
+        tags=row[5],
+    )
+
+
 # openmoji.csv format:
 # emoji,hexcode,group,subgroups,annotation,tags,openmoji_tags
 def read_openmoji_csv(file_path: str) -> list[Emoji]:
@@ -53,12 +64,12 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
             if len(row) <= 3:
                 continue  # Ensure there are enough columns
             if any(st in row[1] for st in skintones):
-                e = Emoji(*row[0:6])
+                e = make_emoji_from_row(row)
                 if not emojis[-1].mark:
                     emojis[-1].mark = "🟤"
                 emojis[-1].add(e)
                 continue
-            e = Emoji(*row[0:6])
+            e = make_emoji_from_row(row)
             emojis.append(e)
     return emojis
 
