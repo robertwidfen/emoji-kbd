@@ -1,5 +1,4 @@
 import sys
-# import qdarktheme  # type: ignore
 import qdarkstyle
 
 from PyQt6.QtWidgets import (
