@@ -202,14 +202,14 @@ class KeyboardWidget(QWidget):
             for e in self.emojis:
                 match = self.match(e.name, needle) or self.match(e.tags, needle)
                 if match and e not in matches:
-                    e.score = match  # type: ignore
+                    e.order = match
                     matches.append(e)
                 # TODO search in group and subgroup too when ","" is used?
                 # TODO search for each term when multiple terms are given?
                 # TODO fuzzy search?
             if matches:
                 self.search_results.emojis.clear()
-                matches.sort(key=lambda e: e.score, reverse=True)  # type: ignore
+                matches.sort(key=lambda e: e.order, reverse=True)
                 self.search_results.emojis.extend(matches)
                 self.mapping = make_mapping(self.search_results.emojis)
                 self.show_status(f"Found {len(matches)} matching emojis.")
@@ -274,32 +274,45 @@ class KeyboardWidget(QWidget):
         return super().eventFilter(source, event)
 
     def add_to_recent(self, emoji: Emoji):
-        if emoji not in self.recent_list.emojis:
+        if emoji.char not in [e.char for e in self.recent_list.emojis]:
+            emoji = Emoji(char=emoji.char, unicode=emoji.unicode, order=emoji.order)
             self.recent_list.emojis.append(emoji)
+        emoji = next(e for e in self.recent_list.emojis if e.char == emoji.char)
         if emoji.order < 100:
             emoji.order += 10
-        if emoji.order >= 100:
-            emoji.order = 100
-            emoji.mark = "⭐️"
-        else:
-            emoji.mark = str(emoji.order)
-        self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
+            if emoji.order >= 100:
+                emoji.order = 100
+                emoji.mark = "⭐️"
+            else:
+                emoji.mark = str(emoji.order)
         for e in self.recent_list.emojis:
             if e != emoji and e.order < 100:
-                if e.order > -100:
+                if e.order > 0:
                     e.order -= 1
                 e.mark = str(e.order)
+        self.recent_list.emojis = self.recent_list.emojis[:100]
+        self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
 
     def load_recent(self):
         try:
             with open("recent.txt", "r", encoding="utf-8") as f:
+                recent_list = []
                 for l in f.readlines():
                     (order, unicode, char) = l.strip().split(",", 2)
                     e = Emoji(char=char, unicode=unicode, order=int(order))
                     if e.order >= 100:
                         e.order = 100
                         e.mark = "⭐️"
-                    self.recent_list.emojis.append(e)
+                    else:
+                        if e.order < 0:
+                            e.order = 0
+                        e.mark = str(e.order)
+                    recent_list.append(e)
+                recent_list = list({e.char: e for e in reversed(recent_list)}.values())[
+                    ::-1
+                ]
+                recent_list.sort(key=lambda e: e.order, reverse=True)
+                self.recent_list.emojis = recent_list
         except Exception as ex:
             print(f"Error restoring recent emojis: {ex}", file=sys.stderr)
 

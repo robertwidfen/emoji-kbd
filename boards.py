@@ -21,7 +21,7 @@ class Emoji:
         self.tags = tags  # the emoji tags
         self.emojis: list[Emoji] = []  # list of sub emjojis, e.g. skintone variants
         self.mark: str = ""  # mark for skintone variants, etc.
-        self.order = order  # order for sorting
+        self.order = order  # order for sorting and recently used
 
     def __repr__(self):
         return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup}, tags={self.tags}, emojis={len(self.emojis) if self.emojis else 0}, order={self.order})"
