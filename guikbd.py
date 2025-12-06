@@ -325,19 +325,15 @@ class KeyboardWidget(QWidget):
         self.update()
 
     def handle_key(self, key: str):
-        self.prefix_key = key == " "
         if key not in self.mapping:
             return
 
         self.current_char = key
         e = self.mapping[key]
-        if e.emojis:
+        if not self.prefix_key and e.unicode:
+            self.insert_emoji(e)
+        elif e.emojis:
             self.push_group(e.emojis)
-        else:
-            if not self.prefix_key and e.unicode:
-                self.insert_emoji(e)
-            elif e.emojis:
-                self.push_group(e.emojis)
         if key in self.mapping:
             e = self.mapping[key]
             self.show_status(e)
@@ -349,13 +345,16 @@ class KeyboardWidget(QWidget):
 
         if (
             source in (self, self.emoji_input_field)
-            and len(key_text) == 1
-            and ord(key_text[0]) >= 32  # space
-            and ord(key_text[0]) != 127  # delete
-            and ord(key_text[0]) <= 255  # latin-1
+            and len(key_text) == 1  # single character for safety
+            and key >= 32  # space
+            and key != 127  # delete
+            and key <= 255  # latin-1
         ):
-            if key_text in self.mapping or key_text == " ":
+            if key_text == " ":
+                self.prefix_key = key_text == " "
+            elif key_text in self.mapping:
                 self.handle_key(key_text)
+                self.prefix_key = False
 
         elif key == Qt.Key.Key_Tab:
             if source is self.emoji_input_field:
