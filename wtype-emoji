@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+python guikbd.py | wl-copy --trim-newline
+wtype -M shift -k Insert -m shift
