@@ -59,7 +59,12 @@ class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.max_chars = sum(1 for char in kbd if not char.isspace())
+        print(f"Max chars on board: {self.max_chars}", file=sys.stderr)
         (self.emojis, self.groups) = get_emojis_groups()
+        print(
+            f"Loaded {len(self.emojis)} emojis in {len(self.groups)} groups",
+            file=sys.stderr,
+        )
         self.recent_list = Emoji(name="Recent", char="⟲")
         self.recent_list.emojis = []
         self.load_recent()
@@ -292,7 +297,7 @@ class KeyboardWidget(QWidget):
                         e.mark = "⭐️"
                     self.recent_list.emojis.append(e)
         except Exception as ex:
-            print(f"Error restoring recent emojis: {ex}")
+            print(f"Error restoring recent emojis: {ex}", file=sys.stderr)
 
     def save_recent(self):
         try:
@@ -300,8 +305,7 @@ class KeyboardWidget(QWidget):
                 for e in self.recent_list.emojis:
                     f.write(f"{e.order},{e.unicode},{e.char}\n")
         except Exception as ex:
-            print(f"Error saving recent emojis: {ex}")
-
+            print(f"Error saving recent emojis: {ex}", file=sys.stderr)
     def insert_emoji(self, emoji: Emoji):
         self.emoji_input_field.insert(emoji.char)
         self.add_to_recent(emoji)
@@ -546,6 +550,7 @@ class KeyboardWidget(QWidget):
 
 
 if __name__ == "__main__":
+    print("Starting Emoji Keyboard...", file=sys.stderr)
     app = QApplication(sys.argv)
     # Use Fusion style instead of Kvantum to avoid plugin compatibility issues in venv
     app.setStyle("Fusion")
