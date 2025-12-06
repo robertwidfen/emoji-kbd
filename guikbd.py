@@ -540,9 +540,8 @@ class KeyboardWidget(QWidget):
 if __name__ == "__main__":
     print("Starting Emoji Keyboard...", file=sys.stderr)
     app = QApplication(sys.argv)
-    # Use Fusion style instead of Kvantum to avoid plugin compatibility issues in venv
-    app.setStyle("Fusion")
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
+    app.setQuitOnLastWindowClosed(True)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
     window = KeyboardWidget()
     window.show()
     sys.exit(app.exec())
