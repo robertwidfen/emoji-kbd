@@ -13,11 +13,10 @@ from PyQt6.QtCore import Qt, QRect, QObject, QEvent
 
 from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
+# TODO change input field and search to be in one line
+# TODO add "scrollbar"
 # TODO add more layouts
 # TODO add config
-# TODO add recent emojis
-# TODO add skin tone support
-# TODO add "scrollbar"
 
 
 start_x = 10
@@ -261,7 +260,7 @@ class KeyboardWidget(QWidget):
 
     def add_to_recent(self, emoji: Emoji):
         if emoji.char not in [e.char for e in self.recent_list.emojis]:
-            emoji = Emoji(char=emoji.char, unicode=emoji.unicode, order=emoji.order)
+            emoji = emoji.clone()
             self.recent_list.emojis.append(emoji)
         emoji = next(e for e in self.recent_list.emojis if e.char == emoji.char)
         if emoji.order < 100:
@@ -276,27 +275,31 @@ class KeyboardWidget(QWidget):
                 if e.order > 0:
                     e.order -= 1
                 e.mark = str(e.order)
-        self.recent_list.emojis = self.recent_list.emojis[:100]
+        # sort and keep only top 100
         self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
+        self.recent_list.emojis = self.recent_list.emojis[:100]
 
     def load_recent(self):
         try:
             with open("recent.txt", "r", encoding="utf-8") as f:
                 recent_list = []
                 for l in f.readlines():
-                    (order, unicode, char) = l.strip().split(",", 2)
-                    e = Emoji(char=char, unicode=unicode, order=int(order))
-                    if e.order >= 100:
-                        e.order = 100
+                    (order, char, unicode, name, group, subgroup, tags) = (
+                        l.strip().split(";", 6)
+                    )
+                    order = int(order)
+                    e = Emoji(*(char, unicode, group, subgroup, name, tags))
+                    if order >= 100:
                         e.mark = "⭐️"
-                    else:
-                        if e.order < 0:
-                            e.order = 0
-                        e.mark = str(e.order)
+                    elif order < 0:
+                        order = 0
+                        e.mark = str(order)
+                    e.order = order
                     recent_list.append(e)
-                recent_list = list({e.char: e for e in reversed(recent_list)}.values())[
-                    ::-1
-                ]
+                # Remove duplicates while preserving order
+                recent_list = {e.char: e for e in reversed(recent_list)}
+                recent_list = list(reversed(list(recent_list.values())))
+                # Ensure order
                 recent_list.sort(key=lambda e: e.order, reverse=True)
                 self.recent_list.emojis = recent_list
         except Exception as ex:
@@ -306,9 +309,12 @@ class KeyboardWidget(QWidget):
         try:
             with open("recent.txt", "w", encoding="utf-8") as f:
                 for e in self.recent_list.emojis:
-                    f.write(f"{e.order},{e.unicode},{e.char}\n")
+                    f.write(
+                        f"{e.order};{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n"
+                    )
         except Exception as ex:
             print(f"Error saving recent emojis: {ex}", file=sys.stderr)
+
     def insert_emoji(self, emoji: Emoji):
         self.emoji_input_field.insert(emoji.char)
         self.add_to_recent(emoji)

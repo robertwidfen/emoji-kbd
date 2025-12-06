@@ -37,6 +37,20 @@ class Emoji:
             self.subgroup += emoji.subgroup
         self.emojis.append(emoji)
 
+    def clone(self) -> "Emoji":
+        e = Emoji(
+            char=self.char,
+            unicode=self.unicode,
+            group=self.group,
+            subgroup=self.subgroup,
+            name=self.name,
+            tags=self.tags,
+            order=self.order,
+        )
+        e.emojis = self.emojis.copy()
+        e.mark = self.mark
+        return e
+
 
 #             👍🏻        👍🏼        👍🏽        👍🏾        👍🏿
 skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
