@@ -239,18 +239,15 @@ class KeyboardWidget(QWidget):
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
             self.current_char = ""
+            if old == self.search_field and not self.search_results.emojis:
+                self.pop_group()
             self.show_status("Type to select category or insert emojis.")
         elif new == self.search_field:
-            if self.search_field.text() != "":
-                if self.groups != self.search_results.emojis:
-                    self.push_group(self.search_results.emojis)
-            elif self.groups != self.emojis:
-                self.push_group(self.emojis)
-
             self.current_char = ""
-            self.show_status(
-                "Type to filter emojis by category, subcategory, name and tags."
-            )
+            if self.groups != self.search_results.emojis:
+                self.push_group(self.search_results.emojis)
+            self.filter_emojis(self.search_field.text())
+            self.show_status("Type to filter emojis by name or tag.")
         elif new == self:
             self.show_status(
                 "Select category/emoji by cursor movement, open/insert by Enter, scroll by PageUp/PageDown, go back by Esc/Backspace."
@@ -460,13 +457,8 @@ class KeyboardWidget(QWidget):
             self.update()
             return True
         elif key == Qt.Key.Key_Up and source is self.search_field:
-            if not self.current_char:
-                self.current_char = self.get_nearest_char(0, 0)
-            if self.current_char in self.mapping:
-                self.setFocus()
-            else:
-                self.emoji_input_field.setFocus()
-                self.current_char = ""
+            self.current_char = self.get_nearest_char(0, 0)
+            self.setFocus()
             self.update()
             return True
         elif source is self:
