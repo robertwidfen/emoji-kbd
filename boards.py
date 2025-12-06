@@ -61,8 +61,9 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
         reader = csv.reader(csvfile)
         next(reader)  # Skip header
         for row in reader:
-            if len(row) <= 3:
-                continue  # Ensure there are enough columns
+            # Skip invalid or extra emojis
+            if len(row) <= 3 or row[2] == "extras-openmoji":
+                continue
             if any(st in row[1] for st in skintones):
                 e = make_emoji_from_row(row)
                 if not emojis[-1].mark:
