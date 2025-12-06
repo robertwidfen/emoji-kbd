@@ -167,23 +167,32 @@ class KeyboardWidget(QWidget):
 
     def match(self, haystack: str, needle: str) -> int:
         pos = haystack.find(needle)
+        score = 0
         if pos == -1:
-            return 0
-        if pos == 0 or not haystack[pos - 1].isalpha():
-            return 2
-        return 1
+            return score
+        score = 1  # macth anywhere scores with 1
+        if pos == 0 or not haystack[pos - 1].isalnum():
+            # match at beginning word start adds 2 points
+            score += 2
+        if (
+            pos + len(needle) == len(haystack)
+            or not haystack[pos + len(needle)].isalnum()
+        ):
+            # match at end word end adds 1 point
+            score += 1
+        return score
 
-    def filter_emojis(self, search_term: str):
-        search_term = search_term.lower()
-        if not search_term:
-            self.groups = self.emojis
-            self.mapping = make_mapping(self.groups)
+    def filter_emojis(self, needle: str):
+        needle = needle.lower()
+        self.search_results.emojis.clear()
+        if not needle:
+            self.search_results.emojis.extend(self.emojis)
+            self.mapping = make_mapping(self.search_results.emojis)
+            self.show_status(f"All {len(self.emojis)} emojis.")
         else:
             matches: list[Emoji] = []
             for e in self.emojis:
-                match = self.match(e.name, search_term) or self.match(
-                    e.tags, search_term
-                )
+                match = self.match(e.name, needle) or self.match(e.tags, needle)
                 if match and e not in matches:
                     e.score = match  # type: ignore
                     matches.append(e)
@@ -192,7 +201,7 @@ class KeyboardWidget(QWidget):
                 # TODO fuzzy search?
             if matches:
                 self.search_results.emojis.clear()
-                matches.sort(key=lambda e: e.score)  # type: ignore
+                matches.sort(key=lambda e: e.score, reverse=True)  # type: ignore
                 self.search_results.emojis.extend(matches)
                 self.mapping = make_mapping(self.search_results.emojis)
                 self.show_status(f"Found {len(matches)} matching emojis.")
