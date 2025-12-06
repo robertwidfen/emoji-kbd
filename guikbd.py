@@ -31,10 +31,10 @@ class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.max_chars = sum(1 for char in kbd if not char.isspace())
-        print(f"Max chars on board: {self.max_chars}", file=sys.stderr)
+        print(f"{self.max_chars} chars on board.", file=sys.stderr)
         (self.emojis, self.board) = get_emojis_boards()
         print(
-            f"Loaded {len(self.emojis)} emojis in {len(self.board)} groups",
+            f"{len(self.emojis)} emojis in {len(self.board)} groups loaded.",
             file=sys.stderr,
         )
         self.recent_list = Emoji(name="Recent", char="⟲")
@@ -78,7 +78,7 @@ class KeyboardWidget(QWidget):
         self.search_field = QLineEdit(self)
         self.search_field.textChanged.connect(self.filter_emojis)  # type: ignore
         # self.search_field.setTextMargins(4, 14, 4, 0)
-        self.search_field.setPlaceholderText("Search by category, name or tags...")
+        self.search_field.setPlaceholderText("Search...")
         self.search_field.installEventFilter(self)
 
         self.status_label = QLabel("Status: Ready", self)
@@ -221,13 +221,17 @@ class KeyboardWidget(QWidget):
             self.current_char = ""
             if old == self.search_field and not self.search_results.emojis:
                 self.pop_board()
-            self.show_status("Type to select category or insert emojis.")
+            self.show_status(
+                "Type to select category or insert emojis. Space is prefix key for variants."
+            )
         elif new == self.search_field:
             self.current_char = ""
             if self.board != self.search_results.emojis:
                 self.push_board(self.search_results.emojis)
             self.filter_emojis(self.search_field.text())
-            self.show_status("Type to filter emojis by name or tag.")
+            self.show_status(
+                "Type to search emojis by (group?','subgroup?|'#'code|name|tags)."
+            )
         elif new == self:
             self.show_status(
                 "Select category/emoji by cursor movement, open/insert by Enter, scroll by PageUp/PageDown, go back by Esc/Backspace."
