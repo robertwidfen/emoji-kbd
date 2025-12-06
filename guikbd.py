@@ -5,8 +5,10 @@ from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QLineEdit,
     QLabel,
+    QStyle,
 )
 from PyQt6.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QObject, QEvent
@@ -29,6 +31,8 @@ key_padding = 5
 class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Emoji Keyboard")
+
         self.max_chars = sum(1 for char in kbd if not char.isspace())
         print(f"{self.max_chars} chars on board.", file=sys.stderr)
         (self.emojis, self.board) = get_emojis_boards()
@@ -51,59 +55,92 @@ class KeyboardWidget(QWidget):
         self.current_char = ""
         self.prefix_key = False
 
-        board_cols = max(len(line) for line in kbd.splitlines())
-        board_rows = len(kbd.splitlines())
-
-        width = start_x + board_cols * (key_width + key_padding) + key_padding
-        height = start_y + board_rows * (key_width + key_padding) + key_padding + 73
-        self.setGeometry(100, 100, width, height)
-        self.setMouseTracking(True)
-        QApplication.instance().focusChanged.connect(self.handle_focus_change)  # type: ignore
-        self.setWindowTitle("Emoji Keyboard")
-
         self.initUI()
 
     def initUI(self):
+        # Set up event handlers
+        self.setMouseTracking(True)
         self.installEventFilter(self)
+        QApplication.instance().focusChanged.connect(self.handle_focus_change)  # type: ignore
+
+        # Set up fonts
+        self.key_font = QFont("Arial", 8)
+        self.emoji_font = QFont("Noto Color Emoji", 20)
+        self.mark_font = QFont("Noto Color Emoji", 6)
+
+        # Set up the main layout and elements
         main_vbox = QVBoxLayout()
 
-        self.emoji_input_field = QLineEdit(self)
-        self.emoji_input_field.setFont(QFont("Noto Color Emoji", 16))
-        self.emoji_input_field.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
-        self.emoji_input_field.installEventFilter(self)
+        # Create horizontal layout for input and search fields
+        top_hbox = QHBoxLayout()
+        top_hbox.setSpacing(key_padding - 1)
 
-        self.search_field = QLineEdit(self)
-        self.search_field.textChanged.connect(self.filter_emojis)  # type: ignore
-        # self.search_field.setTextMargins(4, 14, 4, 0)
-        self.search_field.setPlaceholderText("Search...")
-        self.search_field.installEventFilter(self)
+        font_size = QApplication.font().pointSize()
+        w = QLineEdit(self)
+        w.setFont(QFont("Noto Color Emoji", font_size + 4))
+        w.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        w.installEventFilter(self)
+        self.emoji_input_field = w
 
-        self.status_label = QLabel("Status: Ready", self)
-        self.status_label.setAlignment(
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-        )
-        self.status_label.setFont(QFont("Arial", 9))
-        self.status_label.setWordWrap(True)
-        self.status_label.setFixedHeight(30)
+        w = QLineEdit(self)
+        w.setFixedHeight(self.emoji_input_field.sizeHint().height())
+        w.font().setPointSize(font_size)
+        w.setPlaceholderText("Search...")
+        w.textChanged.connect(self.filter_emojis)
+        w.installEventFilter(self)
+        self.search_field = w
 
-        main_vbox.addWidget(self.emoji_input_field)
+        top_hbox.addWidget(self.emoji_input_field)
+        top_hbox.addWidget(self.search_field)
+
+        w = QLabel("Status: Ready", self)
+        w.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        w.setFont(QFont("Arial", 9))
+        w.setWordWrap(True)
+        w.setFixedHeight(35)
+        self.status_label = w
+
+        main_vbox.addLayout(top_hbox)
         main_vbox.addStretch(1)
-        main_vbox.addWidget(self.search_field)
         main_vbox.addWidget(self.status_label)
 
         self.setLayout(main_vbox)
+
+        # Calculate board position and window size
+        board_cols = max(len(line) for line in kbd.splitlines())
+        board_rows = len(kbd.splitlines())
+
+        style = QApplication.style()
+        if style:
+            default_spacing = style.pixelMetric(
+                QStyle.PixelMetric.PM_LayoutHorizontalSpacing
+            )
+            print(f"Default spacing: {default_spacing}", file=sys.stderr)
+            global start_y, start_x
+            # start_x = default_spacing * 2 + 1
+            start_x = (
+                top_hbox.geometry().x()
+                + self.emoji_input_field.geometry().x()
+                + default_spacing * 2
+                + 1
+            )
+            start_y = self.emoji_input_field.sizeHint().height() + default_spacing * 4
+
+        width = start_x + board_cols * (key_width + key_padding) + key_padding - 3
+        height = (
+            start_y
+            + board_rows * (key_width + key_padding)
+            + key_padding
+            - 2
+            + self.status_label.sizeHint().height()
+        )
+        self.setFixedSize(width, height)
 
     def paintEvent(self, _event):  # type: ignore
         painter = QPainter(self)
 
         x = start_x
         y = start_y
-
-        self.key_font = QFont("Arial", 8)
-        self.emoji_font = QFont("Noto Color Emoji", 20)
-        self.mark_font = QFont("Noto Color Emoji", 6)
 
         for row in kbd_board:
             for char in row:
@@ -231,7 +268,8 @@ class KeyboardWidget(QWidget):
             if old == self.search_field and not self.search_results.emojis:
                 self.pop_board()
             self.show_status(
-                "Type to select category or insert emojis. Space is prefix key for variants."
+                "Type key to insert emoji or open group board.\n"
+                "Use space as prefix key to open variants board."
             )
         elif new == self.search_field:
             self.current_char = ""
@@ -239,11 +277,13 @@ class KeyboardWidget(QWidget):
                 self.push_board(self.search_results.emojis)
             self.filter_emojis(self.search_field.text())
             self.show_status(
-                "Type to search emojis by (group?','subgroup?|'#'code|name|tags)."
+                "Type to search emojis by name, tag or #unicode.\n"
+                "Use ',' to separate group and subgroup search terms."
             )
         elif new == self:
             self.show_status(
-                "Select category/emoji by cursor movement, open/insert by Enter, scroll by PageUp/PageDown, go back by Esc/Backspace."
+                "Cursor movement to select emoji/group, Enter inserts emoji or opens group.\n"
+                "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
             )
         self.update()
 
@@ -298,7 +338,7 @@ class KeyboardWidget(QWidget):
                     recent_list.append(e)
                 # Remove duplicates while preserving order
                 recent_list = {e.char: e for e in reversed(recent_list)}
-                recent_list = list(reversed(list(recent_list.values())))
+                recent_list = list(reversed(recent_list.values()))
                 # Ensure order
                 recent_list.sort(key=lambda e: e.order, reverse=True)
                 self.recent_list.emojis = recent_list
@@ -370,22 +410,22 @@ class KeyboardWidget(QWidget):
 
         elif key == Qt.Key.Key_Backtab:
             if source is self.emoji_input_field:
-                self.search_field.setFocus()
-            elif source is self:
-                self.emoji_input_field.setFocus()
-            else:
                 if not self.current_char:
                     self.current_char = self.get_nearest_char(0, 0)
                 self.setFocus()
+            elif source is self.search_field:
+                self.emoji_input_field.setFocus()
+            else:
+                self.search_field.setFocus()
             self.update()
 
         elif key == Qt.Key.Key_Tab:
             if source is self.emoji_input_field:
+                self.search_field.setFocus()
+            elif source is self.search_field:
                 if not self.current_char:
                     self.current_char = self.get_nearest_char(0, 0)
                 self.setFocus()
-            elif source is self:
-                self.search_field.setFocus()
             else:
                 self.emoji_input_field.setFocus()
             self.update()
@@ -415,7 +455,11 @@ class KeyboardWidget(QWidget):
                 self.save_recent()
                 print(self.emoji_input_field.text())
                 self.close()
-            if source is self and self.current_char:
+            elif source is self.search_field:
+                self.current_char = self.get_nearest_char(0, 0)
+                self.insert_emoji(self.mapping[self.current_char])
+                self.update()
+            elif source is self and self.current_char:
                 self.handle_key(self.current_char)
 
         elif key == Qt.Key.Key_PageUp:
@@ -472,14 +516,9 @@ class KeyboardWidget(QWidget):
         return None
 
     def handle_cursor_navigation(self, source: QObject, key: int):
-        if key == Qt.Key.Key_Down and source is self.emoji_input_field:
+        if key == Qt.Key.Key_Down and source is not self:
             if not self.current_char:
                 self.current_char = self.get_nearest_char(0, 0)
-            self.setFocus()
-            self.update()
-            return True
-        elif key == Qt.Key.Key_Up and source is self.search_field:
-            self.current_char = self.get_nearest_char(0, 0)
             self.setFocus()
             self.update()
             return True
@@ -497,9 +536,7 @@ class KeyboardWidget(QWidget):
                 else:
                     self.current_char = self.get_nearest_char(pos[0], pos[1] - 1)
             elif key == Qt.Key.Key_Down:
-                if pos[1] + 1 == len(kbd_board):
-                    self.search_field.setFocus()
-                else:
+                if pos[1] + 1 < len(kbd_board):
                     self.current_char = self.get_nearest_char(pos[0], pos[1] + 1)
             elif key == Qt.Key.Key_Left:
                 if pos[0] > 0:
