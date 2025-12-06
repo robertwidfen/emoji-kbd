@@ -356,6 +356,17 @@ class KeyboardWidget(QWidget):
                 self.handle_key(key_text)
                 self.prefix_key = False
 
+        elif key == Qt.Key.Key_Backtab:
+            if source is self.emoji_input_field:
+                self.search_field.setFocus()
+            elif source is self:
+                self.emoji_input_field.setFocus()
+            else:
+                if not self.current_char:
+                    self.current_char = self.get_nearest_char(0, 0)
+                self.setFocus()
+            self.update()
+
         elif key == Qt.Key.Key_Tab:
             if source is self.emoji_input_field:
                 if not self.current_char:
