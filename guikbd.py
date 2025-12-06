@@ -172,7 +172,17 @@ class KeyboardWidget(QWidget):
         else:
             matches: list[Emoji] = []
             for e in self.emojis:
-                match = self.match(e.name, needle) or self.match(e.tags, needle)
+                match = 0
+                if "," in needle:
+                    (group, subgroup) = needle.strip().split(",", 1)
+                    if group:
+                        match = self.match(e.group.lower(), group.strip()) * 2
+                    if subgroup:
+                        match += self.match(e.subgroup.lower(), subgroup.strip())
+                elif needle.startswith("#"):
+                    match = self.match(e.unicode.upper(), needle[1:].upper())
+                else:
+                    match = self.match(e.name, needle) * 3 + self.match(e.tags, needle)
                 if match and e not in matches:
                     e.order = match
                     matches.append(e)
