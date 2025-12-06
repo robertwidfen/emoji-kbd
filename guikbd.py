@@ -28,11 +28,11 @@ asdfghjklöä#
 """.strip()
 
 # Corne bone keyboard layout
-kbd = """
-jduax phlmw
-ctieo bnrsg
-?,vfq ykz.-
-""".strip()
+# kbd = """
+# jduax phlmw
+# ctieo bnrsg
+# ?,vfq ykz.-
+# """.strip()
 
 kbd_board = kbd.splitlines()
 
