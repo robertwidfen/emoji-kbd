@@ -178,7 +178,7 @@ class KeyboardWidget(QWidget):
         score = 0
         if pos == -1:
             return score
-        score = 1  # macth anywhere scores with 1
+        score = 1  # match anywhere scores with 1
         if pos == 0 or not haystack[pos - 1].isalnum():
             # match at beginning word start adds 2 points
             score += 2
@@ -519,7 +519,6 @@ class KeyboardWidget(QWidget):
             yp = start_y + row * (key_height + key_padding) + 2 * key_padding
             # print(f"Mouse at row {row}, col {col} {x},{y} vs {xp},{yp}")
             if x >= xp and y <= yp:
-                # print("On the padding area, ignoring.")
                 self.prefix_key = True
             else:
                 self.prefix_key = False
