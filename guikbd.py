@@ -152,8 +152,12 @@ class KeyboardWidget(QWidget):
                         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, e.char)  # type: ignore
 
                         if e.mark:
-                            painter.setFont(self.mark_font)
-                            rect = QRect(x, y + 4, key_width - 2, key_height)
+                            if not e.mark.isalnum():  # special mark
+                                painter.setFont(self.mark_font)
+                                rect = QRect(x, y + 4, key_width - 2, key_height)
+                            else:
+                                painter.setFont(self.key_font)
+                                rect = QRect(x, y + 2, key_width - 2, key_height)
                             painter.drawText(
                                 rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, e.mark  # type: ignore
                             )
