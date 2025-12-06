@@ -156,6 +156,8 @@ def normalize_group(emoji: Emoji) -> str | None:
             return "🎶"
         if sg in ("phone", "computer"):
             return "📱"
+        if sg == "other-object":
+            return "🗿"
         # return g
     if g == "symbols":
         return "☯️"
