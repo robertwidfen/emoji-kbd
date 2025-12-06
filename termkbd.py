@@ -3,7 +3,7 @@ from blessed.keyboard import Keystroke
 import textwrap
 import wcwidth  # type: ignore
 
-from boards import get_emojis_groups, Emoji, make_mapping, kbd, kbd_board
+from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
 
 def termwidth(s: str) -> int:
@@ -31,18 +31,18 @@ def make_board(emojis: list[Emoji]) -> tuple[str, dict[str, Emoji]]:
     return ("".join(board), mapping)
 
 
-group_path: list[list[Emoji]] = []
+board_path: list[list[Emoji]] = []
 
 
-def push_group(emojis: list[Emoji]):
-    group_path.append(emojis)
-    return make_board(group_path[-1])
+def push_board(emojis: list[Emoji]):
+    board_path.append(emojis)
+    return make_board(board_path[-1])
 
 
-def pop_group():
-    if len(group_path) > 1:
-        group_path.pop()
-    return make_board(group_path[-1])
+def pop_board():
+    if len(board_path) > 1:
+        board_path.pop()
+    return make_board(board_path[-1])
 
 
 def clear_satus_row(term: Terminal, status_row: int):
@@ -87,8 +87,8 @@ def main():
 
         max_chars = sum(1 for char in kbd if not char.isspace())
 
-        (emojis, groups) = get_emojis_groups()
-        (board, mapping) = push_group(groups)
+        (emojis, groups) = get_emojis_boards()
+        (board, mapping) = push_board(groups)
 
         board_cols = max(len(line) for line in board.splitlines())
         board_rows = len(board.splitlines())
@@ -153,7 +153,7 @@ def main():
                         text_buffer = text_buffer[:p] + text_buffer[p + 1 :]
 
                 elif key.name == "KEY_ESCAPE":
-                    (board, mapping) = pop_group()
+                    (board, mapping) = pop_board()
                     show_board(term, board)
                     clear_satus_row(term, status_row)
                     continue
@@ -170,7 +170,7 @@ def main():
                         continue
                     e = mapping[key]
                     if not e.unicode:
-                        (board, mapping) = push_group(e.emojis)
+                        (board, mapping) = push_board(e.emojis)
                         show_board(term, board)
                         show_status(term, status_row, e)
                         continue

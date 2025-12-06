@@ -185,11 +185,12 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
     return groups
 
 
-def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
+def get_emojis_boards() -> tuple[list[Emoji], list[Emoji]]:
     emojis = read_openmoji_csv("openmoji.csv")
     emojis.extend(read_unicode_data("UnicodeData.txt"))
     groups = get_grouped_emojis(emojis)
     return (emojis, groups)
+
 
 # DE QWERTZ keyboard layout
 kbd = """
@@ -221,7 +222,7 @@ def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
 
 
 def main():
-    (emojis, groups) = get_emojis_groups()
+    (emojis, groups) = get_emojis_boards()
     print(f"{len(emojis)} emojis loaded.")
     print(f"{len(groups)} groups generated.")
     for g in groups:
