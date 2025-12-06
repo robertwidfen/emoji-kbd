@@ -3,57 +3,25 @@ from blessed.keyboard import Keystroke
 import textwrap
 import wcwidth  # type: ignore
 
-from boards import get_emojis_groups, Group, Emoji
-
-kbd = """
-1  2  3  4  5  6  7  8  9  0  ß  ´
-q  w  e  r  t  z  u  i  o  p  ü  +
-a  s  d  f  g  h  j  k  l  ö  ä  #
-<  y  x  c  v  b  n  m  ,  .  - 
-""".strip()
-
-# https://github.com/hfg-gmuend/openmoji/blob/master/data/openmoji.csv
-# https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
-# https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv
-# https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/
-# https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com
-# https://github.com/alacritty/alacritty/issues/3975 wcwidth issues
+from boards import get_emojis_groups, Emoji, make_mapping, kbd, kbd_board
 
 
 def termwidth(s: str) -> int:
     return wcwidth.wcswidth(s)  # type: ignore
 
 
-def make_top_board(groups: list[Group]) -> tuple[str, dict[str, Group]]:
-    board: list[str] = []
-    mapping: dict[str, Group] = {}
-    i = 0
-    for k in kbd:
-        board.append(k)
-        if k not in (" ", "\n"):
-            if i < len(groups):
-                e = groups[i].emojis[0]
-                board.append(e.char)
-                # print(f"{e.char} {termwidth(e.char)}")
-                # if termwidth(e.char) < 2:
-                #     board.append(" ")
-                mapping[k] = groups[i]
-                i += 1
-            else:
-                board.append("  ")
-    return ("".join(board), mapping)
-
-
-def make_group_board(group: Group) -> tuple[str, dict[str, Emoji]]:
+def make_board(emojis: list[Emoji]) -> tuple[str, dict[str, Emoji]]:
     board: list[str] = []
     mapping: dict[str, Emoji] = {}
     i = 0
     for k in kbd:
         board.append(k)
         if k not in (" ", "\n"):
-            if i < len(group.emojis):
-                e = group.emojis[i]
+            if i < len(emojis):
+                e = emojis[i]
                 board.append(e.char)
+                board.append(" ")
+                # print(f"{e.char} {termwidth(e.char)}")
                 # if termwidth(e.char) < 2:
                 #     board.append(" ")
                 mapping[k] = e
@@ -63,6 +31,20 @@ def make_group_board(group: Group) -> tuple[str, dict[str, Emoji]]:
     return ("".join(board), mapping)
 
 
+group_path: list[list[Emoji]] = []
+
+
+def push_group(emojis: list[Emoji]):
+    group_path.append(emojis)
+    return make_board(group_path[-1])
+
+
+def pop_group():
+    if len(group_path) > 1:
+        group_path.pop()
+    return make_board(group_path[-1])
+
+
 def clear_satus_row(term: Terminal, status_row: int):
     with term.location(0, status_row):
         print(term.clear_eol)
@@ -70,24 +52,16 @@ def clear_satus_row(term: Terminal, status_row: int):
         print(term.clear_eol)
 
 
-def show_status_group(term: Terminal, status_row: int, group: Group):
+def show_status(term: Terminal, status_row: int, emoji: Emoji):
     with term.location(0, status_row):
-        count = len(group.emojis)
-        print(f"{group.group_name} [{count}]" + term.clear_eol)
-        subgroups = textwrap.wrap(group.subgroup_name, width=term.width - 2)
-        for line in subgroups:
-            print(f"{line}" + term.clear_eol)
-        print(term.clear_eol)
-        print(term.clear_eol)
-
-
-def show_status_emoji(term: Terminal, status_row: int, emoji: Emoji):
-    with term.location(0, status_row):
-        print(f"{emoji.char}, {emoji.unicode}, {emoji.name}" + term.clear_eol)
-        tags = textwrap.wrap(emoji.tags, width=term.width - 2)
-        for line in tags:
-            print(f"{line}" + term.clear_eol)
-        print(f"{emoji.group} > {emoji.subgroup}" + term.clear_eol)
+        if emoji.unicode:
+            print(f"{emoji.char}, {emoji.unicode}, {emoji.name}" + term.clear_eol)
+        else:
+            print(f"{emoji.group} > {emoji.subgroup}" + term.clear_eol)
+        if emoji.tags:
+            tags = textwrap.wrap(emoji.tags, width=term.width - 2)
+            for line in tags:
+                print(f"{line}" + term.clear_eol)
         print(term.clear_eol)
         print(term.clear_eol)
 
@@ -113,9 +87,8 @@ def main():
 
         max_chars = sum(1 for char in kbd if not char.isspace())
 
-        (emojis, groups) = get_emojis_groups(max_chars)
-        (board, mapping) = make_top_board(groups)
-        (top_board, top_mapping) = (board, mapping)
+        (emojis, groups) = get_emojis_groups()
+        (board, mapping) = push_group(groups)
 
         board_cols = max(len(line) for line in board.splitlines())
         board_rows = len(board.splitlines())
@@ -180,7 +153,7 @@ def main():
                         text_buffer = text_buffer[:p] + text_buffer[p + 1 :]
 
                 elif key.name == "KEY_ESCAPE":
-                    (board, mapping) = (top_board, top_mapping)
+                    (board, mapping) = pop_group()
                     show_board(term, board)
                     clear_satus_row(term, status_row)
                     continue
@@ -196,13 +169,13 @@ def main():
                     if key not in mapping:
                         continue
                     e = mapping[key]
-                    if isinstance(e, Group):
-                        (board, mapping) = make_group_board(e)
+                    if not e.unicode:
+                        (board, mapping) = push_group(e.emojis)
                         show_board(term, board)
-                        show_status_group(term, status_row, e)
+                        show_status(term, status_row, e)
                         continue
                     # it must be an Emoji
-                    show_status_emoji(term, status_row, e)
+                    show_status(term, status_row, e)
                     ipos = int((cursor_x - 2) / 2)
                     text_buffer = text_buffer[:ipos] + e.char + text_buffer[ipos:]
                     cursor_x += 2

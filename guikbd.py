@@ -11,41 +11,13 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
 from PyQt6.QtCore import Qt, QRect, QObject, QEvent
 
-from boards import get_emojis_groups, Emoji
+from boards import get_emojis_groups, Emoji, make_mapping, kbd, kbd_board
 
 # TODO add more layouts
 # TODO add config
 # TODO add recent emojis
 # TODO add skin tone support
 # TODO add "scrollbar"
-
-# DE QWERTZ keyboard layout
-kbd = """
-1234567890ß´
-qwertzuiopü+
-asdfghjklöä#
-<yxcvbnm,.-
-""".strip()
-
-# Corne bone keyboard layout
-# kbd = """
-# jduax phlmw
-# ctieo bnrsg
-# ?,vfq ykz.-
-# """.strip()
-
-kbd_board = kbd.splitlines()
-
-
-def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
-    mapping: dict[str, Emoji] = {}
-    i = offset
-    for k in kbd:
-        if k not in (" ", "\n"):
-            if i < len(objs):
-                mapping[k] = objs[i]
-                i += 1
-    return mapping
 
 
 start_x = 10

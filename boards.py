@@ -191,6 +191,34 @@ def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
     groups = get_grouped_emojis(emojis)
     return (emojis, groups)
 
+# DE QWERTZ keyboard layout
+kbd = """
+1234567890ß´
+qwertzuiopü+
+asdfghjklöä#
+<yxcvbnm,.-
+""".strip()
+
+# Corne bone keyboard layout
+# kbd = """
+# jduax phlmw
+# ctieo bnrsg
+# ?,vfq ykz.-
+# """.strip()
+
+kbd_board = kbd.splitlines()
+
+
+def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
+    mapping: dict[str, Emoji] = {}
+    i = offset
+    for k in kbd:
+        if k not in (" ", "\n"):
+            if i < len(objs):
+                mapping[k] = objs[i]
+                i += 1
+    return mapping
+
 
 def main():
     (emojis, groups) = get_emojis_groups()
