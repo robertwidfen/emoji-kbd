@@ -98,15 +98,43 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
         for row in reader:
             if len(row) < 3:
                 continue
-            char = chr(int(row[0], 16))
+            unicode = int(row[0], 16)
+            if (
+                (unicode >= 0x0 and unicode < 0x20)
+                or (unicode >= 0x7F and unicode < 0xA0)
+                or (unicode >= 0x400 and unicode < 0x1FFF)
+                or (unicode >= 0x2C00 and unicode < 0xFFDC)
+                or (unicode >= 0x10100 and unicode < 0x1EEFF)
+                or unicode >= 0xF0000
+                or unicode in (0x2029, 0x2029)
+            ):
+                continue
+
+            char = chr(unicode)
             unicode = row[0]
             name = row[1].lower()
+            category = row[2]
+
             if name.startswith("box drawings "):
                 e = Emoji(char, unicode, "Box Drawing", "", name, "")
                 emojis.append(e)
             elif name.find("arrow") > -1:
                 e = Emoji(char, unicode, "Arrows", "", name, "")
                 emojis.append(e)
+            elif name.find("greek") > -1:
+                e = Emoji(char, unicode, "Greek", "", name, "")
+                emojis.append(e)
+            elif category == "Sm":
+                e = Emoji(char, unicode, "Math", "", name, "")
+                emojis.append(e)
+            elif category == "Zs" or category.startswith("P"):
+                e = Emoji(char, unicode, "Space & Punctation", "", name, "")
+                emojis.append(e)
+            else:
+                # will be slow with all of them
+                # e = Emoji(char, unicode, "All the rest", "", name, "")
+                # emojis.append(e)
+                pass
     return emojis
 
 
@@ -181,6 +209,12 @@ def normalize_group(emoji: Emoji) -> str | None:
         return "╬"
     if g == "Arrows":
         return "➹"
+    if g == "Math":
+        return "∛"
+    if g == "Greek":
+        return "Ω"
+    if g == "Space & Punctation":
+        return "␠"
     return emoji.group + ">" + emoji.subgroup
 
 

@@ -10,7 +10,16 @@ def add_emoji_to_unicode_data(file_path: str):
         for row in reader:
             if len(row) < 3:
                 continue
-            char = chr(int(row[0], 16))
+            unicode = int(row[0], 16)
+            if (
+                (unicode >= 0x0 and unicode < 0x20)
+                or (unicode >= 0x7F and unicode < 0xA0)
+                or (unicode >= 0x400 and unicode < 0xF000)
+                or unicode >= 0xF0000
+                or unicode in (0x2029, 0x2029)
+            ):
+                continue
+            char = chr(unicode)
 
             try:
                 outfile.write(f"{char},{",".join(row)}\n")
