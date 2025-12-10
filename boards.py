@@ -143,14 +143,14 @@ def normalize_group(emoji: Emoji) -> str | None:
     if g.startswith("extras-") or g == "component":
         return None
     if g == "smileys-emotion":
-        if sg in ("face-costume", "cat-face", "monkey-face") or emoji.unicode in (
-            "1F608",
-            "1F47F",
-            "1F480",
-            "2620",
+        if sg in ("face-costume", "cat-face", "monkey-face") or emoji.char in (
+            "😈",
+            "👿",
+            "💀",
+            "☠️",
         ):
             return "🤡"
-        if sg in ("face-neutral-skeptical") or emoji.unicode in ("1F614", "1F62A", "1F634","1FAE9"):
+        if sg in ("face-neutral-skeptical") or emoji.char in ("😔", "😪", "😴", "🫩"):
             return "😐️"
         if sg in ("face-hat", "face-glasses"):
             return "🥳"
