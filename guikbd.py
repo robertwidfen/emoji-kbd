@@ -632,7 +632,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon("emoji-kbd.ico"))
     app.setQuitOnLastWindowClosed(True)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
+    app.setStyleSheet(qdarkstyle.load_stylesheet())
     window = KeyboardWidget()
     log.info("Starting main window...")
     window.show()
