@@ -533,6 +533,16 @@ class KeyboardWidget(QWidget):
             self.setFocus()
             self.update()
             return True
+        elif key == Qt.Key.Key_Right and source is self.emoji_input_field:
+            s = self.emoji_input_field.text()
+            if (
+                self.emoji_input_field.cursorPosition()
+                == len(s.encode("utf-16-le")) // 2
+            ):
+                self.search_field.setFocus()
+        elif key == Qt.Key.Key_Left and source is self.search_field:
+            if self.search_field.cursorPosition() == 0:
+                self.emoji_input_field.setFocus()
         elif source is self:
             pos = self.get_key_pos(self.current_char)
             if not pos:
