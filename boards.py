@@ -243,9 +243,9 @@ def get_emojis_boards() -> tuple[list[Emoji], list[Emoji]]:
 # DE QWERTZ keyboard layout
 kbd = """
 1234567890ß´
-qwertzuiopü+
-asdfghjklöä#
-<yxcvbnm,.-
+QWERTZUIOPÜ+
+ASDFGHJKLÖÄ#
+<YXCVBNM,.-
 """.strip()
 
 # Corne bone keyboard layout
@@ -265,6 +265,9 @@ def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
         if k not in (" ", "\n"):
             if i < len(objs):
                 mapping[k] = objs[i]
+                lk = k.lower()
+                if lk != k:
+                    mapping[lk] = objs[i]
                 i += 1
     return mapping
 

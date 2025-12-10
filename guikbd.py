@@ -181,8 +181,6 @@ class KeyboardWidget(QWidget):
                                 rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, e.mark  # type: ignore
                             )
 
-                    if char != "ß" and char.isalpha():
-                        char = char.upper()
                     painter.setFont(self.key_font)
                     rect = QRect(x + 2, y + 2, key_width, key_height)
                     painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, char)  # type: ignore
