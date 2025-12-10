@@ -10,7 +10,15 @@ from PyQt6.QtWidgets import (
     QLabel,
     QStyle,
 )
-from PyQt6.QtGui import QKeyEvent, QMouseEvent, QPainter, QFont, QColor, QWheelEvent
+from PyQt6.QtGui import (
+    QKeyEvent,
+    QMouseEvent,
+    QPainter,
+    QFont,
+    QColor,
+    QWheelEvent,
+    QIcon,
+)
 from PyQt6.QtCore import Qt, QRect, QObject, QEvent
 
 from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
@@ -31,6 +39,7 @@ key_padding = 5
 class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon("emoji-kbd.ico"))
         self.setWindowTitle("Emoji Keyboard")
 
         self.max_chars = sum(1 for char in kbd if not char.isspace())
@@ -597,6 +606,7 @@ class KeyboardWidget(QWidget):
 if __name__ == "__main__":
     print("Starting Emoji Keyboard...", file=sys.stderr)
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("emoji-kbd.ico"))
     app.setQuitOnLastWindowClosed(True)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
     window = KeyboardWidget()
