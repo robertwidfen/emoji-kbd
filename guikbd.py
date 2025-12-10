@@ -21,6 +21,8 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtCore import Qt, QRect, QObject, QEvent
 
+import logging as log
+
 from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
 # TODO change input field and search to be in one line
@@ -39,18 +41,16 @@ key_padding = 5
 class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
+        log.info("Creating main window...")
         self.setWindowIcon(QIcon("emoji-kbd.ico"))
         self.setWindowTitle("Emoji Keyboard")
         self.setWindowFlags(
             Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint
         )
         self.max_chars = sum(1 for char in kbd if not char.isspace())
-        print(f"{self.max_chars} chars on board.", file=sys.stderr)
+        log.info(f"{self.max_chars} chars on board.")
         (self.emojis, self.board) = get_emojis_boards()
-        print(
-            f"{len(self.emojis)} emojis in {len(self.board)} groups loaded.",
-            file=sys.stderr,
-        )
+        log.info(f"{len(self.emojis)} emojis in {len(self.board)} groups loaded.")
         self.recent_list = Emoji(name="Recent", char="⟲")
         self.recent_list.emojis = []
         self.load_recent()
@@ -67,6 +67,7 @@ class KeyboardWidget(QWidget):
         self.prefix_key = False
 
         self.initUI()
+        log.info("Creating main window done.")
 
     def initUI(self):
         # Set up event handlers
@@ -126,7 +127,7 @@ class KeyboardWidget(QWidget):
             default_spacing = style.pixelMetric(
                 QStyle.PixelMetric.PM_LayoutHorizontalSpacing
             )
-            print(f"Default spacing: {default_spacing}", file=sys.stderr)
+            log.info(f"Default spacing: {default_spacing}")
             global start_y, start_x
             # start_x = default_spacing * 2 + 1
             start_x = (
@@ -142,7 +143,7 @@ class KeyboardWidget(QWidget):
             start_y
             + board_rows * (key_width + key_padding)
             + key_padding
-            - 2
+            + (10 if sys.platform.startswith("win") else -2)
             + self.status_label.sizeHint().height()
         )
         self.setFixedSize(width, height)
@@ -163,7 +164,6 @@ class KeyboardWidget(QWidget):
                         painter.setPen(QColor(128, 128, 128))  # gray outline
                     painter.drawRoundedRect(rect, 5, 5)
 
-                    # 3. Emoji (Emoji Font) zeichnen
                     if char in self.mapping:
                         e = self.mapping[char]
                         painter.setFont(self.emoji_font)
@@ -622,11 +622,18 @@ class KeyboardWidget(QWidget):
 
 
 if __name__ == "__main__":
-    print("Starting Emoji Keyboard...", file=sys.stderr)
+    log.basicConfig(
+        # filename='app.log',
+        # filemode='a',
+        level=log.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    log.info(f"Starting Emoji Keyboard on {sys.platform}...")
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon("emoji-kbd.ico"))
     app.setQuitOnLastWindowClosed(True)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
     window = KeyboardWidget()
+    log.info("Starting main window...")
     window.show()
     sys.exit(app.exec())
