@@ -150,7 +150,7 @@ def normalize_group(emoji: Emoji) -> str | None:
             "2620",
         ):
             return "🤡"
-        if sg in ("face-neutral-skeptical"):
+        if sg in ("face-neutral-skeptical") or emoji.unicode in ("1F614", "1F62A", "1F634","1FAE9"):
             return "😐️"
         if sg in ("face-hat", "face-glasses"):
             return "🥳"
