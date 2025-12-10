@@ -164,6 +164,8 @@ class KeyboardWidget(QWidget):
                         painter.setPen(QColor(128, 128, 128))  # gray outline
                     painter.drawRoundedRect(rect, 5, 5)
 
+                    painter.setPen(self.palette().text().color())
+
                     if char in self.mapping:
                         e = self.mapping[char]
                         painter.setFont(self.emoji_font)
