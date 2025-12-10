@@ -41,7 +41,9 @@ class KeyboardWidget(QWidget):
         super().__init__()
         self.setWindowIcon(QIcon("emoji-kbd.ico"))
         self.setWindowTitle("Emoji Keyboard")
-
+        self.setWindowFlags(
+            Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint
+        )
         self.max_chars = sum(1 for char in kbd if not char.isspace())
         print(f"{self.max_chars} chars on board.", file=sys.stderr)
         (self.emojis, self.board) = get_emojis_boards()
