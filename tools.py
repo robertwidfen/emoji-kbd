@@ -1,10 +1,11 @@
+import requests
 import csv
 
 
 def add_emoji_to_unicode_data(file_path: str):
     with (
         open(file_path, mode="r", encoding="utf-8") as csvfile,
-        open(file_path + "c", mode="w", encoding="utf-8") as outfile,
+        open("e" + file_path, mode="w", encoding="utf-8") as outfile,
     ):
         reader = csv.reader(csvfile, delimiter=";")
         for row in reader:
@@ -22,9 +23,25 @@ def add_emoji_to_unicode_data(file_path: str):
             char = chr(unicode)
 
             try:
-                outfile.write(f"{char},{",".join(row)}\n")
+                outfile.write(f"{char},{','.join(row)}\n")
             except:
                 pass
 
+
+def download(url):
+    filename = url.split("/")[-1]
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(filename, "wb") as file:
+            file.write(response.content)
+            print(f"'{filename}' downloaded")
+    else:
+        print(f"Error '{response.status_code}' while downloading {url}")
+
+
 if __name__ == "__main__":
+    download("https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt")
+    download(
+        "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+    )
     add_emoji_to_unicode_data("UnicodeData.txt")

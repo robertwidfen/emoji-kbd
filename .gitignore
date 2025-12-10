@@ -2,7 +2,7 @@ venv
 __pycache__
 .local
 openmoji.csv
-UnicodeData.txt*
+*UnicodeData.txt*
 NamesList.txt
 Blocks.txt
 recent.txt
