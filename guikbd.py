@@ -323,13 +323,20 @@ class KeyboardWidget(QWidget):
             if emoji.order >= 100:
                 emoji.order = 100
                 emoji.mark = "⭐️"
-            else:
+            elif emoji.order > 0:
                 emoji.mark = str(emoji.order)
+            else:
+                emoji.order = 0
+                emoji.mark = ""
         for e in self.recent_list.emojis:
             if e != emoji and e.order < 100:
                 if e.order > 0:
                     e.order -= 1
-                e.mark = str(e.order)
+                if e.order > 0:
+                    e.mark = str(e.order)
+                else:
+                    e.mark = ""
+                    e.order = 0
         # sort and keep only top 100
         self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
         self.recent_list.emojis = self.recent_list.emojis[:100]
@@ -346,9 +353,11 @@ class KeyboardWidget(QWidget):
                     e = Emoji(*(char, unicode, group, subgroup, name, tags))
                     if order >= 100:
                         e.mark = "⭐️"
-                    elif order < 0:
-                        order = 0
+                    elif order > 0:
                         e.mark = str(order)
+                    else:
+                        e.mark = ""
+                        order = 0
                     e.order = order
                     recent_list.append(e)
                 # Remove duplicates while preserving order
