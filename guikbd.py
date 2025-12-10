@@ -97,7 +97,7 @@ class KeyboardWidget(QWidget):
         w.setFixedHeight(self.emoji_input_field.sizeHint().height())
         w.font().setPointSize(font_size)
         w.setPlaceholderText("Search...")
-        w.textChanged.connect(self.filter_emojis)
+        w.textChanged.connect(self.search_emojis)
         w.installEventFilter(self)
         self.search_field = w
 
@@ -209,7 +209,27 @@ class KeyboardWidget(QWidget):
             score += 1
         return score
 
-    def filter_emojis(self, needle: str):
+    def filter_emojis(self, emojis: list[Emoji], needle: str) -> list[Emoji]:
+        matches: list[Emoji] = []
+        for e in emojis:
+            match = 0
+            if "," in needle:
+                (group, subgroup) = needle.strip().split(",", 1)
+                if group:
+                    match = self.match(e.group.lower(), group.strip()) * 2
+                if subgroup:
+                    match += self.match(e.subgroup.lower(), subgroup.strip())
+            elif needle.startswith("#"):
+                match = self.match(e.unicode.upper(), needle[1:].upper())
+            else:
+                match = self.match(e.name, needle) * 3 + self.match(e.tags, needle)
+            # TODO fuzzy search?
+            if match and e not in matches:
+                e.order = match
+                matches.append(e)
+        return matches
+
+    def search_emojis(self, needle: str):
         needle = needle.lower()
         self.search_results.emojis.clear()
         if not needle:
@@ -217,25 +237,11 @@ class KeyboardWidget(QWidget):
             self.mapping = make_mapping(self.search_results.emojis)
             self.show_status(f"All {len(self.emojis)} emojis.")
         else:
-            matches: list[Emoji] = []
-            for e in self.emojis:
-                match = 0
-                if "," in needle:
-                    (group, subgroup) = needle.strip().split(",", 1)
-                    if group:
-                        match = self.match(e.group.lower(), group.strip()) * 2
-                    if subgroup:
-                        match += self.match(e.subgroup.lower(), subgroup.strip())
-                elif needle.startswith("#"):
-                    match = self.match(e.unicode.upper(), needle[1:].upper())
-                else:
-                    match = self.match(e.name, needle) * 3 + self.match(e.tags, needle)
-                if match and e not in matches:
-                    e.order = match
-                    matches.append(e)
-                # TODO search in group and subgroup too when ","" is used?
-                # TODO search for each term when multiple terms are given?
-                # TODO fuzzy search?
+            matches: list[Emoji] = self.emojis
+            for n in needle.split(" "):
+                if not n:
+                    continue
+                matches = self.filter_emojis(matches, n)
             if matches:
                 self.search_results.emojis.clear()
                 matches.sort(key=lambda e: e.order, reverse=True)
@@ -286,7 +292,7 @@ class KeyboardWidget(QWidget):
             self.current_char = ""
             if self.board != self.search_results.emojis:
                 self.push_board(self.search_results.emojis)
-            self.filter_emojis(self.search_field.text())
+            self.search_emojis(self.search_field.text())
             self.show_status(
                 "Type to search emojis by name, tag or #unicode.\n"
                 "Use ',' to separate group and subgroup search terms."
