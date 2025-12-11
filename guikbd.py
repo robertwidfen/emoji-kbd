@@ -487,6 +487,7 @@ class KeyboardWidget(QWidget):
             elif source is self.search_field:
                 self.current_char = self.get_nearest_char(0, 0)
                 self.insert_emoji(self.mapping[self.current_char])
+                self.emoji_input_field.setFocus()
                 self.update()
             elif source is self and self.current_char:
                 self.handle_key(self.current_char)
