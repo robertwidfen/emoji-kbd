@@ -116,31 +116,34 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             category = row[2]
 
             if name.startswith("box drawings "):
-                e = Emoji(char, unicode, "Box Drawing", "", name, "")
+                e = Emoji(char, unicode, "box drawing", "", name, "")
                 emojis.append(e)
             elif name.find("arrow") > -1:
-                e = Emoji(char, unicode, "Arrows", "", name, "")
+                e = Emoji(char, unicode, "arrows", "", name, "")
                 emojis.append(e)
             elif name.find("greek") > -1:
-                e = Emoji(char, unicode, "Greek", "", name, "")
+                e = Emoji(char, unicode, "greek", "", name, "")
                 emojis.append(e)
             elif category == "Sm":
-                e = Emoji(char, unicode, "Math", "", name, "")
+                e = Emoji(char, unicode, "math", "", name, "")
+                emojis.append(e)
+            elif category == "Sc":
+                e = Emoji(char, unicode, "objects", "money", name, "")
                 emojis.append(e)
             elif category == "Zs" or category.startswith("P"):
-                e = Emoji(char, unicode, "Space & Punctation", "", name, "")
+                e = Emoji(char, unicode, "space & punctuation", category, name, "")
                 emojis.append(e)
             else:
-                # will be slow with all of them
-                # e = Emoji(char, unicode, "All the rest", "", name, "")
-                # emojis.append(e)
+                # will be slow with all of them?
+                e = Emoji(char, unicode, "all the rest", category, name, "")
+                emojis.append(e)
                 pass
     return emojis
 
 
 def normalize_group(emoji: Emoji) -> str | None:
     g, sg = (emoji.group, emoji.subgroup)
-    if g.startswith("extras-") or g == "component":
+    if g.startswith("extras-") or g == "component" or not g:
         return None
     if g == "smileys-emotion":
         if sg in ("face-costume", "cat-face", "monkey-face") or emoji.char in (
@@ -160,16 +163,20 @@ def normalize_group(emoji: Emoji) -> str | None:
             return "❤️"
         else:
             return "😀"
+    if emoji.char in ("🫪",):
+        return "😐️"
     if g == "people-body":
         if sg.startswith("hand"):
             return "👍️"
         else:
-            return "🧑"
+            return "👂️"
     if g == "animals-nature":
         if sg.startswith("animal-"):
             return "🐒"
         elif sg.startswith("plant-"):
             return "🌿"
+    if emoji.char in ("🫈", "🫍"):
+        return "🐒"
     if g == "food-drink":
         if sg == "dishware":
             return "🍽️"
@@ -194,27 +201,29 @@ def normalize_group(emoji: Emoji) -> str | None:
             return "🔧"
         if sg == "clothing":
             return "👕"
-        if sg.startswith("music") or sg in ("sound",):
+        if sg.startswith("music") or sg in ("sound",) or emoji.char in ("🪊", "🎼"):
             return "🎶"
         if sg in ("phone", "computer"):
             return "📱"
-        if sg == "other-object":
+        if sg == "other-object" or emoji.char in ("🪎", "🫯"):
             return "🗿"
         # return g
     if g == "symbols":
         return "☯️"
     if emoji.group == "flags" and emoji.subgroup != "flag":
         return "🇦🇨"
-    if g == "Box Drawing":
+    if g == "box drawing":
         return "╬"
-    if g == "Arrows":
+    if g == "arrows":
         return "➹"
-    if g == "Math":
+    if g == "math":
         return "∛"
-    if g == "Greek":
+    if g == "greek":
         return "Ω"
-    if g == "Space & Punctation":
+    if g == "space & punctuation":
         return "␠"
+    if g == "all the rest":
+        return "…"
     return emoji.group + ">" + emoji.subgroup
 
 
@@ -235,7 +244,11 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
 
 def get_emojis_boards() -> tuple[list[Emoji], list[Emoji]]:
     emojis = read_openmoji_csv("openmoji.csv")
-    emojis.extend(read_unicode_data("UnicodeData.txt"))
+    open_emojis_set = set(e.unicode for e in emojis)
+    unicode_emojis = read_unicode_data("UnicodeData.txt")
+    for e in unicode_emojis:
+        if e.unicode not in open_emojis_set:
+            emojis.append(e)
     groups = get_grouped_emojis(emojis)
     return (emojis, groups)
 
