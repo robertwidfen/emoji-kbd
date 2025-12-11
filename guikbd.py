@@ -300,10 +300,14 @@ class KeyboardWidget(QWidget):
                 "Use ',' to separate group and subgroup search terms."
             )
         elif new == self:
-            self.show_status(
-                "Cursor movement to select emoji/group, Enter inserts emoji or opens group.\n"
-                "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
-            )
+            if len(self.board_path) == 1:
+                self.show_status(
+                    "Cursor movement to select emoji/group, Enter inserts emoji or opens group.\n"
+                    "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
+                )
+            else:
+                self.show_status(self.current_char)
+
         self.update()
 
     def eventFilter(self, source: QObject, event: QEvent):  # type: ignore
