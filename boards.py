@@ -278,9 +278,6 @@ def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
         if k not in (" ", "\n"):
             if i < len(objs):
                 mapping[k] = objs[i]
-                lk = k.lower()
-                if lk != k:
-                    mapping[lk] = objs[i]
                 i += 1
     return mapping
 

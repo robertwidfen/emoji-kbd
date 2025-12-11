@@ -433,6 +433,9 @@ class KeyboardWidget(QWidget):
             elif key_text in self.mapping:
                 self.handle_key(key_text)
                 self.prefix_key = False
+            elif key_text.upper() in self.mapping:
+                self.handle_key(key_text.upper())
+                self.prefix_key = False
 
         elif key == Qt.Key.Key_Backtab:
             if source is self.emoji_input_field:
