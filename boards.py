@@ -14,11 +14,11 @@ class Emoji:
         order: int = 0,
     ):
         self.char = char  # the emoji character
-        self.unicode = unicode  # the unicode codepoint(s) as string
-        self.group = group  # the emoji group
-        self.subgroup = subgroup  # the emoji subgroup
-        self.name = name  # the emoji name/annotation
-        self.tags = tags  # the emoji tags
+        self.unicode = unicode.upper()  # the unicode codepoint(s) as string
+        self.group = group.lower()  # the emoji group
+        self.subgroup = subgroup.lower()  # the emoji subgroup
+        self.name = name.lower()  # the emoji name/annotation
+        self.tags = tags.lower()  # the emoji tags
         self.emojis: list[Emoji] = []  # list of sub emjojis, e.g. skintone variants
         self.mark: str = ""  # mark for skintone variants, etc.
         self.order = order  # order for sorting and recently used
