@@ -53,9 +53,11 @@ class KeyboardWidget(QWidget):
         log.info(f"{len(self.emojis)} emojis in {len(self.board)} groups loaded.")
         self.recent_list = Emoji(name="Recent", char="⟲")
         self.recent_list.emojis = []
+        self.recent_offset = 0
         self.load_recent()
         self.search_results = Emoji(name="Search Results", char="🔎")
         self.search_results.emojis = []
+        self.search_offset = 0
         self.board.insert(0, self.recent_list)
         self.board.insert(1, self.search_results)
 
@@ -388,18 +390,28 @@ class KeyboardWidget(QWidget):
         self.show_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
 
     def push_board(self, emojis: list[Emoji]):
-        self.mapping = make_mapping(emojis)
         self.board_path.append(emojis)
         self.board = emojis
-        self.offset = 0
+        if self.recent_list.emojis == emojis:
+            self.offset = self.recent_offset
+        elif self.search_results.emojis == emojis:
+            self.offset = self.search_offset
+        else:
+            self.offset = 0
+        self.mapping = make_mapping(emojis, self.offset)
         self.update()
 
     def pop_board(self):
         if len(self.board_path) > 1:
-            self.board_path.pop()
+            emojis = self.board_path.pop()
+            if self.recent_list.emojis == emojis:
+                self.recent_offset = self.offset
+            elif self.search_results.emojis == emojis:
+                self.search_offset = self.offset
         emojis = self.board_path[-1]
-        self.mapping = make_mapping(emojis)
         self.board = emojis
+        self.offset = 0
+        self.mapping = make_mapping(emojis, self.offset)
         self.update()
 
     def handle_key(self, key: str):
