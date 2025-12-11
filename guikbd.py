@@ -1,4 +1,6 @@
 import sys
+from typing import Callable
+
 import qdarkstyle
 
 from PyQt6.QtWidgets import (
@@ -62,7 +64,7 @@ class KeyboardWidget(QWidget):
         self.board.insert(1, self.search_results)
 
         self.board_path: list[list[Emoji]] = []
-        self.mapping: dict[str, Emoji] = {}
+        self.mapping: dict[str, Emoji] = {}  # mapping of key to Emoji
         self.offset = 0
         self.push_board(self.board)
         self.current_char = ""
@@ -194,65 +196,90 @@ class KeyboardWidget(QWidget):
             x = start_x
             y += key_height + key_padding
 
-    def match(self, haystack: str, needle: str) -> int:
-        pos = haystack.find(needle)
-        score = 0
+    def match(self, text: str, needle: str) -> int:
+        pos = text.find(needle)
         if pos == -1:
-            return score
-        score = 1  # match anywhere scores with 1
-        if pos == 0 or not haystack[pos - 1].isalnum():
-            # match at beginning word start adds 2 points
-            score += 2
-        if (
-            pos + len(needle) == len(haystack)
-            or not haystack[pos + len(needle)].isalnum()
-        ):
-            # match at end word end adds 1 point
-            score += 1
+            return 0
+        score = 1
+        while pos != -1:
+            if pos == 0:
+                score += 7  # score match at word start higher
+            elif not text[pos - 1].isalnum():
+                score += 4
+            end_pos = pos + len(needle)
+            if end_pos == len(text):
+                score += 5  # score match at word end higher
+            elif not text[end_pos].isalnum():
+                score += 2
+            pos = text.find(needle, end_pos + 1)
         return score
 
-    def filter_emojis(self, emojis: list[Emoji], needle: str) -> list[Emoji]:
+    def filter_emojis(
+        self,
+        emojis: list[Emoji],
+        needle: str,
+        key: Callable[[Emoji], str],  # ear
+        score_bonus: int = 1,
+    ) -> list[Emoji]:
         matches: list[Emoji] = []
         for e in emojis:
-            match = 0
-            if "," in needle:
-                (group, subgroup) = needle.strip().split(",", 1)
-                if group:
-                    match = self.match(e.group.lower(), group.strip()) * 2
-                if subgroup:
-                    match += self.match(e.subgroup.lower(), subgroup.strip())
-            elif needle.startswith("#"):
-                match = self.match(e.unicode.upper(), needle[1:].upper())
-            else:
-                match = self.match(e.name, needle) * 3 + self.match(e.tags, needle)
-            # TODO fuzzy search?
-            if match and e not in matches:
-                e.order = match
+            match_score = self.match(key(e), needle)
+            if match_score:
+                e.order += match_score * score_bonus
                 matches.append(e)
         return matches
 
     def search_emojis(self, needle: str):
-        needle = needle.lower()
         self.search_results.emojis.clear()
+        self.search_offset = 0
+        self.offset = 0
         if not needle:
             self.search_results.emojis.extend(self.emojis)
             self.mapping = make_mapping(self.search_results.emojis)
             self.show_status(f"All {len(self.emojis)} emojis.")
-        else:
-            matches: list[Emoji] = self.emojis
-            for n in needle.split(" "):
-                if not n:
-                    continue
-                matches = self.filter_emojis(matches, n)
-            if matches:
-                self.search_results.emojis.clear()
-                matches.sort(key=lambda e: e.order, reverse=True)
-                self.search_results.emojis.extend(matches)
-                self.mapping = make_mapping(self.search_results.emojis)
-                self.show_status(f"Found {len(matches)} matching emojis.")
+            self.update()
+            return
+        needle = needle.lower()
+        # list of matches with (score: int, emoji: Emoji)
+        matches: list[Emoji] = self.emojis
+        for e in matches:
+            e.order = 0
+        for n in needle.split(" "):
+            if not n:
+                continue
+            if "," in n:
+                (group, subgroup) = n.split(",", 1)
+                if group:
+                    matches = self.filter_emojis(matches, group, lambda e: e.group)
+                if subgroup:
+                    matches = self.filter_emojis(
+                        matches, subgroup, lambda e: e.subgroup
+                    )
+            elif n.startswith("+"):
+                n = n[1:].upper()
+                if n:
+                    matches = self.filter_emojis(matches, n, lambda e: e.unicode)
+            elif n.startswith("#"):
+                n = n[1:]
+                if n:
+                    matches = self.filter_emojis(matches, n, lambda e: e.tags)
             else:
-                self.mapping = {}
-                self.show_status("No matching emojis found.")
+                nmatches = self.filter_emojis(matches, n, lambda e: e.name, 1)
+                tmatches = self.filter_emojis(matches, n, lambda e: e.tags, 1)
+                matches = list(set(nmatches + tmatches))
+        if matches:
+            # for e in matches:  # show match score for debugging
+            #     e.mark = str(e.order)
+            matches.sort(key=lambda e: e.order, reverse=True)
+            # Remove duplicates while preserving order
+            matches_dict = {e.char: e for e in reversed(matches)}
+            matches = list(reversed(matches_dict.values()))
+            self.search_results.emojis.extend(matches)
+            self.mapping = make_mapping(self.search_results.emojis)
+            self.show_status(f"Found {len(matches)} matching emojis.")
+        else:
+            self.mapping = {}
+            self.show_status("No matching emojis found.")
         self.update()
 
     def copy_to_clipboard(self):
@@ -287,8 +314,8 @@ class KeyboardWidget(QWidget):
             if self.board == self.search_results.emojis:
                 self.pop_board()
             self.show_status(
-                "Type key to insert emoji or open group board.\n"
-                "Use space as prefix key to open variants board."
+                "Type key to insert emoji or open sub board. Use Space as prefix key to open variants board.\n"
+                "Use Enter to close board and insert into app."
             )
         elif new == self.search_field:
             self.current_char = ""
@@ -297,8 +324,8 @@ class KeyboardWidget(QWidget):
                     self.search_emojis(self.search_field.text())
                 self.push_board(self.search_results.emojis)
             self.show_status(
-                "Type to search emojis by name, tag or #unicode.\n"
-                "Use ',' to separate group and subgroup search terms."
+                "Search emojis by name and tag, with '#' prefix by tag and '+' prefix by code.\n"
+                "Use ',' to search group and/or subgroup, e.g. 'animal,', ',mammal' or 'ani,mam'."
             )
         elif new == self:
             if len(self.board_path) == 1:
@@ -422,7 +449,6 @@ class KeyboardWidget(QWidget):
     def handle_key(self, key: str):
         if key not in self.mapping:
             return
-
         self.current_char = key
         e = self.mapping[key]
         if not self.prefix_key and e.unicode:
@@ -667,4 +693,12 @@ if __name__ == "__main__":
     window = KeyboardWidget()
     log.info("Starting main window...")
     window.show()
+    # for t in ("ear", "ear ", " ear", " ear "):
+    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
+    # for t in ("ears", " ears", "ears ", " ears ", " ears "):
+    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
+    # for t in ("hear", " hear", "hear ", " hear ", " hear"):
+    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
+    # for t in (" ear, hear", " ear, hear ", "hear ", " hear ", " hear"):
+    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
     sys.exit(app.exec())
