@@ -284,7 +284,7 @@ class KeyboardWidget(QWidget):
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
             self.current_char = ""
-            if old == self.search_field and not self.search_results.emojis:
+            if self.board == self.search_results.emojis:
                 self.pop_board()
             self.show_status(
                 "Type key to insert emoji or open group board.\n"
