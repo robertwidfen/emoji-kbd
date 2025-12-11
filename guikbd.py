@@ -423,6 +423,7 @@ class KeyboardWidget(QWidget):
 
         if (
             source in (self, self.emoji_input_field)
+            and event.modifiers() == Qt.KeyboardModifier.NoModifier
             and len(key_text) == 1  # single character for safety
             and key >= 32  # space
             and key != 127  # delete
