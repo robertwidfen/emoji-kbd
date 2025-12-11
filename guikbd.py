@@ -293,8 +293,9 @@ class KeyboardWidget(QWidget):
         elif new == self.search_field:
             self.current_char = ""
             if self.board != self.search_results.emojis:
+                if not self.search_results.emojis:
+                    self.search_emojis(self.search_field.text())
                 self.push_board(self.search_results.emojis)
-            self.search_emojis(self.search_field.text())
             self.show_status(
                 "Type to search emojis by name, tag or #unicode.\n"
                 "Use ',' to separate group and subgroup search terms."
