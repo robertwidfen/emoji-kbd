@@ -407,7 +407,7 @@ class KeyboardWidget(QWidget):
                 recent_list.sort(key=lambda e: e.order, reverse=True)
                 self.recent_list.emojis = recent_list
         except Exception as ex:
-            print(f"Error restoring recent emojis: {ex}", file=sys.stderr)
+            log.error(f"Restoring recent emojis: {ex}")
 
     def save_recent(self):
         try:
@@ -417,7 +417,7 @@ class KeyboardWidget(QWidget):
                         f"{e.order};{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n"
                     )
         except Exception as ex:
-            print(f"Error saving recent emojis: {ex}", file=sys.stderr)
+            log.error(f"Saving recent emojis: {ex}")
 
     def insert_emoji(self, emoji: Emoji):
         self.emoji_input_field.insert(emoji.char)
