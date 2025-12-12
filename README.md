@@ -1,4 +1,11 @@
+# Building/Installation
 
+```shell
+python -m venv venv
+. venv/Scripts/activate
+pip install -r requirements.txt
+
+```
 
 # Random link list
 - https://github.com/hfg-gmuend/openmoji/blob/master/data/openmoji.csv
