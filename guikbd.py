@@ -154,6 +154,7 @@ class KeyboardWidget(QWidget):
 
     def paintEvent(self, _event):  # type: ignore
         painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         x = start_x
         y = start_y
@@ -162,10 +163,13 @@ class KeyboardWidget(QWidget):
             for char in row:
                 if char != " ":
                     rect = QRect(x, y, key_width, key_height)
+                    pen = painter.pen()
+                    pen.setWidth(1)
                     if self.current_char == char:
-                        painter.setPen(self.palette().link().color())
+                        pen.setColor(self.palette().link().color())
                     else:
-                        painter.setPen(QColor(128, 128, 128))  # gray outline
+                        pen.setColor(QColor(128, 128, 128))  # gray outline
+                    painter.setPen(pen)
                     painter.drawRoundedRect(rect, 5, 5)
 
                     painter.setPen(self.palette().text().color())
