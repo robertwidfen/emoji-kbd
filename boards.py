@@ -203,6 +203,8 @@ def normalize_group(emoji: Emoji) -> str | None:
             return "🔧"
         if sg == "clothing":
             return "👕"
+        if sg == "money":
+            return "💰️"
         if sg.startswith("music") or sg in ("sound",) or emoji.char in ("🪊", "🎼"):
             return "🎶"
         if sg in ("phone", "computer"):
