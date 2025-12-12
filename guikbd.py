@@ -40,6 +40,13 @@ key_height = 40
 key_padding = 5
 
 
+def winlin(windows_value: int, linus_value: int) -> int:
+    if sys.platform.startswith("win"):
+        return windows_value
+    else:
+        return linus_value
+
+
 class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -142,12 +149,17 @@ class KeyboardWidget(QWidget):
             )
             start_y = self.emoji_input_field.sizeHint().height() + default_spacing * 4
 
-        width = start_x + board_cols * (key_width + key_padding) + key_padding - 3
+        width = (
+            start_x
+            + board_cols * (key_width + key_padding)
+            + key_padding
+            - winlin(-2, 0)
+        )
         height = (
             start_y
             + board_rows * (key_width + key_padding)
             + key_padding
-            + (10 if sys.platform.startswith("win") else -2)
+            + winlin(10, -2)
             + self.status_label.sizeHint().height()
         )
         self.setFixedSize(width, height)
