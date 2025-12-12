@@ -1,6 +1,7 @@
-import requests
+import os
+import urllib.request
 import csv
-
+import logging as log
 
 def add_emoji_to_unicode_data(file_path: str):
     with (
@@ -28,20 +29,28 @@ def add_emoji_to_unicode_data(file_path: str):
                 pass
 
 
-def download(url):
-    filename = url.split("/")[-1]
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(filename, "wb") as file:
-            file.write(response.content)
-            print(f"'{filename}' downloaded")
-    else:
-        print(f"Error '{response.status_code}' while downloading {url}")
+def download(url, local_filename):
+    try:
+        log.info(f"Downloading '{url}'...")
+        urllib.request.urlretrieve(url, local_filename)
+        log.info(f"File '{local_filename}' downloaded successfully.")
+    except Exception as e:
+        log.error(f"Error downloading the file: {e}")
+        raise e
+
+
+def download_if_missing(url: str, local_filename: str):
+    if not os.path.exists(local_filename):
+        download(url, local_filename)
+        return True
+    return False
 
 
 if __name__ == "__main__":
-    download("https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt")
-    download(
-        "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+    log.basicConfig(
+        # filename='app.log',
+        # filemode='a',
+        level=log.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
     )
     add_emoji_to_unicode_data("UnicodeData.txt")

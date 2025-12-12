@@ -1,5 +1,7 @@
 import csv
 
+import tools
+
 
 class Emoji:
 
@@ -242,9 +244,15 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
     return groups
 
 
+omenmoji_src = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
+
+
 def get_emojis_boards() -> tuple[list[Emoji], list[Emoji]]:
+    tools.download_if_missing(omenmoji_src, "openmoji.csv")
     emojis = read_openmoji_csv("openmoji.csv")
-    open_emojis_set = set(e.unicode for e in emojis)
+    open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
+    tools.download_if_missing(unicodedata_src, "UnicodeData.txt")
     unicode_emojis = read_unicode_data("UnicodeData.txt")
     for e in unicode_emojis:
         if e.unicode not in open_emojis_set:
