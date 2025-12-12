@@ -483,7 +483,12 @@ class KeyboardWidget(QWidget):
             print(self.emoji_input_field.text())
         except UnicodeEncodeError:
             log.error("Cannot print emoji to console due to encoding error.")
+        self.quit()
+
+    def quit(self):
+        log.info("Quitting emoji keyboard...")
         self.close()
+        QApplication.quit()
 
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()

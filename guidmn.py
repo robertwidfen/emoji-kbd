@@ -129,6 +129,10 @@ class DaemonKeyboardWidget(KeyboardWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.server = server
 
+    def quit(self):
+        log.info("Hiding emoji keyboard...")
+        self.close()
+
     def closeEvent(self, event):  # type: ignore
         """Hide instead of closing and notify server with result"""
         log.info("closeEvent called")
@@ -258,7 +262,7 @@ if __name__ == "__main__":
             filename="guidmn.log",
             filemode="a",
             level=log.INFO,
-            format="%(asctime)s - %(levelname)s D - %(message)s",
+            format="%(asctime)s - D %(levelname)s - %(message)s",
         )
         start_daemon()
     elif len(sys.argv) >= 2:
@@ -266,7 +270,7 @@ if __name__ == "__main__":
             filename="guidmn.log",
             filemode="a",
             level=log.INFO,
-            format="%(asctime)s - %(levelname)s C - %(message)s",
+            format="%(asctime)s - C %(levelname)s - %(message)s",
         )
         # Client mode with commands
         port = start_daemon_if_needed()
