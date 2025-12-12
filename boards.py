@@ -217,7 +217,7 @@ def normalize_group(emoji: Emoji) -> str | None:
     if emoji.group == "flags" and emoji.subgroup != "flag":
         return "🇦🇨"
     if g == "box drawing":
-        return "╬"
+        return "⌧"
     if g == "arrows":
         return "➹"
     if g == "math":
