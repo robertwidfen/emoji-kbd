@@ -1,6 +1,8 @@
 import sys
 import socket
 import threading
+import subprocess
+import time
 import qdarkstyle
 
 from PyQt6.QtWidgets import QApplication
@@ -11,6 +13,7 @@ import logging as log
 from guikbd import KeyboardWidget
 
 SOCKET_HOST = "127.0.0.1"
+PORT_FILE = ".local/emoji-kbd-daemon.port"
 
 
 class SocketServer(QObject):
@@ -24,9 +27,11 @@ class SocketServer(QObject):
         self.port = 0
         self.result_ready = threading.Event()
         self.result_text = ""
+        self.daemon_ready = False
 
     def show_window(self):
         """Show and activate the window"""
+        log.info("show_window() called")
         self.window.emoji_input_field.clear()
         # Center on the current active screen
         screen = QApplication.primaryScreen()
@@ -45,12 +50,14 @@ class SocketServer(QObject):
         self.window.raise_()
         self.window.setFocus()
         self.window.emoji_input_field.setFocus()
+        log.info("show_window() completed")
 
     def start_server(self):
         thread = threading.Thread(target=self.run_server, daemon=True)
         thread.start()
 
     def run_server(self):
+        log.info(f"Starting socket server...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -59,9 +66,9 @@ class SocketServer(QObject):
                 server_socket.settimeout(1.0)
 
                 self.port = server_socket.getsockname()[1]
+                log.info(f"Socket server listening on {SOCKET_HOST}:{self.port}")
                 with open(".local/emoji-kbd-daemon.port", "w") as f:
                     f.write(str(self.port))
-                log.info(f"Socket server listening on {SOCKET_HOST}:{self.port}")
 
                 while self.running:
                     try:
@@ -69,14 +76,27 @@ class SocketServer(QObject):
                         with conn:
                             data = conn.recv(1024).decode("utf-8").strip()
                             log.info(f"Received command: {data}")
-                            if data == "SHOW":
+
+                            # Mark daemon as ready on first real command
+                            if not self.daemon_ready and data not in ("HELLO",):
+                                self.daemon_ready = True
+                                log.info("Daemon marked as ready")
+
+                            if data == "HELLO":
+                                conn.sendall(b"OK\n")
+                            elif data == "SHOW":
+                                log.info("Emitting show_window_signal for SHOW")
                                 self.show_window_signal.emit()
+                                log.info("Signal emitted, sending OK")
                                 conn.sendall(b"OK\n")
                             elif data == "GET":
                                 # Clear previous result and show window
+                                log.info("Processing GET command")
                                 self.result_ready.clear()
                                 self.result_text = ""
+                                log.info("Emitting show_window_signal for GET")
                                 self.show_window_signal.emit()
+                                log.info("Signal emitted for GET")
 
                                 # Block until window is closed
                                 log.info("Waiting for window to close...")
@@ -84,7 +104,7 @@ class SocketServer(QObject):
 
                                 # Send the result
                                 response = self.result_text.encode("utf-8") + b"\n"
-                                log.info(f"Sending result: {self.result_text}")
+                                log.info(f"Sending result: '{self.result_text}'")
                                 conn.sendall(response)
                             elif data == "QUIT":
                                 conn.sendall(b"OK\n")
@@ -111,38 +131,60 @@ class DaemonKeyboardWidget(KeyboardWidget):
 
     def closeEvent(self, event):  # type: ignore
         """Hide instead of closing and notify server with result"""
+        log.info("closeEvent called")
         event.ignore()
 
         if self.server:
-            self.server.result_text = self.emoji_input_field.text()
+            result = self.emoji_input_field.text()
+            log.info(f"Setting result: '{result}'")
+            self.server.result_text = result
             self.server.result_ready.set()
+            log.info("result_ready event set")
 
         self.hide()
+        log.info("Window hidden")
 
 
 def start_daemon():
     log.info("Starting Emoji Keyboard Daemon...")
 
+    log.info("Creating QApplication")
     app = QApplication(sys.argv)
     # Keep app running when window is hidden
     app.setQuitOnLastWindowClosed(False)
+    log.info("Loading stylesheet")
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
 
     # Create server first
+    log.info("Creating SocketServer")
     server = SocketServer()
 
     # Create window with server reference
+    log.info("Creating DaemonKeyboardWidget")
     window = DaemonKeyboardWidget(server)
     server.window = window
 
-    server.start_server()
-
     # Show window off-screen to initialize, then hide
+    log.info("Initializing window off-screen")
     window.move(-10000, -10000)
     window.show()
-    QTimer.singleShot(100, window.hide)
 
-    log.info("Daemon ready, window hidden, waiting for commands...")
+    def hide_after_init():
+        if not server.daemon_ready:
+            log.info("Hiding window after initialization")
+            window.hide()
+            server.daemon_ready = True
+        else:
+            log.info("Skipping initialization hide - daemon already active")
+
+    QTimer.singleShot(100, hide_after_init)
+
+    log.info("Window ready and hidden.")
+
+    log.info("Starting socket server thread")
+    server.start_server()
+
+    log.info("Starting Qt event loop")
 
     sys.exit(app.exec())
 
@@ -154,28 +196,83 @@ def send_command(port: int, command: str):
             s.connect((SOCKET_HOST, port))
             s.sendall(f"{command}\n".encode("utf-8"))
             response = s.recv(1024).decode("utf-8").strip()
-            log.info(f"Received response: {response}")
+            log.info(f"Received response: '{response}'")
             return response
     except ConnectionRefusedError:
-        log.error("Error: Emoji keyboard daemon is not running")
+        log.error("Emoji keyboard daemon is not running")
         return ""
     except Exception as e:
-        log.error(f"Error: {e}")
+        log.error(f"Exception: {e}")
         return ""
+
+
+def is_daemon_running(port):
+    try:
+        if send_command(port, "HELLO") == "OK":
+            return True
+        return False
+    except (ConnectionRefusedError, socket.timeout, OSError):
+        return False
+
+
+def start_daemon_if_needed():
+    log.info("Checking for daemon...")
+    # Check if port file exists and daemon is running
+    try:
+        with open(PORT_FILE, "r") as f:
+            port = int(f.read().strip())
+        if is_daemon_running(port):
+            log.info(f"Daemon already running on port {port}")
+            return port
+    except (FileNotFoundError, ValueError):
+        pass
+
+    # Start daemon
+    log.info("Starting daemon...")
+    subprocess.Popen(
+        [sys.executable, sys.argv[0], "--daemon"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    # time.sleep(3)  # Give it a moment to settle
+
+    # Wait for daemon to start and write port file
+    for i in range(50):  # Wait up to 5 seconds
+        time.sleep(0.1)
+        try:
+            with open(PORT_FILE, "r") as f:
+                port = int(f.read().strip())
+            if is_daemon_running(port):
+                log.info(f"Daemon started on port {port}")
+                return port
+        except (FileNotFoundError, ValueError):
+            continue
+
+    raise RuntimeError("Failed to start daemon")
 
 
 if __name__ == "__main__":
-    log.basicConfig(
-        # filename='app.log',
-        # filemode='a',
-        level=log.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-    if len(sys.argv) >= 2:
-        with open(".local/emoji-kbd-daemon.port", "r") as f:
-            port = int(f.read().strip())
+    if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
+        log.basicConfig(
+            filename="guidmn.log",
+            filemode="a",
+            level=log.INFO,
+            format="%(asctime)s - %(levelname)s D - %(message)s",
+        )
+        start_daemon()
+    elif len(sys.argv) >= 2:
+        log.basicConfig(
+            filename="guidmn.log",
+            filemode="a",
+            level=log.INFO,
+            format="%(asctime)s - %(levelname)s C - %(message)s",
+        )
+        # Client mode with commands
+        port = start_daemon_if_needed()
         args = sys.argv[1:]
         for a in args:
             print(send_command(port, a), end="")
     else:
-        start_daemon()
+        print(f"Usage: {sys.argv[0]} [--daemon] [SHOW|GET|QUIT]", file=sys.stderr)
+        sys.exit(1)
