@@ -464,6 +464,12 @@ class KeyboardWidget(QWidget):
             self.show_status(e)
         self.update()
 
+    def handle_close(self):
+        self.copy_to_clipboard()
+        self.save_recent()
+        print(self.emoji_input_field.text())
+        self.close()
+
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()
         key_text = event.text()
@@ -528,10 +534,7 @@ class KeyboardWidget(QWidget):
 
         elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if source is self.emoji_input_field:
-                self.copy_to_clipboard()
-                self.save_recent()
-                print(self.emoji_input_field.text())
-                self.close()
+                self.handle_close()
             elif source is self.search_field:
                 self.current_char = self.get_nearest_char(0, 0)
                 self.insert_emoji(self.mapping[self.current_char])
@@ -656,19 +659,26 @@ class KeyboardWidget(QWidget):
         return None
 
     def mousePressEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
-        if event and event.button() == Qt.MouseButton.LeftButton:
-            char = self.get_char_from_position(event.pos().x(), event.pos().y())
-            if char:
-                self.handle_key(char)
-                self.current_char = char
-        elif event and event.button() == Qt.MouseButton.RightButton:
-            self.pop_board()
-            char = self.get_char_from_position(event.pos().x(), event.pos().y())
-            if char in self.mapping:
-                self.show_status(self.mapping[char])
-            self.update()
+        if not event:
+            return super().mousePressEvent(event)
 
-        self.setFocus()
+        if event.type() == QEvent.Type.MouseButtonDblClick:
+            self.handle_close()
+        elif self.underMouse() and event.type() == QEvent.Type.MouseButtonPress:
+            button = event.button()
+            self.setFocus()
+            (x, y) = (event.pos().x(), event.pos().y())
+            if button == Qt.MouseButton.LeftButton:
+                char = self.get_char_from_position(x, y)
+                if char:
+                    self.handle_key(char)
+                    self.current_char = char
+            elif button == Qt.MouseButton.RightButton:
+                self.pop_board()
+                char = self.get_char_from_position(x, y)
+                if char in self.mapping:
+                    self.show_status(self.mapping[char])
+                self.update()
 
         return super().mousePressEvent(event)
 
