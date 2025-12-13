@@ -19,21 +19,37 @@ Top left is the emoji input field, right the search field.
 In the middle is a (key)board like overview of emojis. Each one has a key in the left upper corner.
 At the bottom is a status field.
 
-Press a key to insert a emoji or open a group.
-Space is a prefix key to allow for opening variants, e.g. skin tones.
-Use the cursor keys, Tab, Home and End to navigate around.
-Use PageUp/PageDown to switch pages.
-Use Esc/Backspace to go back to previous board.
+Press a `key` to insert a emoji or open a group.
+`Space` is a prefix key to allow for opening variants, e.g. skin tones.
+Use the `cursor` keys, `Tab`, `Home` and `End` to navigate around.
+Use `PageUp`/`PageDown` to switch pages.
+Use `Esc`/`Backspace` to go back to previous board.
 
-In the input field, a key press will insert the associated emoji. Enter will copy the emojis to the clipboard and close the window.
+In the input field, a `key` press will insert the associated emoji. `Enter` will copy the emojis to the clipboard and close the window.
 
-In the board, a key press will select the associated emoji. Enter will insert the emoji in the input field.
+In the board, a `key` press will select the associated emoji. `Enter` will insert the emoji in the input field.
 
-In the search field, key presses will insert a search term.  Enter will insert the first match in the input field and set focus to it again.
+In the search field, `key` presses will insert a search term.  `Enter` will insert the first match in the input field and set focus to it again.
 
-With the mouse a left click inserts/opens, a right click is back to previous board and a double click inserts and closes the window.
+With the mouse 🖱️ a `left click` inserts/opens, a `right click` is back to previous board and a `double click` inserts and closes the window.
 
 When the windows closes it will copy the content of the input field to the clipboard and print it to stdout.
+
+# Recent List ⟲
+Used emojis will be put automatically to the recent list.
+Ever item has a score and items are sorted by the score. 
+A score >=100 makes a item a favorite.
+When using an item its score will increase by 10 and the score of all others decreases by 1.
+
+`Shift-Left`/`Shift-Right` moves an item. Delete removes an item. `Shift-Enter` toggles favorite state.
+
+# Search 🔎
+When entering search without a pattern it will display all emojis.
+
+With a pattern it will show matching items in the order of their score.
+
+Enter will insert the currently selected item and focus the input field again.
+Cursor `Right` and `Shift-Right` switch between selected results. 
 
 # Requirements
 - Python 3.12+
@@ -79,7 +95,7 @@ It will overwrite `Win-.`, i.e. the Windows emoji picker.
 If you prefer another hot key edit the script.
 
 ## Terminal
-In the terminal you may also use the striped down terminal only
+In the terminal you may also use the striped down terminal only version
 ```shell
 python termkbd.py
 ```
@@ -96,6 +112,8 @@ python guidmn.py get
 Fork and change the code 😉 or wait until it is added.
 
 # Todos
+- Make config file
+- Store config and other files in proper locations
 - 
 
 # Random link list
