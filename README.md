@@ -46,10 +46,11 @@ When using an item its score will increase by 10 and the score of all others dec
 # Search 🔎
 When entering search without a pattern it will display all emojis.
 
-With a pattern it will show matching items in the order of their score.
+With a pattern it will show matching items in the order of their score
+and select the first result.
+Cursor `Shift-Left` and `Shift-Right` (or `Right` when at end) change selected result.
 
-Enter will insert the currently selected item and focus the input field again.
-Cursor `Right` and `Shift-Right` switch between selected results. 
+Enter will insert the selected item and focus the input field again.
 
 # Requirements
 - Python 3.12+

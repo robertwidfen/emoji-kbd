@@ -710,6 +710,10 @@ class KeyboardWidget(QWidget):
         isHome = key == Qt.Key.Key_Home
         isEnd = key == Qt.Key.Key_End
         isShift = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+        search_field = self.search_field
+        search_field_pos = search_field.cursorPosition()
+        search_field_at_end = len(search_field.text()) == search_field_pos
+        emoji_input_field = self.emoji_input_field
 
         if not isSelf and isDown:
             if not self.current_key:
@@ -718,25 +722,19 @@ class KeyboardWidget(QWidget):
             self.update()
             return True
         elif isInput and isRight:
-            s = self.emoji_input_field.text()
-            if (
-                self.emoji_input_field.cursorPosition()
-                == len(s.encode("utf-16-le")) // 2
-            ):
-                self.search_field.setFocus()
+            s = emoji_input_field.text()
+            if emoji_input_field.cursorPosition() == len(s.encode("utf-16-le")) // 2:
+                search_field.setFocus()
             return True
-        elif isSearch and isLeft and self.search_field.cursorPosition() == 0:
-            self.emoji_input_field.setFocus()
+        elif isSearch and isLeft and search_field_pos == 0:
+            emoji_input_field.setFocus()
             return True
-        elif (
-            isSearch
-            and isRight
-            and self.search_field.cursorPosition() == len(self.search_field.text())
-        ):
-            if isShift:
-                self.current_key = self.get_key_before(self.current_key)
-            else:
-                self.current_key = self.get_key_after(self.current_key)
+        elif isSearch and isLeft and isShift:
+            self.current_key = self.get_key_before(self.current_key)
+            self.update()
+            return True
+        elif isSearch and isRight and (search_field_at_end | isShift):
+            self.current_key = self.get_key_after(self.current_key)
             self.update()
             return True
         elif isRecent and isSelf and isLeft and isShift:
