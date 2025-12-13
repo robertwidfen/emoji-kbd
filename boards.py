@@ -271,6 +271,14 @@ ASDFGHJKLÖÄ#
 <YXCVBNM,.-
 """.strip()
 
+# US QWERTY keyboard layout
+# kbd = """
+# `1234567890-=
+# QWERTYUIOP[]\
+# ASDFGHJKL;'"
+# ZXCVBNM,./
+# """.strip()
+
 # Corne bone keyboard layout
 # kbd = """
 # jduax phlmw
