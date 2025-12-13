@@ -699,13 +699,25 @@ class KeyboardWidget(QWidget):
         return None
 
     def handle_cursor_navigation(self, source: QObject, event: QKeyEvent, key: int):
-        if key == Qt.Key.Key_Down and source is not self:
+        isSelf = source is self
+        isSearch = source is self.search_field
+        isInput = source is self.emoji_input_field
+        isRecent = self.board == self.recent_list.emojis
+        isLeft = key == Qt.Key.Key_Left
+        isRight = key == Qt.Key.Key_Right
+        isUp = key == Qt.Key.Key_Up
+        isDown = key == Qt.Key.Key_Down
+        isHome = key == Qt.Key.Key_Home
+        isEnd = key == Qt.Key.Key_End
+        isShift = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+
+        if not isSelf and isDown:
             if not self.current_key:
                 self.current_key = self.get_nearest_char(0, 0)
             self.setFocus()
             self.update()
             return True
-        elif key == Qt.Key.Key_Right and source is self.emoji_input_field:
+        elif isInput and isRight:
             s = self.emoji_input_field.text()
             if (
                 self.emoji_input_field.cursorPosition()
@@ -713,30 +725,21 @@ class KeyboardWidget(QWidget):
             ):
                 self.search_field.setFocus()
             return True
-        elif (
-            key == Qt.Key.Key_Left
-            and source is self.search_field
-            and self.search_field.cursorPosition() == 0
-        ):
+        elif isSearch and isLeft and self.search_field.cursorPosition() == 0:
             self.emoji_input_field.setFocus()
             return True
         elif (
-            key == Qt.Key.Key_Right
-            and source is self.search_field
+            isSearch
+            and isRight
             and self.search_field.cursorPosition() == len(self.search_field.text())
         ):
-            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+            if isShift:
                 self.current_key = self.get_key_before(self.current_key)
             else:
                 self.current_key = self.get_key_after(self.current_key)
             self.update()
             return True
-        elif (
-            key == Qt.Key.Key_Left
-            and source is self
-            and event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-            and self.board == self.recent_list.emojis
-        ):
+        elif isRecent and isSelf and isLeft and isShift:
             if self.current_key in self.mapping:
                 e = self.mapping[self.current_key]
                 idx = self.recent_list.emojis.index(e)
@@ -747,12 +750,7 @@ class KeyboardWidget(QWidget):
                     self.mapping = make_mapping(self.board, self.offset)
                     self.update()
             return True
-        elif (
-            key == Qt.Key.Key_Right
-            and source is self
-            and event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-            and self.board == self.recent_list.emojis
-        ):
+        elif isRecent and isSelf and isRight and isShift:
             if self.current_key in self.mapping:
                 e = self.mapping[self.current_key]
                 idx = self.recent_list.emojis.index(e)
@@ -763,28 +761,28 @@ class KeyboardWidget(QWidget):
                     self.mapping = make_mapping(self.board, self.offset)
                     self.update()
             return True
-        elif source is self:
+        elif isSelf:
             pos = self.get_key_pos(self.current_key)
             if not pos:
                 return False
-            if key == Qt.Key.Key_Home:
+            if isHome:
                 self.current_key = self.get_nearest_char(0, pos[1])
-            elif key == Qt.Key.Key_End:
+            elif isEnd:
                 self.current_key = self.get_nearest_char(-1, pos[1], True)
-            elif key == Qt.Key.Key_Up:
+            elif isUp:
                 if pos[1] == 0:
                     self.emoji_input_field.setFocus()
                 else:
                     self.current_key = self.get_nearest_char(pos[0], pos[1] - 1)
-            elif key == Qt.Key.Key_Down:
+            elif isDown:
                 if pos[1] + 1 < len(kbd_board):
                     self.current_key = self.get_nearest_char(pos[0], pos[1] + 1)
-            elif key == Qt.Key.Key_Left:
+            elif isLeft:
                 if pos[0] > 0:
                     self.current_key = self.get_nearest_char(pos[0] - 1, pos[1], True)
                 elif pos[1] > 0:
                     self.current_key = self.get_nearest_char(-1, pos[1] - 1, True)
-            elif key == Qt.Key.Key_Right:
+            elif isRight:
                 if pos[0] + 1 < len(kbd_board[pos[1]]):
                     self.current_key = self.get_nearest_char(pos[0] + 1, pos[1])
                 elif pos[1] + 1 < len(kbd_board):
