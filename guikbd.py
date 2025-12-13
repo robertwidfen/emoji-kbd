@@ -1,4 +1,5 @@
 import sys
+import time
 from typing import Callable
 
 import qdarkstyle
@@ -93,6 +94,7 @@ class KeyboardWidget(QWidget):
         self.push_board(self.board)
         self.current_key = ""
         self.prefix_key = False
+        self.last_scroll_time = 0
 
         self.initUI()
         log.info("Creating main window done.")
@@ -657,7 +659,14 @@ class KeyboardWidget(QWidget):
 
     def wheelEvent(self, event: QWheelEvent | None) -> None:  # type: ignore
         if event:
-            self.scroll_board(event.angleDelta().y())
+            current_time = time.time()
+            delta = event.angleDelta().y()
+            log.info(f"Wheel event delta: {delta}")
+            # Only allow scrolling only if delta is big enough and every this seconds
+            # TODO Config
+            if abs(delta) > 5 and current_time - self.last_scroll_time > 0.1:
+                self.scroll_board(delta)
+                self.last_scroll_time = current_time
         return super().wheelEvent(event)
 
     def get_key_before(self, key: str) -> str:
