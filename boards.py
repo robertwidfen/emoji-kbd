@@ -1,6 +1,9 @@
+import logging as log
 import csv
+import re
 
 import tools
+from dataclasses import dataclass
 
 
 class Emoji:
@@ -118,131 +121,129 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             category = row[2]
 
             if name.startswith("box drawings "):
-                e = Emoji(char, unicode, "box drawing", "", name, "")
+                e = Emoji(char, unicode, "box drawing", category, name)
                 emojis.append(e)
             elif name.find("arrow") > -1:
-                e = Emoji(char, unicode, "arrows", "", name, "")
+                e = Emoji(char, unicode, "arrows", category, name)
                 emojis.append(e)
             elif name.find("greek") > -1:
-                e = Emoji(char, unicode, "greek", "", name, "")
+                e = Emoji(char, unicode, "greek", category, name)
                 emojis.append(e)
             elif category == "Sm":
-                e = Emoji(char, unicode, "math", "", name, "")
+                e = Emoji(char, unicode, "math", category, name)
                 emojis.append(e)
             elif category == "Sc":
-                e = Emoji(char, unicode, "objects", "money", name, "")
+                e = Emoji(char, unicode, "objects", "money", name)
                 emojis.append(e)
             elif category == "Zs" or category.startswith("P"):
-                e = Emoji(char, unicode, "space & punctuation", category, name, "")
+                e = Emoji(char, unicode, "space & punctuation", category, name)
                 emojis.append(e)
             else:
                 # will be slow with all of them?
-                e = Emoji(char, unicode, "all the rest", category, name, "")
+                e = Emoji(char, unicode, "all the rest", category, name)
                 emojis.append(e)
                 pass
     return emojis
 
 
-def normalize_group(emoji: Emoji) -> str | None:
-    g, sg = (emoji.group, emoji.subgroup)
-    if g.startswith("extras-") or g == "component" or not g:
-        return None
-    if g == "smileys-emotion":
-        if sg in ("face-costume", "cat-face", "monkey-face") or emoji.char in (
-            "😈",
-            "👿",
-            "💀",
-            "☠️",
-        ):
-            return "🤡"
-        if sg in ("face-neutral-skeptical") or emoji.char in ("😔", "😪", "😴", "🫩"):
-            return "😐️"
-        if sg in ("face-hat", "face-glasses"):
-            return "🥳"
-        if sg in ("face-concerned", "face-negative", "face-unwell", "face-fearful"):
-            return "☹️"
-        if sg == "emotion" or sg == "heart":
-            return "❤️"
-        else:
-            return "😀"
-    if emoji.char in ("🫪",):
-        return "😐️"
-    if g == "people-body":
-        if sg.startswith("hand"):
-            return "👍️"
-        else:
-            return "👂️"
-    if g == "animals-nature":
-        if sg.startswith("animal-"):
-            return "🐒"
-        elif sg.startswith("plant-"):
-            return "🌿"
-    if emoji.char in ("🫈", "🫍"):
-        return "🐒"
-    if g == "food-drink":
-        if sg == "dishware":
-            return "🍽️"
-        return "🍎"
-    if g == "activities":
-        if sg == "event":
-            return "🎄"
-    if g == "travel-places":
-        if sg == "sky-weather":
-            return "☀️"
-        if sg.startswith("transport-"):
-            return "🚂"
-        if sg == "time":
-            return "⌚️"
-        return "🏖️"
-    if g == "objects":
-        if sg == "light-video":
-            return "📸"
-        if sg == "science":
-            return "⚗️"
-        if sg == "tool" or emoji.tags.find("tool") > -1:
-            return "🔧"
-        if sg == "clothing":
-            return "👕"
-        if sg == "money":
-            return "💰️"
-        if sg.startswith("music") or sg in ("sound",) or emoji.char in ("🪊", "🎼"):
-            return "🎶"
-        if sg in ("phone", "computer"):
-            return "📱"
-        if sg == "other-object" or emoji.char in ("🪎", "🫯"):
-            return "🗿"
-        # return g
-    if g == "symbols":
-        return "☯️"
-    if emoji.group == "flags" and emoji.subgroup != "flag":
-        return "🇦🇨"
-    if g == "box drawing":
-        return "⌧"
-    if g == "arrows":
-        return "➹"
-    if g == "math":
-        return "∛"
-    if g == "greek":
-        return "Ω"
-    if g == "space & punctuation":
-        return "␠"
-    if g == "all the rest":
-        return "…"
-    return emoji.group + ">" + emoji.subgroup
+# A list of patterns to normalize groups.
+# First match defines the normalized group.
+# Either match of group & subgroup or char in char_list.
+# Item format:
+#   order on board, char, group_regex, subgroup_regex, char_list
+group_patterns = (
+    # ignored ones
+    (0, "", "^(extras-unicode|component|)$", "", ""),
+    # normalized groups
+    (4, "🤡", "smileys-emotion", "face-costume|(cat|monkey)-face", "😈👿💀☠️🗿🪬"),
+    (2, "😐️", "smileys-emotion", "face-neutral-skeptical", "😔😪😴🫩🫪"),
+    (3, "🥳", "smileys-emotion", "face-(hat|glasses)", ""),
+    (5, "❤️", "smileys-emotion", "emotion|heart", ""),
+    (1, "😀", "smileys-emotion", "", ""),
+    (6, "👍️", "people-body", "hand|body", "👣🫆"),
+    (7, "⚽️", "people-body|activities", "sport|activity|game|award-medal", "🎭️🖼️"),
+    (7, "💁‍♂️", "people-body", "", ""),
+    (8, "🐒", "animals-nature", "animal", "🫈🫍"),
+    (9, "🌿", "animals-nature", "plant", ""),
+    (11, "🍽️", "food-drink", "dishware", ""),
+    (10, "🍎", "food-drink", "", ""),
+    (12, "☀️", "travel-places", "sky-weather", ""),
+    (13, "🚂", "travel-places|symbols", "transport-", ""),
+    (14, "⌚️", "travel-places", "time", ""),
+    (14, "🏖️", "travel-places", "", "🪧"),
+    (15, "🎄", "activities", "event", ""),
+    (16, "📸", "objects", "light-video", ""),
+    (17, "🔧", "objects|activities", "tool|science", "🎨🪢"),
+    (18, "👕", "objects", "clothing", "🧵🪡🧶"),
+    (19, "💰️", "objects", "money", ""),
+    (20, "🎶", "objects", "music|sound", "🪊🎼"),
+    (21, "🖥️", "objects", "phone|computer|mail", "📶🛜📳📴"),
+    (22, "✏️", "objects", "writing|office|book-paper|lock", "🚬🪪"),
+    (23, "🚪", "objects", "household", ""),
+    (23, "🩺", "objects", "medical|other", ""),
+    (24, "☯️", "symbols", "", "🗣️👤👥🫂"),
+    (25, "🏳️‍🌈", "flags", "", ""),
+    (26, "➹", "arrows", "", ""),
+    (27, "∛", "math", "", ""),
+    (28, "Ω", "greek", "", ""),
+    (29, "╚", "box drawing", "", ""),
+    (29, "␠", "space & punctuation", "", ""),
+    # catch all
+    (1000, "…", "all the rest", "", ""),
+)
+
+
+@dataclass
+class GroupPattern:
+    order: int
+    char: str
+    group: re.Pattern | None
+    subgroup: re.Pattern | None
+    chars: str
+
+    def __hash__(self) -> int:
+        return self.char.__hash__()
+
+
+group_patterns_compiled: list[GroupPattern] = []
+for p in group_patterns:
+    p = list(p)
+    p[2] = re.compile(p[2]) if p[2] else None  # type: ignore
+    p[3] = re.compile(p[3]) if p[3] else None  # type: ignore
+    group_patterns_compiled.append(GroupPattern(*p))  # type: ignore
+
+
+def normalize_group(emoji: Emoji) -> GroupPattern:
+    for p in group_patterns_compiled:
+        if emoji.char == "🐵" and p.char == "🐒":
+            pass
+        if p.chars and emoji.char in p.chars:
+            return p
+        if p.group and not p.group.search(emoji.group):
+            continue
+        if p.subgroup and not p.subgroup.search(emoji.subgroup):
+            continue
+        return p
+    log.warning(
+        f"No group for: '{emoji.char}': '{emoji.name}', '{emoji.group}' > '{emoji.subgroup}'"
+    )
+    return group_patterns_compiled[-1]  # catch all
 
 
 def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
     groups: list[Emoji] = []
-    mapping: dict[str, Emoji] = {}
+    group_map: dict[str, Emoji] = {}
     for e in emojis:
         g = normalize_group(e)
-        if g is None:
+        if g.order == 0:
             continue
-        if g not in mapping:
-            char = g if len(g) < 5 else ""
-            groups.append(Emoji(char, group=e.group, subgroup=e.subgroup))
-            mapping[g] = groups[-1]
-        mapping[g].add(e)
+        if g.char not in group_map:
+            groups.append(
+                Emoji(g.char, group=e.group, subgroup=e.subgroup, order=g.order)
+            )
+            group_map[g.char] = groups[-1]
+        group_map[g.char].add(e)
+    groups.sort(key=lambda e: e.order)
     return groups
 
 
