@@ -46,6 +46,23 @@ def winlin(windows_value: int, linus_value: int) -> int:
     else:
         return linus_value
 
+# Map of special unicode codes to short names for display on keys
+special_name_map = {
+    "0020": "SP",  # SPACE
+    "00A0": "NBS",  # NO-BREAK SPACE
+    "202F": "nNBS",  # NARROW NO-BREAK SPACE
+    "2000": "ENQ",  # EN QUAD
+    "2001": "EMQ",  # EM QUAD
+    "2002": "ENS",  # EN SPACE
+    "2003": "EMS",  # EM SPACE
+    "2004": "3EMS",  # THREE-PER-EM SPACE
+    "2005": "4EMS",  # FOUR-PER-EM SPACE
+    "2006": "6EMS",  # SIX-PER-EM SPACE
+    "2007": "FS",  # FIGURE SPACE
+    "2008": "PS",  # PUNCTUATION SPACE
+    "2009": "TS",  # THIN SPACE
+    "200A": "HS",  # HAIR SPACE
+}
 
 class KeyboardWidget(QWidget):
     def __init__(self):
@@ -189,12 +206,16 @@ class KeyboardWidget(QWidget):
 
                     if key in self.mapping:
                         e = self.mapping[key]
-                        if self.current_key == key:
+                        char = e.char
+                        if e.unicode in special_name_map:
+                            painter.setFont(self.key_font)
+                            char = special_name_map[e.unicode]
+                        elif self.current_key == key:
                             painter.setFont(self.emoji_font2)
                         else:
                             painter.setFont(self.emoji_font)
                         rect = QRect(x + 1, y, key_width, key_height)
-                        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, e.char)  # type: ignore
+                        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, char)  # type: ignore
 
                         if e.mark:
                             if not e.mark.isalnum():  # special mark
