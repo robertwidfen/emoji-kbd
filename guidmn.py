@@ -195,6 +195,7 @@ def start_daemon():
 
 def send_command(port: int, command: str):
     try:
+        command = command.strip().upper()
         log.info(f"Sending command '{command}' to port {port}...")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((SOCKET_HOST, port))
