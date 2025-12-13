@@ -106,7 +106,7 @@ class KeyboardWidget(QWidget):
         # Set up fonts
         self.key_font = QFont("Arial", 8)
         self.emoji_font = QFont("Noto Color Emoji", winlin(19, 20))
-        self.emoji_font2 = QFont("Noto Color Emoji", winlin(19 + 5, 20 + 5))
+        self.emoji_font2 = QFont("Noto Color Emoji", winlin(19 + 20, 20 + 20))
         self.mark_font = QFont("Noto Color Emoji", 6)
 
         # Set up the main layout and elements
@@ -171,7 +171,7 @@ class KeyboardWidget(QWidget):
             start_x
             + board_cols * (key_width + key_padding)
             + key_padding
-            - winlin(-2, 0)
+            - winlin(-2, 2)
         )
         height = (
             start_y
@@ -192,6 +192,7 @@ class KeyboardWidget(QWidget):
         for row in kbd_board:
             for key in row:
                 if key != " ":
+                    # Draw key outline
                     rect = QRectF(x + 0.5, y + 0.5, key_width, key_height)
                     pen = painter.pen()
                     pen.setWidth(1)
@@ -202,9 +203,11 @@ class KeyboardWidget(QWidget):
                     painter.setPen(pen)
                     painter.drawRoundedRect(rect, 3, 3)
 
+                    # Draw key content
                     painter.setPen(self.palette().text().color())
 
                     if key in self.mapping:
+                        # Draw emoji
                         e = self.mapping[key]
                         char = e.char
                         if e.unicode in special_name_map:
@@ -214,22 +217,26 @@ class KeyboardWidget(QWidget):
                             painter.setFont(self.emoji_font2)
                         else:
                             painter.setFont(self.emoji_font)
-                        rect = QRect(x + 1, y, key_width, key_height)
+                        rect = QRectF(
+                            x - 10 + 1, y - 10 + 1.5, key_width + 20, key_height + 20
+                        )
                         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, char)  # type: ignore
 
+                        # Draw mark if any
                         if e.mark:
                             if not e.mark.isalnum():  # special mark
                                 painter.setFont(self.mark_font)
-                                rect = QRect(x, y + 4, key_width - 2, key_height)
+                                rect = QRectF(x, y + 4, key_width - 2, key_height)
                             else:
                                 painter.setFont(self.key_font)
-                                rect = QRect(x, y + 2, key_width - 2, key_height)
+                                rect = QRectF(x, y + 2, key_width - 2, key_height)
                             painter.drawText(
                                 rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, e.mark  # type: ignore
                             )
 
+                    # Draw key label
                     painter.setFont(self.key_font)
-                    rect = QRect(x + 2, y + 2, key_width, key_height)
+                    rect = QRectF(x + 2, y + 2, key_width, key_height)
                     painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, key)  # type: ignore
 
                 x += key_width + key_padding
