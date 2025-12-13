@@ -92,6 +92,12 @@ or the gui via deamon
 python guidmn.py get
 ```
 
+# Customization
+Fork and change the code 😉 or wait until it is added.
+
+# Todos
+- 
+
 # Random link list
 - https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv
 - https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
