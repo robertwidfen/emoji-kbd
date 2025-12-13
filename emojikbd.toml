@@ -1,0 +1,46 @@
+[ui]
+layout = "US QWERTY"
+default_board = 0
+
+[sources]
+notoemoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
+openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
+
+[board]
+start_x = 10
+start_y = 52
+key_size = 6
+key_padding = 6
+key_font_size = 8
+mark_font_size = 6
+emoji_font_size = 20
+
+[[layout]]
+name = "US QWERTY"
+char = "🇺🇸"
+kbd = """
+`1234567890-=
+QWERTYUIOP[]\
+ASDFGHJKL;'"
+ZXCVBNM,./
+"""
+
+[[layout]]
+name = "DE QWERTZ"
+char = "🇩🇪"
+kbd = """
+1234567890ß´
+QWERTZUIOPÜ+
+ASDFGHJKLÖÄ#
+<YXCVBNM,.-
+"""
+
+[[layout]]
+name = "Bone Corne"
+char = "🦴"
+kbd = """
+JDUAX PHLMW
+CTIEO BNRSG
+?,VFQ YKZ.-
+"""
