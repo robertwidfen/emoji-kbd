@@ -312,9 +312,9 @@ class KeyboardWidget(QWidget):
                 if n:
                     matches = self.filter_emojis(matches, n, lambda e: e.tags)
             else:
-                nmatches = self.filter_emojis(matches, n, lambda e: e.name, 1)
-                tmatches = self.filter_emojis(matches, n, lambda e: e.tags, 1)
-                matches = list(set(nmatches + tmatches))
+                name_matches = self.filter_emojis(matches, n, lambda e: e.name, 1)
+                tag_matches = self.filter_emojis(matches, n, lambda e: e.tags, 1)
+                matches = list(set(name_matches + tag_matches))
         if matches:
             # for e in matches:  # show match score for debugging
             #     e.mark = str(e.order)
