@@ -3,7 +3,11 @@ It is all about efficiency - the fewer keys you need to type the better.
 Emoji Kbd is made for efficiency. Pick emojis and characters with three
 key presses.
 
-<img alt="Screenshot" src="screenshot.png" width="600" />
+<img alt="Screenshot" src="screenshot.png" width="550" />
+
+or for a cutom keyboard
+
+<img alt="Screenshot" src="screenshot-corne.png" width="500" />
 
 Just three key presses should be enough to get an emoji from the recent list,
 1. Open picker with a hot key
@@ -60,6 +64,12 @@ python guikbd.py # for testing
 ## Wayland/Hyprland
 I like Walker, but not the emoji picker.
 
+In `~/.config/hypr/bindings.conf` add
+```toml
+unbind = SUPER, period
+bindd = SUPER, period, Emojis, exec, PATHTO/wtype-emoji
+```
+
 ## Windows
 Run
 ```
@@ -67,6 +77,20 @@ ahk-emoji.ahk
 ```
 It will overwrite `Win-.`, i.e. the Windows emoji picker.
 If you prefer another hot key edit the script.
+
+## Terminal
+In the terminal you may also use the striped down terminal only
+```shell
+python termkbd.py
+```
+or the gui
+```shell
+python guikbd.py
+```
+or the gui via deamon
+```shell
+python guidmn.py get
+```
 
 # Random link list
 - https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv
