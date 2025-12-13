@@ -333,6 +333,8 @@ class KeyboardWidget(QWidget):
             obj = self.mapping[obj]
         if isinstance(obj, Emoji):
             msg: list[str] = []
+            if obj.emojis:
+                msg.append(f"{len(obj.emojis)} emojis")
             if obj.unicode:
                 msg.append(f"{obj.unicode}")
             if obj.name:
