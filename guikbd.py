@@ -374,6 +374,11 @@ class KeyboardWidget(QWidget):
                     "Cursor movement to select emoji/group, Enter inserts emoji or opens group.\n"
                     "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
                 )
+            elif self.board == self.recent_list.emojis:
+                self.show_status(
+                    "Use Shift-Left/Right to reorder recent emojis. Delete to remove.\n"
+                    "Shift+Enter to toggle favorite (star) status."
+                )
             else:
                 self.show_status(self.current_key)
 
@@ -566,7 +571,7 @@ class KeyboardWidget(QWidget):
             Qt.Key.Key_Home,
             Qt.Key.Key_End,
         ):
-            return self.handle_cursor_navigation(source, key)
+            return self.handle_cursor_navigation(source, event, key)
 
         elif key == Qt.Key.Key_Escape or (
             key == Qt.Key.Key_Backspace and source == self
@@ -577,6 +582,15 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
             self.update()
 
+        elif key == Qt.Key.Key_Delete and source == self:
+            if self.current_key and self.current_key in self.mapping:
+                e = self.mapping[self.current_key]
+                if e in self.recent_list.emojis:
+                    self.recent_list.emojis.remove(e)
+                    self.mapping = make_mapping(self.board, self.offset)
+                    self.show_status("Removed from recent emojis.")
+                    self.update()
+
         elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if source is self.emoji_input_field:
                 self.handle_close()
@@ -586,7 +600,24 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
                 self.update()
             elif source is self and self.current_key:
-                self.handle_key(self.current_key)
+                if (
+                    event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+                    and self.board == self.recent_list.emojis
+                ):
+                    if self.current_key in self.mapping:
+                        e = self.mapping[self.current_key]
+                        if e in self.recent_list.emojis:
+                            if e.order < 100:
+                                e.order = 100
+                                e.mark = "⭐️"
+                            else:
+                                e.order = 0
+                                e.mark = ""
+                            self.update()
+                else:
+                    self.handle_key(self.current_key)
+                    if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                        self.handle_close()
 
         elif key == Qt.Key.Key_PageUp:
             self.scroll_board(1)
@@ -619,6 +650,22 @@ class KeyboardWidget(QWidget):
             self.scroll_board(event.angleDelta().y())
         return super().wheelEvent(event)
 
+    def get_key_before(self, key: str) -> str:
+        pos = kbd.find(key)
+        if pos > 0:
+            for i in range(pos - 1, -1, -1):
+                if not kbd[i].isspace():
+                    return kbd[i]
+        return key
+
+    def get_key_after(self, key: str) -> str:
+        pos = kbd.find(key)
+        if pos > -1:
+            for i in range(pos + 1, len(kbd)):
+                if not kbd[i].isspace():
+                    return kbd[i]
+        return key
+
     def get_nearest_char(self, col: int, row: int, left_only: bool = False) -> str:
         kbrow = kbd_board[row]
         if col < 0:
@@ -641,7 +688,7 @@ class KeyboardWidget(QWidget):
                 return (col, row)
         return None
 
-    def handle_cursor_navigation(self, source: QObject, key: int):
+    def handle_cursor_navigation(self, source: QObject, event: QKeyEvent, key: int):
         if key == Qt.Key.Key_Down and source is not self:
             if not self.current_key:
                 self.current_key = self.get_nearest_char(0, 0)
@@ -655,9 +702,43 @@ class KeyboardWidget(QWidget):
                 == len(s.encode("utf-16-le")) // 2
             ):
                 self.search_field.setFocus()
+            return True
         elif key == Qt.Key.Key_Left and source is self.search_field:
             if self.search_field.cursorPosition() == 0:
                 self.emoji_input_field.setFocus()
+            return True
+        elif (
+            key == Qt.Key.Key_Left
+            and source is self
+            and event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+            and self.board == self.recent_list.emojis
+        ):
+            if self.current_key in self.mapping:
+                e = self.mapping[self.current_key]
+                idx = self.recent_list.emojis.index(e)
+                if idx > 0:
+                    rl = self.recent_list.emojis
+                    rl[idx], rl[idx - 1] = (rl[idx - 1], rl[idx])
+                    self.current_key = self.get_key_before(self.current_key)
+                    self.mapping = make_mapping(self.board, self.offset)
+                    self.update()
+            return True
+        elif (
+            key == Qt.Key.Key_Right
+            and source is self
+            and event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+            and self.board == self.recent_list.emojis
+        ):
+            if self.current_key in self.mapping:
+                e = self.mapping[self.current_key]
+                idx = self.recent_list.emojis.index(e)
+                if idx + 1 < len(self.recent_list.emojis):
+                    rl = self.recent_list.emojis
+                    rl[idx], rl[idx + 1] = (rl[idx + 1], rl[idx])
+                    self.current_key = self.get_key_after(self.current_key)
+                    self.mapping = make_mapping(self.board, self.offset)
+                    self.update()
+            return True
         elif source is self:
             pos = self.get_key_pos(self.current_key)
             if not pos:
