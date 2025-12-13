@@ -29,9 +29,10 @@ ActShow(*) {
 
     Run('.\venv\Scripts\python.exe guidmn.py SHOW', , "Hide")
 
-    WinWait("Emoji Keyboard")
-
-    WinWaitClose("Emoji Keyboard")
+    WinWait("Emoji Kbd")
+    if WinExist("Emoji Kbd") {
+        WinWaitClose("Emoji Kbd")
+    }
 
     ; Return to original window if it still exists
     if (activeWindow and WinExist("ahk_id " . activeWindow)) {

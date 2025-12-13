@@ -52,7 +52,7 @@ class KeyboardWidget(QWidget):
         super().__init__()
         log.info("Creating main window...")
         self.setWindowIcon(QIcon("emoji-kbd.ico"))
-        self.setWindowTitle("Emoji Keyboard")
+        self.setWindowTitle("Emoji Kbd")
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self.setWindowFlag(Qt.WindowType.Tool, True)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
