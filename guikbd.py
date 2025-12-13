@@ -47,6 +47,7 @@ def winlin(windows_value: int, linus_value: int) -> int:
     else:
         return linus_value
 
+
 # Map of special unicode codes to short names for display on keys
 special_name_map = {
     "0020": "SP",  # SPACE
@@ -64,6 +65,7 @@ special_name_map = {
     "2009": "TS",  # THIN SPACE
     "200A": "HS",  # HAIR SPACE
 }
+
 
 class KeyboardWidget(QWidget):
     def __init__(self):
@@ -338,28 +340,31 @@ class KeyboardWidget(QWidget):
         if clipboard:
             clipboard.setText(self.emoji_input_field.text())
 
-    def show_status(self, obj: str | Emoji):
+    def show_status(self, obj: str | Emoji | None):
+        msg_list: list[str] = []
+        if len(self.board) > self.max_chars:
+            page = self.offset // self.max_chars + 1
+            pages = len(self.board) // self.max_chars + 1
+            msg_list.append(f"Page {page}/{pages}")
+        if isinstance(obj, str):
+            msg_list.append(obj)
         if isinstance(obj, str) and obj in self.mapping:
             obj = self.mapping[obj]
         if isinstance(obj, Emoji):
-            msg: list[str] = []
             if obj.emojis:
-                msg.append(f"{len(obj.emojis)} emojis")
+                msg_list.append(f"{len(obj.emojis)} emojis")
             if obj.unicode:
-                msg.append(f"{obj.unicode}")
+                msg_list.append(f"{obj.unicode}")
             if obj.name:
-                msg.append(f"{obj.name}")
+                msg_list.append(f"{obj.name}")
             if obj.group:
                 if obj.subgroup:
-                    msg.append(f"{obj.group} > {obj.subgroup}")
+                    msg_list.append(f"{obj.group} > {obj.subgroup}")
                 else:
-                    msg.append(f"{obj.group}")
+                    msg_list.append(f"{obj.group}")
             if obj.tags:
-                msg.append(f" \n{obj.tags}")
-            obj = ", ".join(msg)
-        if len(obj) == 1:
-            obj = ""
-        self.status_label.setText(obj)
+                msg_list.append(f" \n{obj.tags}")
+        self.status_label.setText(", ".join(msg_list))
 
     def handle_focus_change(self, old, new):  # type: ignore
         if new == self.emoji_input_field:
@@ -367,7 +372,7 @@ class KeyboardWidget(QWidget):
             if self.board == self.search_results.emojis:
                 self.pop_board()
             self.show_status(
-                "Type key to insert emoji or open sub board. Use Space as prefix key to open variants board.\n"
+                "Type key to insert emoji or open sub board. Use Space as prefix key to open variants board. "
                 "Use Enter to close board and insert into app."
             )
         elif new == self.search_field:
@@ -378,18 +383,18 @@ class KeyboardWidget(QWidget):
                     self.search_emojis(self.search_field.text())
                 self.push_board(self.search_results.emojis)
             self.show_status(
-                "Search emojis by name and tag, with '#' prefix by tag and '+' prefix by code.\n"
+                "Search emojis by name and tag, with '#' prefix by tag and '+' prefix by code. "
                 "Use ',' to search group and/or subgroup, e.g. 'animal,', ',mammal' or 'ani,mam'."
             )
         elif new == self:
             if len(self.board_path) == 1:
                 self.show_status(
-                    "Cursor movement to select emoji/group, Enter inserts emoji or opens group.\n"
+                    "Cursor movement to select emoji/group, Enter inserts emoji or opens group. "
                     "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
                 )
             elif self.board == self.recent_list.emojis:
                 self.show_status(
-                    "Use Shift-Left/Right to reorder recent emojis. Delete to remove.\n"
+                    "Use Shift-Left/Right to reorder recent emojis. Delete to remove. "
                     "Shift+Enter to toggle favorite (star) status."
                 )
             else:
@@ -514,9 +519,7 @@ class KeyboardWidget(QWidget):
             self.insert_emoji(e)
         elif e.emojis:
             self.push_board(e.emojis)
-        if key in self.mapping:
-            e = self.mapping[key]
-            self.show_status(e)
+        self.show_status(key)
         self.update()
 
     def handle_close(self):
@@ -831,8 +834,7 @@ class KeyboardWidget(QWidget):
             elif button == Qt.MouseButton.RightButton:
                 self.pop_board()
                 char = self.get_char_from_position(x, y)
-                if char in self.mapping:
-                    self.show_status(self.mapping[char])
+                self.show_status(char)
                 self.update()
 
         return super().mousePressEvent(event)
@@ -841,9 +843,9 @@ class KeyboardWidget(QWidget):
         if event:
             char = self.get_char_from_position(event.pos().x(), event.pos().y())
             if char and char != self.current_key:
-                self.show_status(char)
                 self.current_key = char
-                self.update()
+            self.show_status(char)
+            self.update()
         return super().mouseMoveEvent(event)
 
 
