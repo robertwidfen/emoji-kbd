@@ -323,6 +323,7 @@ class KeyboardWidget(QWidget):
             matches_dict = {e.char: e for e in reversed(matches)}
             matches = list(reversed(matches_dict.values()))
             self.search_results.emojis.extend(matches)
+            self.current_key = self.get_nearest_char(0, 0)
             self.mapping = make_mapping(self.search_results.emojis)
             self.show_status(f"Found {len(matches)} matching emojis.")
         else:
@@ -368,7 +369,8 @@ class KeyboardWidget(QWidget):
                 "Use Enter to close board and insert into app."
             )
         elif new == self.search_field:
-            self.current_key = ""
+            self.search_field.selectAll()
+            self.current_key = self.get_nearest_char(0, 0)
             if self.board != self.search_results.emojis:
                 if not self.search_results.emojis:
                     self.search_emojis(self.search_field.text())
@@ -604,7 +606,6 @@ class KeyboardWidget(QWidget):
             if source is self.emoji_input_field:
                 self.handle_close()
             elif source is self.search_field:
-                self.current_key = self.get_nearest_char(0, 0)
                 self.insert_emoji(self.mapping[self.current_key])
                 self.emoji_input_field.setFocus()
                 self.update()
@@ -712,9 +713,23 @@ class KeyboardWidget(QWidget):
             ):
                 self.search_field.setFocus()
             return True
-        elif key == Qt.Key.Key_Left and source is self.search_field:
-            if self.search_field.cursorPosition() == 0:
-                self.emoji_input_field.setFocus()
+        elif (
+            key == Qt.Key.Key_Left
+            and source is self.search_field
+            and self.search_field.cursorPosition() == 0
+        ):
+            self.emoji_input_field.setFocus()
+            return True
+        elif (
+            key == Qt.Key.Key_Right
+            and source is self.search_field
+            and self.search_field.cursorPosition() == len(self.search_field.text())
+        ):
+            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                self.current_key = self.get_key_before(self.current_key)
+            else:
+                self.current_key = self.get_key_after(self.current_key)
+            self.update()
             return True
         elif (
             key == Qt.Key.Key_Left
