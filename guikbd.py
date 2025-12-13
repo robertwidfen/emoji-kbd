@@ -21,7 +21,7 @@ from PyQt6.QtGui import (
     QWheelEvent,
     QIcon,
 )
-from PyQt6.QtCore import Qt, QRect, QObject, QEvent
+from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 
 import logging as log
 
@@ -184,7 +184,7 @@ class KeyboardWidget(QWidget):
 
     def paintEvent(self, _event):  # type: ignore
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
         x = start_x
         y = start_y
@@ -192,7 +192,7 @@ class KeyboardWidget(QWidget):
         for row in kbd_board:
             for key in row:
                 if key != " ":
-                    rect = QRect(x, y, key_width, key_height)
+                    rect = QRectF(x + 0.5, y + 0.5, key_width, key_height)
                     pen = painter.pen()
                     pen.setWidth(1)
                     if self.current_key == key:
@@ -200,7 +200,7 @@ class KeyboardWidget(QWidget):
                     else:
                         pen.setColor(QColor(128, 128, 128))  # gray outline
                     painter.setPen(pen)
-                    painter.drawRoundedRect(rect, 5, 5)
+                    painter.drawRoundedRect(rect, 3, 3)
 
                     painter.setPen(self.palette().text().color())
 
