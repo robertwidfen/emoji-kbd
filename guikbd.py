@@ -354,7 +354,7 @@ class KeyboardWidget(QWidget):
             if obj.emojis:
                 msg_list.append(f"{len(obj.emojis)} emojis")
             if obj.unicode:
-                msg_list.append(f"{obj.unicode}")
+                msg_list.append(f"+{obj.unicode}")
             if obj.name:
                 msg_list.append(f"{obj.name}")
             if obj.group:
