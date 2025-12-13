@@ -105,8 +105,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
                 continue
             unicode = int(row[0], 16)
             if (
-                (unicode >= 0x0 and unicode < 0x20)
-                or (unicode >= 0x7F and unicode < 0xA0)
+                (unicode < 0xA0)
                 or (unicode >= 0x400 and unicode < 0x1FFF)
                 or (unicode >= 0x2C00 and unicode < 0xFFDC)
                 or (unicode >= 0x10100 and unicode < 0x1EEFF)
