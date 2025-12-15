@@ -1,3 +1,4 @@
+import os
 import sys
 import socket
 import threading
@@ -109,9 +110,7 @@ class SocketServer(QObject):
                                 conn.sendall(response)
                             elif data == "QUIT":
                                 conn.sendall(b"OK\n")
-                                log.info(
-                                    f"Quit command received, shutting down server."
-                                )
+                                log.info(f"Quit command received, shutting down.")
                                 QTimer.singleShot(100, QApplication.instance().quit)  # type: ignore
                                 break
                             else:
@@ -194,8 +193,10 @@ def start_daemon():
     sys.exit(app.exec())
 
 
-def send_command(port: int, command: str):
+def send_command(command: str, start_daemon_enabled=True) -> str | None:
     try:
+        with open(PORT_FILE, "r") as f:
+            port = int(f.read().strip())
         command = command.strip().upper()
         log.info(f"Sending command '{command}' to port {port}...")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -204,64 +205,43 @@ def send_command(port: int, command: str):
             response = s.recv(1024).decode("utf-8").strip()
             log.info(f"Received response: '{response}'")
             return response
-    except ConnectionRefusedError:
-        log.error("Emoji keyboard daemon is not running")
-        return ""
+    except (ConnectionRefusedError, FileNotFoundError, ValueError) as e:
+        log.error(f"Exception: {e}")
+        if start_daemon_enabled:
+            log.error("Emoji keyboard daemon not running - trying to start it.")
+            return start_daemon_process(command)
+        return None
     except Exception as e:
         log.error(f"Exception: {e}")
-        return ""
+        return None
 
 
-def is_daemon_running(port):
-    try:
-        if send_command(port, "HELLO") == "OK":
-            return True
-        return False
-    except (ConnectionRefusedError, socket.timeout, OSError):
-        return False
-
-
-def start_daemon_if_needed():
-    log.info("Checking for daemon...")
-    # Check if port file exists and daemon is running
-    try:
-        with open(PORT_FILE, "r") as f:
-            port = int(f.read().strip())
-        if is_daemon_running(port):
-            log.info(f"Daemon already running on port {port}")
-            return port
-    except (FileNotFoundError, ValueError):
-        pass
-
+def start_daemon_process(command: str):
     # Start daemon
     log.info("Starting daemon...")
+    env = os.environ.copy()
+    env.pop("TERM", None)
     subprocess.Popen(
         [sys.executable, sys.argv[0], "--daemon"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         start_new_session=True,
+        env=env,
     )
-    # time.sleep(3)  # Give it a moment to settle
-
     # Wait for daemon to start and write port file
     for i in range(50):  # Wait up to 5 seconds
         time.sleep(0.1)
-        try:
-            with open(PORT_FILE, "r") as f:
-                port = int(f.read().strip())
-            if is_daemon_running(port):
-                log.info(f"Daemon started on port {port}")
-                return port
-        except (FileNotFoundError, ValueError):
-            continue
-
+        result = send_command(command, False)
+        if result != None:
+            log.info(f"Daemon started.")
+            return result
     raise RuntimeError("Failed to start daemon")
 
 
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
-            filename="guidmn.log",
+            filename="guidmn.log",  # if not os.environ.get("TERM") else None,
             filemode="a",
             level=log.INFO,
             format="%(asctime)s - D %(levelname)s - %(message)s",
@@ -275,10 +255,13 @@ if __name__ == "__main__":
             format="%(asctime)s - C %(levelname)s - %(message)s",
         )
         # Client mode with commands
-        port = start_daemon_if_needed()
-        args = sys.argv[1:]
-        for a in args:
-            print(send_command(port, a), end="")
+        for a in sys.argv[1:]:
+            result = send_command(a)
+            if result == None:
+                print("No result")
+                sys.exit(-1)
+            else:
+                print(result, end="")
     else:
         print(f"Usage: {sys.argv[0]} [--daemon] [SHOW|GET|QUIT]", file=sys.stderr)
         sys.exit(1)
