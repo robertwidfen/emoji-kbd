@@ -113,9 +113,10 @@ python guidmn.py get
 Fork and change the code 😉 or wait until it is added.
 
 # Todos
-- Make config file
+- Make size resizable
+- Add config file
 - Store config and other files in proper locations
-- 
+- Add more layouts
 
 # Random link list
 - https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv

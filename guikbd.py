@@ -28,12 +28,6 @@ import logging as log
 
 from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
-# TODO change input field and search to be in one line
-# TODO add "scrollbar"
-# TODO add more layouts
-# TODO add config
-
-
 start_x = 10
 start_y = 52
 key_width = 40
