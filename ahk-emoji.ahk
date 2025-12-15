@@ -86,12 +86,10 @@ ActShow(*) {
         WinWaitClose("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits")
     }
 
-    ; Return to original window if it still exists
-    if (activeWindow and WinExist("ahk_id " . activeWindow)) {
-        WinActivate("ahk_id " . activeWindow)
-        if WinWaitActive("ahk_id " . activeWindow, , 2) {
-            ; Only send paste command if clipboard has content
-            if (A_Clipboard != "") {
+    if (A_Clipboard != "") {
+        if (activeWindow and WinExist("ahk_id " . activeWindow)) {
+            WinActivate("ahk_id " . activeWindow)
+            if WinWaitActive("ahk_id " . activeWindow, , 2) {
                 ; Send Shift-Insert to paste clipboard contents
                 Send("+{Insert}")
             }
