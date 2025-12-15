@@ -219,11 +219,20 @@ class KeyboardWidget(QWidget):
                             char = special_name_map[e.unicode]
                         elif self.current_key == key:
                             painter.setFont(self.emoji_font2)
+                            rect = QRectF(
+                                x - 10 + 1,
+                                y - 15 + 1.5,
+                                key_width + 20,
+                                key_height + 20,
+                            )
                         else:
                             painter.setFont(self.emoji_font)
-                        rect = QRectF(
-                            x - 10 + 1, y - 10 + 1.5, key_width + 20, key_height + 20
-                        )
+                            rect = QRectF(
+                                x - 10 + 1,
+                                y - 10 + 1.5,
+                                key_width + 20,
+                                key_height + 20,
+                            )
                         painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, char)  # type: ignore
 
                         # Draw mark if any
