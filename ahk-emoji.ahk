@@ -35,7 +35,7 @@ SendEmojiKbdShowCommand() {
         }
         DllCall("Ws2_32\closesocket", "Ptr", s)
         DllCall("Ws2_32\WSACleanup")
-        if WinWait("Emoji Kbd", , 1) {
+        if WinWait("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits", , 1) {
             return true
         }
         else {
@@ -76,14 +76,14 @@ ActShow(*) {
 
     if not SendEmojiKbdShowCommand() {
         Run('.\venv\Scripts\python.exe guidmn.py SHOW', , "Hide")
-        if not WinWait("Emoji Kbd", , 5) {
+        if not WinWait("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits", , 5) {
             MsgBox("Cannot start Emoji Kbd Daemon")
             return
         }
     }
 
-    if WinExist("Emoji Kbd") {
-        WinWaitClose("Emoji Kbd")
+    if WinExist("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits") {
+        WinWaitClose("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits")
     }
 
     ; Return to original window if it still exists
