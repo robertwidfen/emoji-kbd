@@ -6,6 +6,7 @@ import time
 import qdarkstyle
 
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QGuiApplication, QCursor
 from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
 import logging as log
@@ -34,7 +35,7 @@ class SocketServer(QObject):
         log.info("show_window() called")
         self.window.emoji_input_field.clear()
         # Center on the current active screen
-        screen = QApplication.primaryScreen()
+        screen = QGuiApplication.screenAt(QCursor.pos())
         if screen:
             screen_geometry = screen.availableGeometry()
             window_geometry = self.window.frameGeometry()
