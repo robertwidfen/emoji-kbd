@@ -92,6 +92,7 @@ ActShow(*) {
             if WinWaitActive("ahk_id " . activeWindow, , 2) {
                 ; Send Shift-Insert to paste clipboard contents
                 Send("+{Insert}")
+                ; Change binding above to use different paste key sequence if desired
             }
         }
     }
