@@ -1,4 +1,5 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-python guidmn.py GET | wl-copy --trim-newline
+printf "GET\n" | nc localhost $(cat .local/emoji-kbd-daemon.port) || python guidmn.py GET 
 wtype -M shift -k Insert -m shift
+
