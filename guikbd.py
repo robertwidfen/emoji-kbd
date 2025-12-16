@@ -468,6 +468,7 @@ class KeyboardWidget(QWidget):
         # sort and keep only top 100
         self.recent_list.emojis.sort(key=lambda e: e.order, reverse=True)
         self.recent_list.emojis = self.recent_list.emojis[:100]
+        self.save_recent()
 
     def load_recent(self):
         try:
@@ -552,7 +553,6 @@ class KeyboardWidget(QWidget):
 
     def handle_close(self):
         self.copy_to_clipboard()
-        self.save_recent()
         try:
             print(self.emoji_input_field.text())
         except UnicodeEncodeError:
