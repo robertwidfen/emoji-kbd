@@ -700,7 +700,7 @@ class KeyboardWidget(QWidget):
         if event:
             current_time = time.time()
             delta = event.angleDelta().y()
-            log.info(f"Wheel event delta: {delta}")
+            log.debug(f"Wheel event delta: {delta}")
             # Only allow scrolling only if delta is big enough and every this seconds
             # TODO Config
             if abs(delta) > 5 and current_time - self.last_scroll_time > 0.1:
