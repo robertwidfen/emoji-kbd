@@ -28,12 +28,6 @@ import logging as log
 
 from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
-start_x = 10
-start_y = 52
-key_width = 40
-key_height = 40
-key_padding = 5
-
 
 def winlin(windows_value: int, linus_value: int) -> int:
     if sys.platform.startswith("win"):
@@ -67,8 +61,9 @@ class KeyboardWidget(QWidget):
         log.info("Creating main window...")
         self.setWindowIcon(QIcon("emoji-kbd.ico"))
         self.setWindowTitle("Emoji Kbd")
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self.setWindowFlag(Qt.WindowType.Tool, True)
+        self.setWindowFlag(Qt.WindowType.Dialog, True)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.max_chars = sum(1 for char in kbd if not char.isspace())
         log.info(f"{self.max_chars} chars on board.")
@@ -96,6 +91,15 @@ class KeyboardWidget(QWidget):
         log.info("Creating main window done.")
 
     def initUI(self):
+        # collect some metrics from the style
+        style = QApplication.style()
+        if style:
+            self.padding = style.pixelMetric(
+                QStyle.PixelMetric.PM_LayoutHorizontalSpacing
+            )
+        else:
+            self.padding = 5
+
         # Set up event handlers
         self.setMouseTracking(True)
         self.installEventFilter(self)
@@ -112,7 +116,6 @@ class KeyboardWidget(QWidget):
 
         # Create horizontal layout for input and search fields
         top_hbox = QHBoxLayout()
-        top_hbox.setSpacing(key_padding - 1)
 
         font_size = QApplication.font().pointSize()
         w = QLineEdit(self)
@@ -131,6 +134,7 @@ class KeyboardWidget(QWidget):
 
         top_hbox.addWidget(self.emoji_input_field)
         top_hbox.addWidget(self.search_field)
+        self.top_box = top_hbox
 
         w = QLabel("Status: Ready", self)
         w.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
@@ -145,47 +149,68 @@ class KeyboardWidget(QWidget):
 
         self.setLayout(main_vbox)
 
-        # Calculate board position and window size
-        board_cols = max(len(line) for line in kbd.splitlines())
-        board_rows = len(kbd.splitlines())
+        # Calculate board size
+        self.board_cols = max(len(line) for line in kbd.splitlines())
+        self.board_rows = len(kbd.splitlines())
 
-        style = QApplication.style()
-        if style:
-            default_spacing = style.pixelMetric(
-                QStyle.PixelMetric.PM_LayoutHorizontalSpacing
-            )
-            log.info(f"Default spacing: {default_spacing}")
-            global start_y, start_x
-            # start_x = default_spacing * 2 + 1
-            start_x = (
-                top_hbox.geometry().x()
-                + self.emoji_input_field.geometry().x()
-                + default_spacing * 2
-                + 1
-            )
-            start_y = self.emoji_input_field.sizeHint().height() + default_spacing * 4
+        # self.start_y = top_hbox.geometry().height() + self.padding
 
-        width = (
-            start_x
-            + board_cols * (key_width + key_padding)
-            + key_padding
-            - winlin(-2, 2)
-        )
-        height = (
-            start_y
-            + board_rows * (key_width + key_padding)
-            + key_padding
-            + winlin(10, -2)
-            + self.status_label.sizeHint().height()
-        )
-        self.setFixedSize(width, height)
+        # style = QApplication.style()
+        # if style:
+        #     default_spacing = style.pixelMetric(
+        #         QStyle.PixelMetric.PM_LayoutHorizontalSpacing
+        #     )
+        #     log.info(f"Default spacing: {default_spacing}")
+        #     global start_y, start_x
+        #     # start_x = default_spacing * 2 + 1
+        #     start_x = (
+        #         top_hbox.geometry().x()
+        #         + self.emoji_input_field.geometry().x()
+        #         + default_spacing * 2
+        #         + 1
+        #     )
+        #     start_y = self.emoji_input_field.sizeHint().height() + default_spacing * 4
+
+        # width = (
+        #     start_x
+        #     + board_cols * (key_width + key_padding)
+        #     + key_padding
+        #     - winlin(-2, 2)
+        # )
+        # height = (
+        #     start_y
+        #     + board_rows * (key_width + key_padding)
+        #     + key_padding
+        #     + winlin(10, -2)
+        #     + self.status_label.sizeHint().height()
+        # )
+        self.resize(600, 280)
 
     def paintEvent(self, _event):  # type: ignore
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
+        # adapt window size
+        start_x = self.top_box.geometry().x()
         x = start_x
-        y = start_y
+        padding = 2 * self.padding
+        y = self.top_box.geometry().height() + self.padding * 4
+        key_width = (self.width() - padding - 1) / self.board_cols - padding
+        key_height = (
+            self.height() - y - self.status_label.height() - padding
+        ) / self.board_rows - padding
+        size = int(min(key_width, key_height))
+        emoji_size = int(size * 0.6)
+        if emoji_size != self.emoji_font.pointSize():
+            self.emoji_font.setPointSize(emoji_size)
+            self.emoji_font2.setPointSize(int(size * 0.8))
+            self.mark_font.setPointSize(int(size * 0.2))
+            self.key_font.setPointSize(int(size * 0.2))
+
+        self.start_x = start_x
+        self.start_y = y
+        self.key_width = key_width
+        self.key_height = key_height
 
         for row in kbd_board:
             for key in row:
@@ -215,7 +240,7 @@ class KeyboardWidget(QWidget):
                             painter.setFont(self.emoji_font2)
                             rect = QRectF(
                                 x - 10 + 1,
-                                y - 15 + 1.5,
+                                y - 10 + 1,
                                 key_width + 20,
                                 key_height + 20,
                             )
@@ -246,10 +271,10 @@ class KeyboardWidget(QWidget):
                     rect = QRectF(x + 2, y + 2, key_width, key_height)
                     painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, key)  # type: ignore
 
-                x += key_width + key_padding
+                x += key_width + padding
 
             x = start_x
-            y += key_height + key_padding
+            y += key_height + padding
 
     def match(self, text: str, needle: str) -> int:
         pos = text.find(needle)
@@ -806,8 +831,11 @@ class KeyboardWidget(QWidget):
         return False
 
     def get_char_from_position(self, x: int, y: int) -> str | None:
-        col = (x - start_x) // (key_width + key_padding)
-        row = (y - start_y) // (key_height + key_padding)
+        (start_x, start_y) = (self.start_x, self.start_y)
+        (key_width, key_height) = (self.key_width, self.key_height)
+        key_padding = self.padding
+        col = int((x - start_x) // (key_width + key_padding))
+        row = int((y - start_y) // (key_height + key_padding))
         if row >= 0 and col >= 0 and row < len(kbd_board) and col < len(kbd_board[row]):
             xp = start_x + col * (key_width + key_padding) + key_width - 2 * key_padding
             yp = start_y + row * (key_height + key_padding) + 2 * key_padding
