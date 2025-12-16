@@ -72,7 +72,11 @@ ActCredits(*) {
 }
 
 ActShow(*) {
-    activeWindow := WinGetID("A")
+    try {
+        activeWindow := WinGetID("A")
+    } catch TargetError {
+        activeWindow := 0
+    }
 
     if not SendEmojiKbdShowCommand() {
         Run('.\venv\Scripts\python.exe guidmn.py SHOW', , "Hide")
@@ -89,15 +93,21 @@ ActShow(*) {
     if (A_Clipboard != "") {
         if (activeWindow and WinExist("ahk_id " . activeWindow)) {
             WinActivate("ahk_id " . activeWindow)
-            if WinWaitActive("ahk_id " . activeWindow, , 2) {
-                ; Send Shift-Insert to paste clipboard contents
-                Send("+{Insert}")
-                ; Change binding above to use different paste key sequence if desired
-            }
+            WinWaitActive("ahk_id " . activeWindow, , 2)
+        }
+        else {
+            MouseGetPos(, , &windowUnderMouse)
+            if windowUnderMouse
+                WinActivate("ahk_id " . windowUnderMouse)
+        }
+        if WinExist("A") {
+            ; Send Shift-Insert to paste clipboard contents
+            Send("+{Insert}")
+            ; Change binding above to use different paste key sequence
         }
     }
 }
 
 ; Win-Dot: Show emoji keyboard and insert clipboard contents
 #.:: ActShow()
-; Change binding above to use different hotkey if desired
+; Change binding above to use different hotkey
