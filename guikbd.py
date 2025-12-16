@@ -191,16 +191,22 @@ class KeyboardWidget(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
         # adapt window size
-        start_x = self.top_box.geometry().x()
+        tb = self.top_box
+        eif = self.emoji_input_field
+        sf = self.search_field
+        sl = self.status_label
+        start_x = tb.geometry().x()
         x = start_x
-        padding = 2 * self.padding
-        y = self.top_box.geometry().height() + self.padding * 4
-        key_width = (self.width() - padding - 1) / self.board_cols - padding
+        padding = sf.pos().x() - eif.pos().x() - eif.width() + 1
+        y = 2 * eif.pos().y() + tb.geometry().height()
+        key_width = (
+            sf.pos().x() + sf.width() - padding + 2
+        ) / self.board_cols - padding
         key_height = (
-            self.height() - y - self.status_label.height() - padding
+            self.height() - y - sl.height() - padding
         ) / self.board_rows - padding
         size = int(min(key_width, key_height))
-        emoji_size = int(size * 0.6)
+        emoji_size = int(size * 0.56)
         if emoji_size != self.emoji_font.pointSize():
             self.emoji_font.setPointSize(emoji_size)
             self.emoji_font2.setPointSize(int(size * 0.8))
@@ -216,7 +222,9 @@ class KeyboardWidget(QWidget):
             for key in row:
                 if key != " ":
                     # Draw key outline
-                    rect = QRectF(x + 0.5, y + 0.5, key_width, key_height)
+                    rect = QRectF(
+                        int(x) + 0.5, int(y) + 0.5, int(key_width), int(key_height)
+                    )
                     pen = painter.pen()
                     pen.setWidth(1)
                     if self.current_key == key:
@@ -901,6 +909,7 @@ class KeyboardWidget(QWidget):
                 self.setCursor(Qt.CursorShape.ArrowCursor)
 
         return super().mouseMoveEvent(event)
+
 
 def setup_app() -> QApplication:
     app = QApplication(sys.argv)
