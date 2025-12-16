@@ -863,10 +863,17 @@ class KeyboardWidget(QWidget):
                     self.handle_key(char)
                     self.current_key = char
             elif button == Qt.MouseButton.RightButton:
-                self.pop_board()
-                char = self.get_char_from_position(x, y)
-                self.show_status(char)
-                self.update()
+                if event.pos().y() < self.start_y:
+                    self.windowHandle().startSystemMove()
+                elif event.pos().y() > self.height() - self.status_label.height():
+                    self.windowHandle().startSystemResize(
+                        Qt.Edge.BottomEdge | Qt.Edge.RightEdge
+                    )
+                else:
+                    self.pop_board()
+                    char = self.get_char_from_position(x, y)
+                    self.show_status(char)
+                    self.update()
 
         return super().mousePressEvent(event)
 
