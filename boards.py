@@ -154,41 +154,41 @@ group_patterns = (
     # ignored ones
     (0, "", "^(extras-unicode|component|)$", "", ""),
     # normalized groups
-    (4, "🤡", "smileys-emotion", "face-costume|(cat|monkey)-face", "😈👿💀☠️🗿🪬"),
-    (2, "😐️", "smileys-emotion", "face-neutral-skeptical", "😔😪😴🫩🫪"),
-    (3, "🥳", "smileys-emotion", "face-(hat|glasses)", ""),
-    (5, "❤️", "smileys-emotion", "emotion|heart", ""),
-    (1, "😀", "smileys-emotion", "", ""),
-    (6, "👍️", "people-body", "hand|body", "👣🫆"),
-    (7, "⚽️", "people-body|activities", "sport|activity|game|award-medal", "🎭️🖼️"),
-    (7, "💁‍♂️", "people-body", "", ""),
-    (8, "🐒", "animals-nature", "animal", "🫈🫍"),
-    (9, "🌿", "animals-nature", "plant", ""),
-    (11, "🍽️", "food-drink", "dishware", ""),
-    (10, "🍎", "food-drink", "", ""),
-    (12, "☀️", "travel-places", "sky-weather", ""),
-    (13, "🚂", "travel-places|symbols", "transport-", ""),
-    (14, "⌚️", "travel-places", "time", ""),
-    (14, "🏖️", "travel-places", "", "🪧"),
-    (15, "🎄", "activities", "event", ""),
-    (16, "📸", "objects", "light-video", ""),
-    (17, "🔧", "objects|activities", "tool|science", "🎨🪢"),
-    (18, "👕", "objects", "clothing", "🧵🪡🧶"),
-    (19, "💰️", "objects", "money", ""),
-    (20, "🎶", "objects", "music|sound", "🪊🎼"),
-    (21, "🖥️", "objects", "phone|computer|mail", "📶🛜📳📴"),
-    (22, "✏️", "objects", "writing|office|book-paper|lock", "🚬🪪"),
-    (23, "🚪", "objects", "household", ""),
-    (23, "🩺", "objects", "medical|other", ""),
-    (24, "☯️", "symbols", "", "🗣️👤👥🫂"),
-    (25, "🏳️‍🌈", "flags", "", ""),
-    (26, "➹", "arrows", "", ""),
-    (27, "∛", "math", "", ""),
-    (28, "Ω", "greek", "", ""),
-    (29, "╚", "box drawing", "", ""),
-    (29, "␠", "space & punctuation", "", ""),
+    (0x04, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬"),
+    (0x03, "😐️", "smileys-emotion", "face-neutral-skeptical", "😔😪😴🫩🫪🥸🧐"),
+    (0x02, "☹️", "smileys-emotion", "negative|concerned|unwell", ""),
+    (0x06, "❤️", "smileys-emotion", "emotion|heart", ""),
+    (0x01, "😀", "smileys-emotion", "", ""),
+    (0x05, "👍️", "people-body", "hand|body", "👣🫆"),
+    (0x08, "⚽️", "people-body|activities", "sport|activity|game|award-medal", "🎭️🖼️"),
+    (0x07, "💁‍♂️", "people-body", "", ""),
+    (0x09, "🐒", "animals-nature", "animal", "🫈🫍"),
+    (0x10, "🌿", "animals-nature", "plant", ""),
+    (0x12, "🍽️", "food-drink", "dishware", ""),
+    (0x11, "🍎", "food-drink", "", ""),
+    (0x13, "☀️", "travel-places", "sky-weather", ""),
+    (0x14, "🚂", "travel-places|symbols", "transport-", ""),
+    (0x16, "⌚️", "travel-places", "time", ""),
+    (0x15, "🏖️", "travel-places", "", "🪧"),
+    (0x17, "🎄", "activities", "event", ""),
+    (0x19, "📸", "objects", "light-video", ""),
+    (0x18, "🔧", "objects|activities", "tool|science", "🎨🪢"),
+    (0x20, "👕", "objects", "clothing", "🧵🪡🧶"),
+    (0x21, "💰️", "objects", "money", ""),
+    (0x22, "🎶", "objects", "music|sound", "🪊🎼"),
+    (0x23, "🖥️", "objects", "phone|computer|mail", "📶🛜📳📴"),
+    (0x24, "✏️", "objects", "writing|office|book-paper|lock", "🚬🪪"),
+    (0x25, "🚪", "objects", "household", ""),
+    (0x26, "🩺", "objects", "medical|other", ""),
+    (0x27, "☯️", "symbols", "", "🗣️👤👥🫂"),
+    (0x28, "🏳️‍🌈", "flags", "", ""),
+    (0x29, "➹", "arrows", "", ""),
+    (0x30, "∛", "math", "", ""),
+    (0x31, "Ω", "greek", "", ""),
+    (0x32, "╚", "box drawing", "", ""),
+    (0x33, "␠", "space & punctuation", "", ""),
     # catch all
-    (1000, "…", "all the rest", "", ""),
+    (0x50, "…", "all the rest", "", ""),
 )
 
 
@@ -306,6 +306,10 @@ def main():
     print(f"{len(groups)} groups generated.")
     for g in groups:
         print(f"{g!r}")
+        print("\t", end="")
+        for e in g.emojis[:70]:
+            print(e.char, end="")
+        print()
 
 
 if __name__ == "__main__":
