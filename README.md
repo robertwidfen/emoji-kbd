@@ -86,6 +86,10 @@ In `~/.config/hypr/bindings.conf` add
 unbind = SUPER, period
 bindd = SUPER, period, Emojis, exec, PATHTO/wtype-emoji
 ```
+and in `~/.config/hypr/hyprland.conf` add
+```toml
+windowrule = float, title:Emoji Kbd
+```
 
 ## Windows
 Run
