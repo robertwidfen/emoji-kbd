@@ -218,8 +218,6 @@ for p in group_patterns:
 
 def normalize_group(emoji: Emoji) -> GroupPattern:
     for p in group_patterns_compiled:
-        if emoji.char == "🐵" and p.char == "🐒":
-            pass
         if p.chars and emoji.char in p.chars:
             return p
         if p.group and not p.group.search(emoji.group):
@@ -241,9 +239,7 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
         if g.order == 0:
             continue
         if g.char not in group_map:
-            groups.append(
-                Emoji(g.char, group=e.group, subgroup=e.subgroup, order=g.order)
-            )
+            groups.append(Emoji(g.char, "", e.group, e.subgroup, "group", "", g.order))
             group_map[g.char] = groups[-1]
         group_map[g.char].add(e)
     groups.sort(key=lambda e: e.order)
