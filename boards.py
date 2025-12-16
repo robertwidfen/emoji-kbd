@@ -99,19 +99,20 @@ unicode_exclude_ranges = (
     (0x000400, 0x001FFE),
     (0x002C00, 0x00FFDB),
     (0x010100, 0x01EEFE),
-    (0x0F0000, 0x10FFFF),
+    (0x0F0000, 0x8FFFFF),
 )
 
 unicode_exclude_points = (0x2028, 0x2029)
 
+# group_name, subgroup|None, name_regex|None, category_regex|None
 unicode_grouping = (
-    ("arrows", re.compile("arrow"), None),
-    ("box drawing", re.compile("box drawings "), None),
-    ("greek", re.compile("greek"), None),
-    ("math", None, re.compile("^Sm$")),
-    ("objects", None, re.compile("^Sc$")),
-    ("space & punctuation", None, re.compile("^(Zs|P)")),
-    ("all the rest", re.compile("."), None),
+    ("box drawing", "", re.compile("box drawings "), None),
+    ("arrows", "", re.compile("arrow"), None),
+    ("greek", "", re.compile("greek"), None),
+    ("math", "", None, re.compile("^Sm$")),
+    ("objects", "money", None, re.compile("^Sc$")),
+    ("space & punctuation", "", None, re.compile("^(Zs|P)")),
+    ("all the rest", "", re.compile("."), None),
 )
 
 
@@ -137,15 +138,17 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             name = row[1].lower()
             category = row[2]
 
-            for group, name_re, category_re in unicode_grouping:
+            for group, subgroup, name_re, category_re in unicode_grouping:
                 if (
                     isinstance(name_re, re.Pattern)
                     and name_re.search(name)
                     or isinstance(category_re, re.Pattern)
                     and category_re.search(category)
                 ):
-                    e = Emoji(char, unicode, group, category, name)
+                    e = Emoji(char, unicode, group, subgroup or category, name)
                     emojis.append(e)
+                    break
+    log.info(f"UnicodeData: {len(emojis)} emojis loaded.")
     return emojis
 
 
