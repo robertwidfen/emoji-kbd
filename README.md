@@ -88,7 +88,8 @@ bindd = SUPER, period, Emojis, exec, PATHTO/wtype-emoji
 ```
 and in `~/.config/hypr/hyprland.conf` add
 ```toml
-windowrule = float, title:Emoji Kbd
+windowrulev2 = float, class:^emoji-kbd$
+windowrule = float, title:^Emoji Kbd$
 ```
 
 ## Windows
