@@ -5,7 +5,7 @@ key presses.
 
 <img alt="Screenshot" src="screenshot.png" width="550" />
 
-or for a cutom keyboard
+or for a custom keyboard
 
 <img alt="Screenshot" src="screenshot-corne.png" width="500" />
 
@@ -37,9 +37,9 @@ When the windows closes it will copy the content of the input field to the clipb
 
 # Recent List ⟲
 Used emojis will be put automatically to the recent list.
-Ever item has a score and items are sorted by the score. 
+Every item has a score and items are sorted by the score. 
 A score >=100 makes a item a favorite.
-When using an item its score will increase by 10 and the score of all others decreases by 1.
+When using an item its score will increase by 10 and the score of all others decrease by 1.
 
 `Shift-Left`/`Shift-Right` moves an item. Delete removes an item. `Shift-Enter` toggles favorite state.
 
@@ -101,7 +101,7 @@ It will overwrite `Win-.`, i.e. the Windows emoji picker.
 If you prefer another hot key edit the script.
 
 ## Terminal
-In the terminal you may also use the striped down terminal only version
+In the terminal you may also use the stripped down terminal-only version
 ```shell
 python termkbd.py
 ```
@@ -109,7 +109,7 @@ or the gui
 ```shell
 python guikbd.py
 ```
-or the gui via deamon
+or the gui via daemon
 ```shell
 python guidmn.py get
 ```
