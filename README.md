@@ -1,6 +1,6 @@
 # Emoji Kbd
 It is all about efficiency - the fewer keys you need to type the better.
-Emoji Kbd is made for efficiency. 
+Emoji Kbd is made for efficiency.
 Pick emojis and characters with three key presses.
 
 <img alt="Screenshot" src="screenshot.png" width="550" />
@@ -17,7 +17,7 @@ Just three key presses should be enough to get an emoji (from the recent list):
 # UI
 Top left is the emoji input field, right the search field.
 
-In the middle is a (key)board like overview of emojis. 
+In the middle is a (key)board like overview of emojis.
 Each one has a key in the left upper corner.
 
 At the bottom is a status field.
@@ -28,17 +28,19 @@ Use the cursor keys, <kbd>Tab</kbd>, <kbd>Home</kbd> and <kbd>End</kbd> to navig
 Use <kbd>PageUp</kbd>/<kbd>PageDown</kbd> to switch pages.
 Use <kbd>Esc</kbd> to go back to previous board.
 
-In the input field, a <kbd>key</kbd> press will insert the associated emoji. 
+In the input field, a <kbd>key</kbd> press will insert the associated emoji.
 <kbd>Enter</kbd> will copy the emojis to the clipboard and close the window.
 
-In the board, a <kbd>key</kbd> press will select the associated emoji. 
+In the board, a <kbd>key</kbd> press will select the associated emoji.
 <kbd>Enter</kbd> will insert the emoji in the input field.
 Use <kbd>Esc</kbd>/<kbd>Backspace</kbd> to go back to previous board.
 
-In the search field 🔎, <kbd>key</kbd> presses will insert a search term. 
-<kbd>Enter</kbd> will insert the first match in the input field and set focus to it again. 
+In the search field 🔎, <kbd>key</kbd> presses will insert a search term.
+<kbd>Enter</kbd> will insert the first match in the input field and set focus to it again.
 Cursor <kbd>Shift</kbd>+<kbd>Left</kbd> and <kbd>Shift</kbd>+<kbd>Right</kbd> (or <kbd>Right</kbd> when at end) change selected result.
 <kbd>Enter</kbd> will insert the selected item and focus the input field again.
+
+If your window manager supports it, a left click in left half of status allows for moving the window and in right half allows for resizing.
 
 With the mouse 🖱️ a left click inserts/opens, a right click is back to previous board and a double click inserts and closes the window.
 
@@ -46,7 +48,7 @@ When the windows closes it will copy the content of the input field to the clipb
 
 # Recent List ⟲
 Used emojis will be put automatically to the recent list.
-Every item has a score and items are sorted by the score. 
+Every item has a score and items are sorted by the score.
 A score >= 100 makes a item a favorite which will not change anymore.
 When using an item its score will increase by 10 and the score of all others decrease by 1.
 
