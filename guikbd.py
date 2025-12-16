@@ -850,8 +850,14 @@ class KeyboardWidget(QWidget):
     def mousePressEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
         if not event:
             return super().mousePressEvent(event)
-
-        if event.type() == QEvent.Type.MouseButtonDblClick:
+        if self.status_label.underMouse():
+            if event.pos().x() < self.width() / 2:
+                self.windowHandle().startSystemMove()
+            else:
+                self.windowHandle().startSystemResize(
+                    Qt.Edge.BottomEdge | Qt.Edge.RightEdge
+                )
+        elif event.type() == QEvent.Type.MouseButtonDblClick:
             self.handle_close()
         elif self.underMouse() and event.type() == QEvent.Type.MouseButtonPress:
             button = event.button()
@@ -863,17 +869,10 @@ class KeyboardWidget(QWidget):
                     self.handle_key(char)
                     self.current_key = char
             elif button == Qt.MouseButton.RightButton:
-                if event.pos().y() < self.start_y:
-                    self.windowHandle().startSystemMove()
-                elif event.pos().y() > self.height() - self.status_label.height():
-                    self.windowHandle().startSystemResize(
-                        Qt.Edge.BottomEdge | Qt.Edge.RightEdge
-                    )
-                else:
-                    self.pop_board()
-                    char = self.get_char_from_position(x, y)
-                    self.show_status(char)
-                    self.update()
+                self.pop_board()
+                char = self.get_char_from_position(x, y)
+                self.show_status(char)
+                self.update()
 
         return super().mousePressEvent(event)
 
@@ -884,6 +883,23 @@ class KeyboardWidget(QWidget):
                 self.current_key = char
             self.show_status(char)
             self.update()
+
+            # Change cursor based on position over status label
+            if self.status_label.underMouse():
+                label_rect = self.status_label.geometry()
+                mouse_x = event.pos().x()
+                label_center = label_rect.left() + label_rect.width() // 2
+
+                if mouse_x < label_center:
+                    # Left half: move cursor
+                    self.setCursor(Qt.CursorShape.SizeAllCursor)
+                else:
+                    # Right half: resize cursor
+                    self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+            else:
+                # Not over status label: normal cursor
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+
         return super().mouseMoveEvent(event)
 
 def setup_app() -> QApplication:
