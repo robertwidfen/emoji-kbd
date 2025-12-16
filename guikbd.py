@@ -851,6 +851,13 @@ class KeyboardWidget(QWidget):
             self.update()
         return super().mouseMoveEvent(event)
 
+def setup_app() -> QApplication:
+    app = QApplication(sys.argv)
+    app.setApplicationName("emoji-kbd")
+    app.setWindowIcon(QIcon("emoji-kbd.ico"))
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
+    return app
+
 
 if __name__ == "__main__":
     log.basicConfig(
@@ -860,11 +867,10 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     log.info(f"Starting Emoji Keyboard on {sys.platform}...")
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon("emoji-kbd.ico"))
+    app = setup_app()
     app.setQuitOnLastWindowClosed(True)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
     window = KeyboardWidget()
+
     log.info("Starting main window...")
     window.show()
     # for t in ("ear", "ear ", " ear", " ear "):

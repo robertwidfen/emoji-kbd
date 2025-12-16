@@ -12,7 +12,7 @@ from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
 import logging as log
 
-from guikbd import KeyboardWidget
+from guikbd import KeyboardWidget, setup_app
 
 SOCKET_HOST = "127.0.0.1"
 PORT_FILE = ".local/emoji-kbd-daemon.port"
@@ -153,11 +153,9 @@ def start_daemon():
     log.info("Starting Emoji Keyboard Daemon...")
 
     log.info("Creating QApplication")
-    app = QApplication(sys.argv)
-    # Keep app running when window is hidden
+    app = setup_app()
+    # Keep app running when window is closed
     app.setQuitOnLastWindowClosed(False)
-    log.info("Loading stylesheet")
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
 
     # Create server first
     log.info("Creating SocketServer")
