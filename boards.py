@@ -94,6 +94,27 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
     return emojis
 
 
+unicode_exclude_ranges = (
+    (0x000000, 0x00009F),
+    (0x000400, 0x001FFE),
+    (0x002C00, 0x00FFDB),
+    (0x010100, 0x01EEFE),
+    (0x0F0000, 0x10FFFF),
+)
+
+unicode_exclude_points = (0x2028, 0x2029)
+
+unicode_grouping = (
+    ("arrows", re.compile("arrow"), None),
+    ("box drawing", re.compile("box drawings "), None),
+    ("greek", re.compile("greek"), None),
+    ("math", None, re.compile("^Sm$")),
+    ("objects", None, re.compile("^Sc$")),
+    ("space & punctuation", None, re.compile("^(Zs|P)")),
+    ("all the rest", re.compile("."), None),
+)
+
+
 # UnicodeData.txt format:
 # hexcode;name;category;...
 def read_unicode_data(file_path: str) -> list[Emoji]:
@@ -104,14 +125,11 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             if len(row) < 3:
                 continue
             unicode = int(row[0], 16)
-            if (
-                (unicode < 0xA0)
-                or (unicode >= 0x400 and unicode < 0x1FFF)
-                or (unicode >= 0x2C00 and unicode < 0xFFDC)
-                or (unicode >= 0x10100 and unicode < 0x1EEFF)
-                or unicode >= 0xF0000
-                or unicode in (0x2029, 0x2029)
-            ):
+            exclude_range = any(
+                [l <= unicode <= h for (l, h) in unicode_exclude_ranges]
+            )
+            exclude_char = unicode in unicode_exclude_points
+            if exclude_range or exclude_char:
                 continue
 
             char = chr(unicode)
@@ -119,29 +137,15 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             name = row[1].lower()
             category = row[2]
 
-            if name.startswith("box drawings "):
-                e = Emoji(char, unicode, "box drawing", category, name)
-                emojis.append(e)
-            elif name.find("arrow") > -1:
-                e = Emoji(char, unicode, "arrows", category, name)
-                emojis.append(e)
-            elif name.find("greek") > -1:
-                e = Emoji(char, unicode, "greek", category, name)
-                emojis.append(e)
-            elif category == "Sm":
-                e = Emoji(char, unicode, "math", category, name)
-                emojis.append(e)
-            elif category == "Sc":
-                e = Emoji(char, unicode, "objects", "money", name)
-                emojis.append(e)
-            elif category == "Zs" or category.startswith("P"):
-                e = Emoji(char, unicode, "space & punctuation", category, name)
-                emojis.append(e)
-            else:
-                # will be slow with all of them?
-                e = Emoji(char, unicode, "all the rest", category, name)
-                emojis.append(e)
-                pass
+            for group, name_re, category_re in unicode_grouping:
+                if (
+                    isinstance(name_re, re.Pattern)
+                    and name_re.search(name)
+                    or isinstance(category_re, re.Pattern)
+                    and category_re.search(category)
+                ):
+                    e = Emoji(char, unicode, group, category, name)
+                    emojis.append(e)
     return emojis
 
 
