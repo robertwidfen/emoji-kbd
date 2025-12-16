@@ -76,7 +76,7 @@ ActShow(*) {
 
     if not SendEmojiKbdShowCommand() {
         Run('.\venv\Scripts\python.exe guidmn.py SHOW', , "Hide")
-        if not WinWait("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits", , 5) {
+        if not WinWait("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits", , 11) {
             MsgBox("Cannot start Emoji Kbd Daemon")
             return
         }
