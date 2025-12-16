@@ -860,9 +860,9 @@ class KeyboardWidget(QWidget):
             return super().mousePressEvent(event)
         if self.status_label.underMouse():
             if event.pos().x() < self.width() / 2:
-                self.windowHandle().startSystemMove()
+                self.windowHandle().startSystemMove()  # type: ignore
             else:
-                self.windowHandle().startSystemResize(
+                self.windowHandle().startSystemResize(  # type: ignore
                     Qt.Edge.BottomEdge | Qt.Edge.RightEdge
                 )
         elif event.type() == QEvent.Type.MouseButtonDblClick:
