@@ -153,37 +153,7 @@ class KeyboardWidget(QWidget):
         self.board_cols = max(len(line) for line in kbd.splitlines())
         self.board_rows = len(kbd.splitlines())
 
-        # self.start_y = top_hbox.geometry().height() + self.padding
-
-        # style = QApplication.style()
-        # if style:
-        #     default_spacing = style.pixelMetric(
-        #         QStyle.PixelMetric.PM_LayoutHorizontalSpacing
-        #     )
-        #     log.info(f"Default spacing: {default_spacing}")
-        #     global start_y, start_x
-        #     # start_x = default_spacing * 2 + 1
-        #     start_x = (
-        #         top_hbox.geometry().x()
-        #         + self.emoji_input_field.geometry().x()
-        #         + default_spacing * 2
-        #         + 1
-        #     )
-        #     start_y = self.emoji_input_field.sizeHint().height() + default_spacing * 4
-
-        # width = (
-        #     start_x
-        #     + board_cols * (key_width + key_padding)
-        #     + key_padding
-        #     - winlin(-2, 2)
-        # )
-        # height = (
-        #     start_y
-        #     + board_rows * (key_width + key_padding)
-        #     + key_padding
-        #     + winlin(10, -2)
-        #     + self.status_label.sizeHint().height()
-        # )
+        self.setMinimumSize(300, 160)
         self.resize(600, 280)
 
     def paintEvent(self, _event):  # type: ignore
