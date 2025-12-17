@@ -1,34 +1,34 @@
 from blessed import Terminal
 from blessed.keyboard import Keystroke
 import textwrap
-import wcwidth  # type: ignore
+from wcwidth import wcswidth
 
-from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
-
-
-def termwidth(s: str) -> int:
-    return wcwidth.wcswidth(s)  # type: ignore
+from boards import get_emojis_boards, Emoji, kbd, kbd_board
 
 
-def make_board(emojis: list[Emoji]) -> tuple[str, dict[str, Emoji]]:
-    board: list[str] = []
+def make_board(
+    emojis: list[Emoji], offset: int = 0
+) -> tuple[list[str], dict[str, Emoji]]:
+    board: list[str] = [""]
     mapping: dict[str, Emoji] = {}
     i = 0
+    row = 0
     for k in kbd:
-        board.append(k)
-        if k not in (" ", "\n"):
-            if i < len(emojis):
-                e = emojis[i]
-                board.append(e.char)
-                board.append(" ")
-                # print(f"{e.char} {termwidth(e.char)}")
-                # if termwidth(e.char) < 2:
-                #     board.append(" ")
-                mapping[k] = e
-                i += 1
-            else:
-                board.append("  ")
-    return ("".join(board), mapping)
+        if k == " ":
+            board[row] += "   "
+        elif k == "\n":
+            row += 1
+            board.append("")
+        elif i < len(emojis):
+            e = emojis[i]
+            mapping[k] = e
+            board[row] += k
+            board[row] += e.char
+            board[row] += " " * (3 - wcswidth(e.char))
+            i += 1
+        else:
+            board[row] += k + "   "
+    return (board, mapping)
 
 
 board_path: list[list[Emoji]] = []
@@ -45,7 +45,7 @@ def pop_board():
     return make_board(board_path[-1])
 
 
-def clear_satus_row(term: Terminal, status_row: int):
+def clear_status_row(term: Terminal, status_row: int):
     with term.location(0, status_row):
         print(term.clear_eol)
         print(term.clear_eol)
@@ -55,140 +55,241 @@ def clear_satus_row(term: Terminal, status_row: int):
 def show_status(term: Terminal, status_row: int, emoji: Emoji):
     with term.location(0, status_row):
         if emoji.unicode:
-            print(f"{emoji.char}, {emoji.unicode}, {emoji.name}" + term.clear_eol)
-        else:
+            print(f"{emoji.char}, +{emoji.unicode}, {emoji.name}" + term.clear_eol)
             print(f"{emoji.group} > {emoji.subgroup}" + term.clear_eol)
+        else:
+            group = f"{len(emoji.emojis)} emojis, {emoji.group}"
+            print(f"{group}" + term.clear_eol)
+            subgroup = textwrap.wrap(emoji.subgroup, width=term.width - 2)
+            print(f"{"\n".join(subgroup)}" + term.clear_eol)
         if emoji.tags:
             tags = textwrap.wrap(emoji.tags, width=term.width - 2)
             for line in tags:
                 print(f"{line}" + term.clear_eol)
         print(term.clear_eol)
         print(term.clear_eol)
+        print(term.clear_eol)
 
 
-def show_board(term: Terminal, board: str):
+def show_board(term: Terminal, board: list[str]):
     with term.location(0, 2):
-        for line in board.splitlines():
+        for line in board:
             print(line + term.clear_eol)
 
 
+def get_cursor_x(row: int, col: int, board: list[str]) -> int:
+    key = kbd_board[row][col]
+    pos = board[row].find(key)
+    return wcswidth(board[row][:pos])
+
+
+def get_key_pos(key: str, board: list[LiteralString]) -> tuple[int, int]:
+    for r, line in enumerate(board):
+        c = line.find(key)
+        if c != -1:
+            return (r, c)
+    raise ValueError(f"Key '{key}' not found on board")
+
+
+def get_emoji(key: str, mapping: dict[str, Emoji]) -> Emoji | None:
+    e = mapping.get(key, mapping.get(key.upper(), None))
+    return e
+
+
 def main():
-    # Initialize the terminal object
     term = Terminal()
 
-    # Application state variables
-    text_buffer: str = ""
+    # use list instead of str to keep graphemes together -
+    # makes deletion and cursor movement easier
+    text_buffer: list[str] = []
+    # cursor position
     cursor_x: int = 2
     cursor_y: int = 0
+    # board position
+    offset = 0
+    col = 0
+    row = 0
 
     # Context manager clears the screen on entry/exit
     with term.cbreak(), term.fullscreen():
-        print(term.home + term.clear + "> " + text_buffer)
-
-        max_chars = sum(1 for char in kbd if not char.isspace())
-
         (emojis, groups) = get_emojis_boards()
         (board, mapping) = push_board(groups)
-
-        board_cols = max(len(line) for line in board.splitlines())
-        board_rows = len(board.splitlines())
-        status_row = 2 + board_rows + 1
+        status_row = 2 + len(board) + 1
+        text_cursor = 0
+        current_key = ""
 
         show_board(term, board)
 
         while True:
             with term.location(0, 0):
-                print("> " + text_buffer + term.clear_eol, end="", flush=True)
+                print("> " + "".join(text_buffer) + term.clear_eol, end="", flush=True)
 
-            # Move physical cursor to current logical position in buffer
             print(term.move_xy(cursor_x, cursor_y), end="", flush=True)
 
             key: Keystroke = term.inkey()
 
-            if key:
-                if key.name == "KEY_ENTER" or key.name == "KEY_RETURN":
-                    break
+            if not key:
+                continue
 
-                # Check for specific modifier keys using key.is_modifier
-                # print(f"Key pressed: {key.name}, Ctrl={key.is_ctrl}, Alt={key.is_alt}") # Debug info
-                # if key.is_shift("a"):
-                #     print("Shift + A was pressed!")
+            if key.name == "KEY_CTRL_C":
+                break
 
-                if key.name == "KEY_LEFT":
-                    if cursor_y == 0 and cursor_x > 2:
-                        cursor_x -= 2
-                    elif cursor_y > 1 and cursor_y < 6 and cursor_x:
-                        cursor_x -= 5
-                elif key.name == "KEY_RIGHT":
-                    if cursor_y == 0 and cursor_x < len(text_buffer) / 2 + 5:
-                        cursor_x += 2
-                    elif cursor_y > 1 and cursor_y < 6 and cursor_x <= board_cols + 5:
-                        cursor_x += 5
-                elif key.name == "KEY_UP":
-                    if cursor_y > 0:
-                        cursor_y -= 1
-                    if cursor_y == 1:
-                        cursor_y = 0
-                elif key.name == "KEY_DOWN":
-                    if cursor_y < 5:
-                        cursor_y += 1
-                    if cursor_y == 1:
-                        cursor_y = 2
-                    if cursor_y > 1:
-                        cursor_x = int(cursor_x / 5) * 5
+            isInput = cursor_y == 0
+            isBoard = cursor_y > 0
+            isEnter = key.name in ("KEY_ENTER", "KEY_RETURN")
+            isCursor = key.name in (
+                "KEY_UP",
+                "KEY_DOWN",
+                "KEY_LEFT",
+                "KEY_RIGHT",
+                "KEY_HOME",
+                "KEY_END",
+            )
 
-                # --- Handling Tab (key.code is the ASCII value) ---
-                elif key.code == 9:
-                    pass
-
-                elif key.name == "KEY_BACKSPACE":
-                    if cursor_x > 2:
-                        p = int((cursor_x - 2) / 2)
-                        text_buffer = text_buffer[: p - 1] + text_buffer[p:]
-                        cursor_x -= 2
-
-                elif key.name == "KEY_DELETE":
-                    if cursor_x < len(text_buffer) + 2:
-                        p = int((cursor_x - 2) / 2)
-                        text_buffer = text_buffer[:p] + text_buffer[p + 1 :]
-
-                elif key.name == "KEY_ESCAPE":
+            if cursor_y == 0 and isEnter:
+                break
+            elif key.name == "KEY_TAB":  # Tab key
+                if cursor_y == 0:
+                    cursor_y = 2 + row
+                    cursor_x = get_cursor_x(row, col, board)
+                else:
+                    cursor_y = 0
+                    cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                continue
+            elif key.name == "KEY_ESCAPE":
+                (board, mapping) = pop_board()
+                show_board(term, board)
+                clear_status_row(term, status_row)
+                continue
+            elif key.name == "KEY_BACKSPACE":
+                if isInput:
+                    text_buffer = (
+                        text_buffer[: text_cursor - 1] + text_buffer[text_cursor:]
+                    )
+                    if text_cursor > 0:
+                        text_cursor -= 1
+                    cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                else:
                     (board, mapping) = pop_board()
                     show_board(term, board)
-                    clear_satus_row(term, status_row)
-                    continue
-
-                # --- Handling Printable Characters ---
-                elif key.is_sequence and key.code is None:
-                    # Filter out strange terminal sequences we don't care about
-                    pass
-                elif key.isprintable():
-                    pos = board.find(key)
-                    if pos == -1:
-                        continue
-                    if key not in mapping:
-                        continue
-                    e = mapping[key]
-                    if not e.unicode:
-                        (board, mapping) = push_board(e.emojis)
-                        show_board(term, board)
+                    e = get_emoji(current_key, mapping)
+                    if e:
                         show_status(term, status_row, e)
-                        continue
-                    # it must be an Emoji
-                    show_status(term, status_row, e)
-                    ipos = int((cursor_x - 2) / 2)
-                    text_buffer = text_buffer[:ipos] + e.char + text_buffer[ipos:]
-                    cursor_x += 2
+                continue
+            elif key.name == "KEY_DELETE" and isInput:
+                text_buffer = text_buffer[:text_cursor] + text_buffer[text_cursor + 1 :]
+                cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                continue
+            elif key.name == "KEY_HOME" and isInput:
+                text_cursor = 0
+                cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+            elif key.name == "KEY_END" and isInput:
+                text_cursor = len(text_buffer)
+                cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+            elif key.name == "KEY_PGUP":
+                offset -= chars_on_board
+                if offset < 0:
+                    offset = 0
+                (board, mapping) = make_board(board_path[-1], offset)
+                show_board(term, board)
+            elif key.name == "KEY_PGDOWN":
+                if offset + chars_on_board < len(board_path[-1]):
+                    offset += chars_on_board
+                    (board, mapping) = make_board(board_path[-1], offset)
+                    show_board(term, board)
+            elif isCursor and isInput:
+                if key.name == "KEY_LEFT" and text_cursor > 0:
+                    text_cursor -= 1
+                    cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                elif key.name == "KEY_RIGHT" and text_cursor < len(text_buffer):
+                    text_cursor += 1
+                    cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                elif key.name == "KEY_DOWN":
+                    cursor_y = 2
+                    cursor_x = get_cursor_x(row, col, board)
+                    current_key = kbd_board[row][col]
+                    show_status(term, status_row, mapping.get(current_key))
+                continue
+            elif key.name == "KEY_HOME" and isBoard:
+                col = 0
+                cursor_x = get_cursor_x(row, col, board)
+            elif key.name == "KEY_END" and isBoard:
+                col = len(kbd_board[row]) - 1
+                cursor_x = get_cursor_x(row, col, board)
+            elif key.name == "KEY_LEFT" and isBoard:
+                col -= 1
+                cursor_x = get_cursor_x(row, col, board)
+            elif key.name == "KEY_RIGHT" and isBoard and col + 1 < len(kbd_board[row]):
+                col += 1
+                cursor_x = get_cursor_x(row, col, board)
+            elif key.name == "KEY_UP" and isBoard:
+                if cursor_y == 2:
+                    cursor_y = 0
+                    cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+                else:
+                    cursor_y -= 1
+                    row -= 1
+                    if col >= len(kbd_board[row]):
+                        col = len(kbd_board[row]) - 1
+                    cursor_x = get_cursor_x(row, col, board)
+            elif key.name == "KEY_DOWN" and isBoard and cursor_y < 2 + len(board) - 1:
+                cursor_y += 1
+                row += 1
+                if col >= len(kbd_board[row]):
+                    col = len(kbd_board[row]) - 1
+                cursor_x = get_cursor_x(row, col, board)
 
-                # Handling Ctrl+C exit explicitly (standard interrupt still works)
-                elif key.name == "KEY_CTRL_C":
-                    break
+            if isCursor or isEnter:
+                current_key = kbd_board[row][col]
+            elif key.isprintable():
+                current_key = key
+                old_row = row
+                old_col = col
+                try:
+                    (row, col) = get_key_pos(current_key, kbd_board)
+                except ValueError:
+                    try:
+                        (row, col) = get_key_pos(current_key.upper(), kbd_board)
+                    except ValueError:
+                        pass
+            e = get_emoji(current_key, mapping)
+            if e:
+                for r, line in enumerate(kbd_board):
+                    c = line.find(current_key)
+                    if c != -1:
+                        (col, row) = (c, r)
+                        break
+            else:
+                clear_status_row(term, status_row)
+                continue
 
-            # In blessed, we print immediately rather than calling a single refresh()
-            # We use flush=True on prints to ensure immediate display
+            show_status(term, status_row, e)
 
-    print(text_buffer, end="")
+            if isInput and not key.isprintable() and not isEnter:
+                continue
+            if isCursor or len(key) > 1:
+                continue
+
+            if not e.unicode and e.emojis:
+                (board, mapping) = push_board(e.emojis)
+                show_board(term, board)
+                show_status(term, status_row, mapping.get(current_key))
+                continue
+
+            # it must be an Emoji so insert it
+            show_status(term, status_row, e)
+            text_buffer.insert(text_cursor, e.char)
+            text_cursor += 1
+            # update text cursor
+            if isInput:
+                cursor_x = 2 + wcswidth("".join(text_buffer[:text_cursor]))
+
+    # output final text
+    print("".join(text_buffer), end="")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
