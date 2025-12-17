@@ -337,7 +337,23 @@ class KeyboardWidget(QWidget):
             self.mapping = make_mapping(self.search_results.emojis)
             self.show_status(f"Found {len(matches)} matching emojis.")
         else:
-            self.mapping = {}
+            if needle.startswith("+"):
+                code = needle[1:].upper()
+                if code in special_name_map:
+                    char = chr(int(code, 16))
+                    e = Emoji(
+                        char=char,
+                        unicode=code,
+                        name=special_name_map[code],
+                        group="Special",
+                        subgroup="Special",
+                        tags="",
+                    )
+                    self.search_results.emojis.append(e)
+                    self.current_key = self.get_nearest_char(0, 0)
+                    self.mapping = make_mapping(self.search_results.emojis)
+                    self.show_status(f"Special character for code +{code}.")
+            self.mapping = make_mapping(self.search_results.emojis)
             self.show_status("No matching emojis found.")
         self.update()
 
