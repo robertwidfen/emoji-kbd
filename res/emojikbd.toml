@@ -1,20 +1,12 @@
-[ui]
+[board]
 layout = "US QWERTY"
 default_board = 0
 
-[sources]
-notoemoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
-openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
-unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
-
-[board]
-start_x = 10
-start_y = 52
-key_size = 6
-key_padding = 6
-key_font_size = 8
-mark_font_size = 6
-emoji_font_size = 20
+[ui]
+key_font_size = 0.2
+mark_font_size = 0.2
+emoji_font_size = 0.56
+emoji_font_size2 = 0.8
 
 [[layout]]
 name = "US QWERTY"
@@ -44,3 +36,12 @@ JDUAX PHLMW
 CTIEO BNRSG
 ?,VFQ YKZ.-
 """
+
+[sources]
+noto_color_emoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
+openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
+
+[logging]
+log_file = ".local/emojikbd.log"
+log_level = "INFO"
