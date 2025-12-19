@@ -31,7 +31,7 @@ class Emoji:
     def __repr__(self):
         return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup}, tags={self.tags}, emojis={len(self.emojis) if self.emojis else 0}, order={self.order})"
 
-    def add(self, emoji: "Emoji"):
+    def append(self, emoji: "Emoji"):
         if not self.emojis:
             self.emojis = []
         if not self.char:
@@ -87,7 +87,7 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
                 e = make_emoji_from_row(row)
                 if not emojis[-1].mark:
                     emojis[-1].mark = "🟤"
-                emojis[-1].add(e)
+                emojis[-1].append(e)
                 continue
             e = make_emoji_from_row(row)
             emojis.append(e)
@@ -244,7 +244,7 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
         if g.char not in group_map:
             groups.append(Emoji(g.char, "", e.group, e.subgroup, "group", "", g.order))
             group_map[g.char] = groups[-1]
-        group_map[g.char].add(e)
+        group_map[g.char].append(e)
     groups.sort(key=lambda e: e.order)
     return groups
 
@@ -253,60 +253,28 @@ openmoji_src = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads
 unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
 
-def get_emojis_boards() -> tuple[list[Emoji], list[Emoji]]:
+def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
     openmoji = ".local/openmoji.csv"
     tools.download_if_missing(openmoji_src, openmoji)
     emojis = read_openmoji_csv(openmoji)
-    open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
+
     unicode_data = ".local/UnicodeData.txt"
     tools.download_if_missing(unicodedata_src, unicode_data)
     unicode_emojis = read_unicode_data(unicode_data)
+
+    open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
     for e in unicode_emojis:
         if e.unicode not in open_emojis_set:
             emojis.append(e)
+
     groups = get_grouped_emojis(emojis)
+
+    log.info(f"{len(emojis)} emojis in {len(groups)} groups loaded.")
     return (emojis, groups)
 
 
-# DE QWERTZ keyboard layout
-kbd = """
-1234567890ß´
-QWERTZUIOPÜ+
-ASDFGHJKLÖÄ#
-<YXCVBNM,.-
-""".strip()
-
-# US QWERTY keyboard layout
-# kbd = """
-# `1234567890-=
-# QWERTYUIOP[]\
-# ASDFGHJKL;'"
-# ZXCVBNM,./
-# """.strip()
-
-# Corne bone keyboard layout
-# kbd = """
-# jduax phlmw
-# ctieo bnrsg
-# ?,vfq ykz.-
-# """.strip()
-
-kbd_board = kbd.splitlines()
-
-
-def make_mapping(objs: list[Emoji], offset: int = 0) -> dict[str, Emoji]:
-    mapping: dict[str, Emoji] = {}
-    i = offset
-    for k in kbd:
-        if k not in (" ", "\n"):
-            if i < len(objs):
-                mapping[k] = objs[i]
-                i += 1
-    return mapping
-
-
 def main():
-    (emojis, groups) = get_emojis_boards()
+    (emojis, groups) = get_emojis_groups()
     print(f"{len(emojis)} emojis loaded.")
     print(f"{len(groups)} groups generated.")
     for g in groups:
