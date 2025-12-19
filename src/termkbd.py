@@ -6,7 +6,7 @@ from wcwidth import wcswidth
 import textwrap
 import logging as log
 
-from boards import get_emojis_boards, Emoji, kbd, kbd_board
+from src.emojis import get_emojis_boards, Emoji, kbd, kbd_board
 
 
 def make_board(

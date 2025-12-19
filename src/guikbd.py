@@ -26,7 +26,7 @@ from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 
 import logging as log
 
-from boards import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
+from src.emojis import get_emojis_boards, Emoji, make_mapping, kbd, kbd_board
 
 
 def winlin(windows_value: int, linus_value: int) -> int:
