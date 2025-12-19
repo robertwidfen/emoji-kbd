@@ -3,10 +3,15 @@ import urllib.request
 import csv
 import logging as log
 
+
 def add_emoji_to_unicode_data(file_path: str):
     with (
         open(file_path, mode="r", encoding="utf-8") as csvfile,
-        open("e" + file_path, mode="w", encoding="utf-8") as outfile,
+        open(
+            os.path.dirname(file_path) + f"/e{os.path.basename(file_path)}",
+            mode="w",
+            encoding="utf-8",
+        ) as outfile,
     ):
         reader = csv.reader(csvfile, delimiter=";")
         for row in reader:
@@ -53,4 +58,4 @@ if __name__ == "__main__":
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    add_emoji_to_unicode_data("UnicodeData.txt")
+    add_emoji_to_unicode_data(".local/UnicodeData.txt")

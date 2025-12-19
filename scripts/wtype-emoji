@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$(dirname "$0")/.."
+printf "GET\n" | { nc localhost $(cat .local/emoji-kbd-daemon.port) || python src/guidmn.py GET; } > /dev/null
+wtype -M shift -k Insert -m shift

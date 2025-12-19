@@ -70,7 +70,7 @@ With a pattern it will show matching items in the order of their score and selec
 python -m venv venv
 . venv/Scripts/activate
 pip install -r requirements.txt
-python guikbd.py # for testing
+python src/guikbd.py # for testing
 ```
 
 # Installation
@@ -79,7 +79,7 @@ python guikbd.py # for testing
 In `~/.config/hypr/bindings.conf` add
 ```toml
 unbind = SUPER, period
-bindd = SUPER, period, Emojis, exec, PATHTO/wtype-emoji
+bindd = SUPER, period, Emojis, exec, PATHTO/scripts/wtype-emoji
 ```
 and in `~/.config/hypr/hyprland.conf` add
 ```toml
@@ -98,15 +98,15 @@ If you prefer another hot key edit the script.
 ## Terminal
 In the terminal you may also use the stripped down terminal-only version
 ```shell
-python termkbd.py
+python src/termkbd.py
 ```
 or the gui
 ```shell
-python guikbd.py
+python src/guikbd.py
 ```
-or the gui via daemon
+or the gui via daemon for fast opening
 ```shell
-python guidmn.py get
+python src/guidmn.py get
 ```
 
 # Customization

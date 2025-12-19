@@ -4,7 +4,7 @@
 #Warn All, MsgBox
 
 Persistent
-SetWorkingDir A_ScriptDir
+SetWorkingDir A_ScriptDir . "\.."
 
 SendEmojiKbdShowCommand() {
     try {

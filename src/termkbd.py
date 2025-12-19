@@ -1,7 +1,10 @@
+import sys
+from typing import LiteralString
 from blessed import Terminal
 from blessed.keyboard import Keystroke
-import textwrap
 from wcwidth import wcswidth
+import textwrap
+import logging as log
 
 from boards import get_emojis_boards, Emoji, kbd, kbd_board
 
@@ -11,7 +14,7 @@ def make_board(
 ) -> tuple[list[str], dict[str, Emoji]]:
     board: list[str] = [""]
     mapping: dict[str, Emoji] = {}
-    i = 0
+    i = offset
     row = 0
     for k in kbd:
         if k == " ":
@@ -52,7 +55,10 @@ def clear_status_row(term: Terminal, status_row: int):
         print(term.clear_eol)
 
 
-def show_status(term: Terminal, status_row: int, emoji: Emoji):
+def show_status(term: Terminal, status_row: int, emoji: Emoji | None):
+    if emoji is None:
+        clear_status_row(term, status_row)
+        return
     with term.location(0, status_row):
         if emoji.unicode:
             print(f"{emoji.char}, +{emoji.unicode}, {emoji.name}" + term.clear_eol)
@@ -109,6 +115,8 @@ def main():
     offset = 0
     col = 0
     row = 0
+
+    chars_on_board = sum(1 for char in kbd if not char.isspace())
 
     # Context manager clears the screen on entry/exit
     with term.cbreak(), term.fullscreen():
@@ -289,6 +297,13 @@ def main():
 
 
 if __name__ == "__main__":
+    log.basicConfig(
+        filename=".local/termkbd.log",
+        # filemode='a',
+        level=log.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    log.info(f"Starting terminal Emoji Keyboard on {sys.platform}...")
     try:
         main()
     except KeyboardInterrupt:

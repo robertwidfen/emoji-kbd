@@ -239,7 +239,7 @@ def start_daemon_process(command: str):
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
-            filename="guidmn.log",  # if not os.environ.get("TERM") else None,
+            filename=".local/guidmn.log",  # if not os.environ.get("TERM") else None,
             filemode="a",
             level=log.INFO,
             format="%(asctime)s - D %(levelname)s - %(message)s",
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         start_daemon()
     elif len(sys.argv) >= 2:
         log.basicConfig(
-            filename="guidmn.log",
+            filename=".local/guidmn.log",
             filemode="a",
             level=log.INFO,
             format="%(asctime)s - C %(levelname)s - %(message)s",

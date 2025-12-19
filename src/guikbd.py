@@ -59,7 +59,7 @@ class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
         log.info("Creating main window...")
-        self.setWindowIcon(QIcon("emoji-kbd.ico"))
+        self.setWindowIcon(QIcon(".res/emoji-kbd.ico"))
         self.setWindowTitle("Emoji Kbd")
         self.setWindowFlag(Qt.WindowType.Tool, True)
         self.setWindowFlag(Qt.WindowType.Dialog, True)
@@ -466,7 +466,7 @@ class KeyboardWidget(QWidget):
 
     def load_recent(self):
         try:
-            with open("recent.txt", "r", encoding="utf-8") as f:
+            with open(".local/recent.txt", "r", encoding="utf-8") as f:
                 recent_list = []
                 for l in f.readlines():
                     (order, char, unicode, name, group, subgroup, tags) = (
@@ -494,7 +494,7 @@ class KeyboardWidget(QWidget):
 
     def save_recent(self):
         try:
-            with open("recent.txt", "w", encoding="utf-8") as f:
+            with open(".local/recent.txt", "w", encoding="utf-8") as f:
                 for e in self.recent_list.emojis:
                     f.write(
                         f"{e.order};{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n"
@@ -901,19 +901,19 @@ def setup_app() -> QApplication:
     app = QApplication(sys.argv)
     app.setApplicationName("emoji-kbd")
     app.setDesktopFileName("emoji-kbd")
-    app.setWindowIcon(QIcon("emoji-kbd.ico"))
+    app.setWindowIcon(QIcon("res/emoji-kbd.ico"))
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
     return app
 
 
 if __name__ == "__main__":
     log.basicConfig(
-        # filename='app.log',
+        # filename='.local/guikbd.log',
         # filemode='a',
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    log.info(f"Starting Emoji Keyboard on {sys.platform}...")
+    log.info(f"Starting Qt6 Emoji Keyboard on {sys.platform}...")
     app = setup_app()
     app.setQuitOnLastWindowClosed(True)
     window = KeyboardWidget()
