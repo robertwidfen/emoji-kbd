@@ -3,10 +3,5 @@ __pycache__
 .local
 build
 dist
-*.log
-openmoji.csv
-*UnicodeData.txt*
-NamesList.txt
-Blocks.txt
-recent.txt
++src/tempCodeRunnerFile.py
 
