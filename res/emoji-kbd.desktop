@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Emoji Kbd
+Comment=Emoji selection tool
+# adjust the PATH, make it absolute!
+Exec=/PATH/emojikbd/scripts/wtype-emoji
+Icon=/PATH/emojikbd/res/emoji-kbd.svg
+Terminal=false
+Categories=Utility;Qt;
+StartupWMClass=emoji-kbd
+
