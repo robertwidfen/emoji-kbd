@@ -197,10 +197,11 @@ class TerminalKeyboard:
         if is_emoji_input and is_enter:
             raise DoneException()
         elif key.name == "KEY_TAB":  # Tab key
-            if is_emoji_input or is_search_input:
-                self.cursor_y = 2 + row
-            elif is_board:
+            if is_board:
                 self.cursor_y = 0
+            else:
+                self.cursor_y = 2 + row
+            return
         elif key.name == "KEY_CTRL_F":
             self.cursor_y = 0
             self.cursor_x = term.width
@@ -209,22 +210,22 @@ class TerminalKeyboard:
         elif key.name == "KEY_ESCAPE":
             board.pop_board()
             if is_search_input:
-                self.cursor_x = 2
+                self.cursor_x = 0
             return
         elif key.name == "KEY_BACKSPACE":
             if is_emoji_input:
-                tc = self.emoji_input_cursor
-                tb = self.emoji_input
-                tb = tb[: tc - 1] + tb[tc:]
-                self.emoji_input = tb
-                if tc > 0:
+                c = self.emoji_input_cursor
+                s = self.emoji_input
+                s = s[: c - 1] + s[c:]
+                self.emoji_input = s
+                if c > 0:
                     self.emoji_input_cursor -= 1
             elif is_search_input:
-                sic = self.search_input_cursor
-                if sic > 0:
-                    si = self.search_input
-                    si = si[: sic - 1] + si[sic:]
-                    self.search_input = si
+                c = self.search_input_cursor
+                if c > 0:
+                    s = self.search_input
+                    s = s[: c - 1] + s[c:]
+                    self.search_input = s
                     self.search_input_cursor -= 1
                     board.search(self.search_input)
             elif is_board:
@@ -232,15 +233,15 @@ class TerminalKeyboard:
             return
         elif key.name == "KEY_DELETE":
             if is_emoji_input:
-                tb = self.emoji_input
-                tc = self.emoji_input_cursor
-                tb = tb[:tc] + tb[tc + 1 :]
-                self.emoji_input = tb
+                s = self.emoji_input
+                c = self.emoji_input_cursor
+                s = s[:c] + s[c + 1 :]
+                self.emoji_input = s
             elif is_search_input:
-                si = self.search_input
-                sic = self.search_input_cursor
-                si = si[:sic] + si[sic + 1 :]
-                self.search_input = si
+                s = self.search_input
+                c = self.search_input_cursor
+                s = s[:c] + s[c + 1 :]
+                self.search_input = s
                 board.search(self.search_input)
             elif is_board and board.is_recent:
                 board.recent_delete()
@@ -270,7 +271,7 @@ class TerminalKeyboard:
                 if self.search_input_cursor > 0:
                     self.search_input_cursor -= 1
                 else:
-                    self.cursor_x = 2
+                    self.cursor_x = 0
                     board.pop_board()
             elif is_board:
                 board.move_cursor(-1, 0)
@@ -279,7 +280,7 @@ class TerminalKeyboard:
                 if self.emoji_input_cursor < len(self.emoji_input):
                     self.emoji_input_cursor += 1
                 else:
-                    self.cursor_x = term.width // 2 + 1
+                    self.cursor_x = term.width
                     board.search(self.search_input)
             elif is_search_input:
                 if self.search_input_cursor < len(self.search_input):
@@ -296,17 +297,17 @@ class TerminalKeyboard:
         elif key.name == "KEY_UP":
             if is_board:
                 if cursor_y == 2:
-                    self.cursor_x = 2
+                    self.cursor_x = 0
                     self.cursor_y = 0
                     if board.is_search:
                         board.pop_board()
                 else:
                     board.move_cursor(0, -1)
         elif is_search_input and key.isprintable():
-            si = self.search_input
-            sic = self.search_input_cursor
-            si = si[:sic] + key + si[sic:]
-            self.search_input = si
+            s = self.search_input
+            c = self.search_input_cursor
+            s = s[:c] + key + s[c:]
+            self.search_input = s
             self.search_input_cursor += 1
             board.search(self.search_input)
             self.make_term_board(board._emojis)
