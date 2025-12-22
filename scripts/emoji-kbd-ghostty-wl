@@ -1,5 +1,0 @@
-#!/bin/bash
-cd "$(dirname "$0")/.."
-
-ghostty --title="Emoji Kbd" --font-size=16 -e sh -c "python src/termkbd.py"
-wtype -M shift -k Insert -m shift

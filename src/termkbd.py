@@ -9,6 +9,7 @@ import logging as log
 
 from emojis import get_emojis_groups, Emoji
 from board import Board, make_board
+from tools import run_command
 
 
 class DoneException(Exception):
@@ -16,7 +17,9 @@ class DoneException(Exception):
 
 
 class TerminalKeyboard:
-    def __init__(self):
+
+    def __init__(self, daemon: bool = False):
+        self.daemon = daemon
         # use list instead of str to keep graphemes together -
         # makes deletion and cursor movement easier
         self.emoji_input: list[str] = []
@@ -81,24 +84,27 @@ class TerminalKeyboard:
                 print(term_line + self.term.clear_eol, end="")
         log.info("Board displayed.")
 
+    def hide_and_insert(self, text: str):
+        run_command(["./scripts/emoji-kbd-ghostty-hl-close"], input=text)
+        self.emoji_input.clear()
+        self.emoji_input_cursor = 0
+
     def run(self):
+        result = ""
         sys.stdout.write(f"\033]2;Emoji Kbd\007")
-        try:
-            # Context manager clears the screen on entry/exit
-            with self.term.cbreak(), self.term.fullscreen():
-                while True:
+        # Context manager clears the screen on entry/exit
+        with self.term.cbreak(), self.term.fullscreen():
+            while True:
+                try:
                     self.paint_and_handle_key_press()
-        except DoneException:
-            # output final text
-            text = "".join(self.emoji_input)
-            try:
-                subprocess.run(["wl-copy"], input=text.encode(), check=True)
-            except FileNotFoundError:
-                log.warning("wl-copy not found, clipboard not updated")
-            except Exception as e:
-                log.error(f"Failed to copy to clipboard: {e}")
-            print(text, end="")
-        pass
+                except DoneException:
+                    # output final text
+                    result = "".join(self.emoji_input)
+                    log.info(f"Final emoji text: {result} ({result!r})")
+                    if not self.daemon:
+                        break
+                    self.hide_and_insert(result)
+        print(result, end="", flush=True)
 
     def get_cursor_x(self) -> int:
         key = self.board._current_key
@@ -408,7 +414,10 @@ if __name__ == "__main__":
     )
     log.info(f"Starting terminal Emoji Keyboard on {sys.platform}...")
     try:
-        term_keyboard = TerminalKeyboard()
+        daemon = False
+        if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
+            daemon = True
+        term_keyboard = TerminalKeyboard(daemon)
         term_keyboard.run()
     except KeyboardInterrupt:
         pass

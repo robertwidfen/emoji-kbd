@@ -115,14 +115,15 @@ In `~/.config/hypr/bindings.conf` add for the hotkey
 ```toml
 unbind = SUPER, period
 bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
-# slower but also nice
-#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-wl
+#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-hl-open
 ```
 and in `~/.config/hypr/hyprland.conf` add for the floating
 ```toml
 windowrulev2 = noanim, title:^Emoji Kbd$
 windowrulev2 = float, title:^Emoji Kbd$
 windowrulev2 = size 600 285, title:^Emoji Kbd$
+windowrulev2 = minsize 500 200, title:^Emoji Kbd$
+windowrulev2 = maxsize 800 600, title:^Emoji Kbd$
 windowrulev2 = center, title:^Emoji Kbd$
 ```
 
@@ -140,6 +141,10 @@ If you prefer another hot key edit the script.
 In the terminal you may also use the terminal-only version.
 ```shell
 python src/termkbd.py
+```
+or the daemon like terminal - using a ghostty terminal which is hidden/shown by hyprctl
+```shell
+python scripts/emoji-kbd-ghostty-hl-open
 ```
 or start the gui
 ```shell

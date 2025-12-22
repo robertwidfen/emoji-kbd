@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$(dirname "$0")/.."
+
+wl-copy -n
+hyprctl dispatch movetoworkspacesilent "special:emoji,title:^Emoji Kbd$"
+wtype -M Shift -k Insert -m Shift

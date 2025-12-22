@@ -1,4 +1,6 @@
 import os
+import subprocess
+from typing import LiteralString
 import urllib.request
 import csv
 import logging as log
@@ -49,6 +51,16 @@ def download_if_missing(url: str, local_filename: str):
         download(url, local_filename)
         return True
     return False
+
+
+def run_command(command: list[str], input: str | None = None):
+    try:
+        encoded_input = input.encode() if input is not None else None
+        subprocess.run(command, input=encoded_input, check=True)
+    except FileNotFoundError:
+        log.warning(f"{command} not found.")
+    except Exception as e:
+        log.error(f"{command} failed with: {e}")
 
 
 if __name__ == "__main__":
