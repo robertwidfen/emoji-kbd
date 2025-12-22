@@ -1,4 +1,5 @@
 import sys
+import subprocess
 from typing import LiteralString
 from blessed import Terminal
 from blessed.keyboard import Keystroke
@@ -89,7 +90,14 @@ class TerminalKeyboard:
                     self.paint_and_handle_key_press()
         except DoneException:
             # output final text
-            print("".join(self.emoji_input), end="")
+            text = "".join(self.emoji_input)
+            try:
+                subprocess.run(["wl-copy"], input=text.encode(), check=True)
+            except FileNotFoundError:
+                log.warning("wl-copy not found, clipboard not updated")
+            except Exception as e:
+                log.error(f"Failed to copy to clipboard: {e}")
+            print(text, end="")
         pass
 
     def get_cursor_x(self) -> int:
