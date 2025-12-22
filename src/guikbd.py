@@ -599,7 +599,7 @@ class KeyboardWidget(QWidget):
 
 def setup_app() -> QApplication:
     app = QApplication(sys.argv)
-    app.setApplicationName("emoji-kbd")
+    app.setApplicationName("Emoji Kbd")
     app.setDesktopFileName("emoji-kbd")
     app.setWindowIcon(QIcon("res/emoji-kbd.svg"))
     stylesheet = qdarkstyle.load_stylesheet_pyqt6()
