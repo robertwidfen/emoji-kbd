@@ -379,6 +379,13 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
             self.update()
 
+        elif (
+            key == Qt.Key.Key_F
+            and event.modifiers() == Qt.KeyboardModifier.ControlModifier
+        ):
+            self.search_field.setFocus()
+            self.update()
+
         elif key in (
             Qt.Key.Key_Left,
             Qt.Key.Key_Right,

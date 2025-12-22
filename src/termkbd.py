@@ -201,6 +201,10 @@ class TerminalKeyboard:
                 self.cursor_y = 2 + row
             elif is_board:
                 self.cursor_y = 0
+        elif key.name == "KEY_CTRL_F":
+            self.cursor_y = 0
+            self.cursor_x = term.width
+            board.search(self.search_input)
             return
         elif key.name == "KEY_ESCAPE":
             board.pop_board()
