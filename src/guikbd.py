@@ -56,7 +56,7 @@ class KeyboardWidget(QWidget):
     def __init__(self):
         super().__init__()
         log.info("Creating main window...")
-        self.setWindowIcon(QIcon(".res/emoji-kbd.ico"))
+        self.setWindowIcon(QIcon("res/emoji-kbd.svg"))
         self.setWindowTitle("Emoji Kbd")
         self.setWindowFlag(Qt.WindowType.Tool, True)
         self.setWindowFlag(Qt.WindowType.Dialog, True)
@@ -601,7 +601,7 @@ def setup_app() -> QApplication:
     app = QApplication(sys.argv)
     app.setApplicationName("emoji-kbd")
     app.setDesktopFileName("emoji-kbd")
-    app.setWindowIcon(QIcon("res/emoji-kbd.ico"))
+    app.setWindowIcon(QIcon("res/emoji-kbd.svg"))
     stylesheet = qdarkstyle.load_stylesheet_pyqt6()
     app.setStyleSheet(stylesheet)
     try:
