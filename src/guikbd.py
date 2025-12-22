@@ -510,6 +510,8 @@ class KeyboardWidget(QWidget):
             elif isUp:
                 if self.board.cursor_y == 0:
                     self.emoji_input_field.setFocus()
+                    if self.board.is_search:
+                        self.board.pop_board()
                 else:
                     self.board.move_cursor(0, -1)
             elif isDown:

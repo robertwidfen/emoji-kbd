@@ -299,7 +299,7 @@ class TerminalKeyboard:
                     self.cursor_x = 2
                     self.cursor_y = 0
                     if board.is_search:
-                        board.pop_board
+                        board.pop_board()
                 else:
                     board.move_cursor(0, -1)
         elif is_search_input and key.isprintable():
