@@ -72,6 +72,28 @@ def make_emoji_from_row(row: list[str]) -> Emoji:
     )
 
 
+unicode_exclude_ranges = (
+    (0x000000, 0x00009F),
+    (0x000400, 0x001FFE),
+    (0x0020D0, 0x0020F0),
+    (0x002C00, 0x00FFDB),
+    (0x010100, 0x01EEFE),
+    (0x01F1E6, 0x01F1FF),  # REGIONAL INDICATOR SYMBOL LETTERS
+    (0x01F3FB, 0x01F3FF),
+    (0x01F9B0, 0x01F9B3),
+    (0x01FBFA, 0x033479),
+    (0x0E0001, 0xFFFFFF),
+)
+
+unicode_exclude_points = (0x00AD, 0x2028, 0x2029)
+
+
+def exclude_unicode(unicode: int) -> bool:
+    exclude_range = any([l <= unicode <= h for (l, h) in unicode_exclude_ranges])
+    exclude_char = unicode in unicode_exclude_points
+    return exclude_range or exclude_char
+
+
 # openmoji.csv format:
 # emoji,hexcode,group,subgroups,annotation,tags,openmoji_tags
 def read_openmoji_csv(file_path: str) -> list[Emoji]:
@@ -81,8 +103,12 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
         next(reader)  # Skip header
         for row in reader:
             # Skip invalid or extra emojis
-            if len(row) <= 3 or row[2] == "extras-openmoji":
+            if len(row) <= 3 or row[2].startswith("extras-"):
                 continue
+            if row[1].find("-") != -1:
+                unicode = int(row[1].split("-")[0], 16)
+                if exclude_unicode(unicode):
+                    continue
             if any(st in row[1] for st in skintones):
                 e = make_emoji_from_row(row)
                 if not emojis[-1].mark:
@@ -93,16 +119,6 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
             emojis.append(e)
     return emojis
 
-
-unicode_exclude_ranges = (
-    (0x000000, 0x00009F),
-    (0x000400, 0x001FFE),
-    (0x002C00, 0x00FFDB),
-    (0x010100, 0x01EEFE),
-    (0x0F0000, 0x8FFFFF),
-)
-
-unicode_exclude_points = (0x2028, 0x2029)
 
 # group_name, subgroup|None, name_regex|None, category_regex|None
 unicode_grouping = (
@@ -126,11 +142,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
             if len(row) < 3:
                 continue
             unicode = int(row[0], 16)
-            exclude_range = any(
-                [l <= unicode <= h for (l, h) in unicode_exclude_ranges]
-            )
-            exclude_char = unicode in unicode_exclude_points
-            if exclude_range or exclude_char:
+            if exclude_unicode(unicode):
                 continue
 
             char = chr(unicode)
