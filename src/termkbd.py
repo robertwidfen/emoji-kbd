@@ -241,7 +241,7 @@ class TerminalKeyboard:
                     s = s[: c - 1] + s[c:]
                     self.search_input = s
                     self.search_input_cursor -= 1
-                    board.search(self.search_input)
+                board.search(self.search_input)
             elif is_board:
                 board.pop_board()
             return
