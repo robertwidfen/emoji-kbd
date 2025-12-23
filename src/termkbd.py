@@ -179,7 +179,7 @@ class TerminalKeyboard:
             self.show_status(self.board.get_emoji())
 
         if is_emoji_input or is_search_input:
-            print(term.normal_cursor, end="")
+            print(term.normal_cursor + "\x1b[5 q", end="")
             print(term.move_xy(cursor_x, cursor_y), end="")
         else:
             print(term.hide_cursor, end="")
