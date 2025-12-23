@@ -18,7 +18,8 @@ The gui with Corne Bone layout
 
 <img alt="Gui Corne Bone layout" src="res/screenshots/gui-corne-bone.png" width="500" />
 
-In the terminal - use ghostty or kitty for best results - other terminals do not handle graphemes.
+In the terminal - use kitty for best results - other terminals do not handle all graphemes,
+e.g ghostty work mostly, alacritty not so well - you will see miss alignment of columns.
 You may also need to play with font config to get Noto Color Emoji available in your terminal.
 
 <img alt="Terminal DE layout" src="res/screenshots/term-de.png" width="500" />
@@ -93,10 +94,9 @@ With a pattern it will show matching items in the order of their score and selec
 
 # Requirements
 
+Install:
 - Python 3.12+
 - [Noto Color Emoji](https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf) font
-- For Windows 11+ [Autohotkey v2](https://autohotkey.com/)
-- For Linux `netcat` for fast opening.
 
 # Building
 
@@ -109,55 +109,79 @@ python src/guikbd.py # for testing
 
 # Installation
 
+Integration into your system should work with one of the script in `scripts/*`.
+
 ## Linux Hyprland
 
-In `~/.config/hypr/bindings.conf` add for the hotkey
+Install:
+- `nc` (netcat)
+- `wl-copy`
+- `wtype`
+
+In Arch by:
+```shell
+sudo pacman -S openbsd-netcat wl-clipboard wtype
+```
+
+Add to `~/.config/hypr/bindings.conf` for the hotkey
 ```toml
 unbind = SUPER, period
-bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
+#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
+bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-hl-open
 ```
-and in `~/.config/hypr/hyprland.conf` add for the floating
+
+Add to `~/.config/hypr/hyprland.conf` for fast opening and floating window
 ```toml
-windowrulev2 = noanim, title:^Emoji Kbd$
+windowrulev2 = tag -floating-window, title:^Emoji Kbd$
+windowrulev2 = tag -terminal, title:^Emoji Kbd$
+wwindowrulev2 = noanim, title:^Emoji Kbd$
 windowrulev2 = float, title:^Emoji Kbd$
-windowrulev2 = size 600 285, title:^Emoji Kbd$
-windowrulev2 = minsize 500 200, title:^Emoji Kbd$
-windowrulev2 = maxsize 800 600, title:^Emoji Kbd$
 windowrulev2 = center, title:^Emoji Kbd$
+windowrulev2 = unset size, title:^Emoji Kbd$
+# you may need to set/adjust the size also
+#windowrulev2 = size 600 285, title:^Emoji Kbd$
+#windowrulev2 = minsize 500 200, title:^Emoji Kbd$
+#windowrulev2 = maxsize 800 400, title:^Emoji Kbd$
 ```
+
+Optionally copy `res/emoji-kbd.desktop` to `~/.local/share/applications/`
+for a launcher entry and adjust the paths in the copied file.
 
 ## Windows
 
-Run
+Install:
+- [Autohotkey v2](https://autohotkey.com/)
+
+Run:
 ```
 emoji-kbd.ahk
 ```
 It will overwrite `Win-.`, i.e. the Windows emoji picker.
-If you prefer another hot key edit the script.
+If you prefer another hotkey edit the script.
 
 ## Terminal
 
-In the terminal you may also use the terminal-only version.
+In the terminal you may also use the terminal-only version:
 ```shell
 python src/termkbd.py
 ```
-or the daemon like terminal - using a ghostty terminal which is hidden/shown by hyprctl
-```shell
-python scripts/emoji-kbd-ghostty-hl-open
+or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprctl:
+```shell.
+./scripts/emoji-kbd-kitty-hl-open
 ```
-or start the gui
+or start the gui:
 ```shell
 python src/guikbd.py
 ```
-or start the gui via daemon for faster opening
+or start the gui via daemon for faster opening - use "GET" to wait for result or "SHOW" to just show gui:
 ```shell
-python src/guidmn.py get
+./scripts/emoji-kbd-gui-wl
 ```
 
 # Customization
 
-Fork and change the code 😉 or wait until it is added.
+Change the code 😉 or wait until it is added.
 
 # Alternatives
 
@@ -172,8 +196,8 @@ I like Walker, but not the emoji picker.
 # Todos
 
 - Add config file
-- Store config and other files in proper locations
-- Add more layouts
+- Store config and other files in proper location, e.g. `~/.config/emoji-kbd/`
+- Add more board layouts
 
 # Random link list
 
@@ -181,4 +205,4 @@ I like Walker, but not the emoji picker.
 - https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 - https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com
 - https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/
-- https://github.com/alacritty/alacritty/issues/3975 wcwidth issues
+- https://github.com/alacritty/alacritty/issues/3975 

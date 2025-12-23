@@ -3,7 +3,7 @@ Type=Application
 Name=Emoji Kbd
 Comment=Emoji selection tool
 # adjust the PATH, make it absolute!
-Exec=/PATH/emojikbd/scripts/wtype-emoji
+Exec=/PATH/emojikbd/scripts/emoji-kbd-gui-wl
 Icon=/PATH/emojikbd/res/emoji-kbd.svg
 Terminal=false
 Categories=Utility;Qt;

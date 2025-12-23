@@ -85,7 +85,7 @@ class TerminalKeyboard:
         log.info("Board displayed.")
 
     def hide_and_insert(self, text: str):
-        run_command(["./scripts/emoji-kbd-ghostty-hl-close"], input=text)
+        run_command(["./scripts/emoji-kbd-term-hl-close"], input=text)
         self.emoji_input.clear()
         self.emoji_input_cursor = 0
 

@@ -2,8 +2,10 @@
 cd "$(dirname "$0")/.."
 
 if ! hyprctl clients -j | jq -e '.[] | select(.title == "Emoji Kbd")' > /dev/null; then
-    ghostty --title="Emoji Kbd" --window-width=47 --window-height=10 --font-size=16 \
-            -e sh -c "python src/termkbd.py" &
+    ghostty --title="Emoji Kbd" \
+        --window-width=47 --window-height=10 \
+        --font-size=20 \
+        -e python src/termkbd.py --daemon &
 else
     hyprctl dispatch movetoworkspace '+0,title:^Emoji Kbd$'
 fi
