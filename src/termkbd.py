@@ -27,6 +27,7 @@ class TerminalKeyboard:
         # search field
         self.search_input: str = ""
         self.search_input_cursor: int = 0
+        self.search_input_selection: bool = False
         # cursor position on the terminal
         self.cursor_x: int = 2
         self.cursor_y: int = 0
@@ -143,8 +144,12 @@ class TerminalKeyboard:
         emoji_str = "".join(self.emoji_input)
         emoji_field = f"{emoji_str}" + " " * (input_width - wcswidth(emoji_str))
         input_width = required_width // 2 - 3
-        search_field = f"{self.search_input:<{input_width}}"
-        inputs = f"> {term.on_bright_black(emoji_field)}   ⌕ {term.on_bright_black(search_field)}"
+        search_str = self.search_input
+        if self.search_input_selection:
+            search_str = term.reverse(search_str)
+            input_width += len(search_str) - len(self.search_input)
+        search_str = f"{search_str:<{input_width}}"
+        inputs = f"> {term.on_bright_black(emoji_field)}   ⌕ {term.on_bright_black(search_str)}"
 
         # determine cursor position
         if is_emoji_input:
@@ -219,9 +224,16 @@ class TerminalKeyboard:
         elif key.name == "KEY_CTRL_F":
             self.cursor_y = 0
             self.cursor_x = term.width
+            self.search_input_selection = True
             board.search(self.search_input)
             return
-        elif key.name == "KEY_ESCAPE":
+
+        if is_search_input and not isCursor and self.search_input_selection:
+            self.search_input = ""
+            self.search_input_cursor = 0
+        self.search_input_selection = False
+
+        if key.name == "KEY_ESCAPE":
             board.pop_board()
             if is_search_input:
                 self.cursor_x = 0
@@ -295,6 +307,7 @@ class TerminalKeyboard:
                     self.emoji_input_cursor += 1
                 else:
                     self.cursor_x = term.width
+                    self.search_input_selection = True
                     board.search(self.search_input)
             elif is_search_input:
                 if self.search_input_cursor < len(self.search_input):
@@ -368,6 +381,9 @@ class TerminalKeyboard:
         self.emoji_input.insert(self.emoji_input_cursor, e.char)
         self.emoji_input_cursor += 1
         board.recent_add()
+
+        if is_search_input:
+            self.cursor_x = 0
 
     def show_status(self, emoji: Emoji | None):
         term = self.term
