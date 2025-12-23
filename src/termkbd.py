@@ -402,6 +402,8 @@ class TerminalKeyboard:
             msgs.append(emoji.char)
             if emoji.unicode:
                 msgs.append(emoji.unicode)
+            if emoji.name:
+                msgs.append(emoji.name)
             if emoji.subgroup:
                 msgs.append(f"{emoji.group} > {emoji.subgroup}")
             else:
