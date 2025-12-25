@@ -1,9 +1,10 @@
 import logging as log
 import csv
 import re
-
-import tools
 from dataclasses import dataclass
+
+from config import Config, load_config
+import tools
 
 
 class Emoji:
@@ -265,13 +266,13 @@ openmoji_src = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads
 unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
 
-def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
+def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     openmoji = ".local/openmoji.csv"
-    tools.download_if_missing(openmoji_src, openmoji)
+    tools.download_if_missing(config.sources.openmoji, openmoji)
     emojis = read_openmoji_csv(openmoji)
 
     unicode_data = ".local/UnicodeData.txt"
-    tools.download_if_missing(unicodedata_src, unicode_data)
+    tools.download_if_missing(config.sources.unicode_data, unicode_data)
     unicode_emojis = read_unicode_data(unicode_data)
 
     open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
@@ -286,7 +287,12 @@ def get_emojis_groups() -> tuple[list[Emoji], list[Emoji]]:
 
 
 def main():
-    (emojis, groups) = get_emojis_groups()
+    log.basicConfig(
+        level=log.ERROR,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    config = load_config()
+    (emojis, groups) = get_emojis_groups(config)
     print(f"{len(emojis)} emojis loaded.")
     print(f"{len(groups)} groups generated.")
     for g in groups:

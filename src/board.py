@@ -3,6 +3,7 @@ from os import name
 import logging as log
 from typing import Callable, Literal
 
+from config import Config
 from emojis import Emoji
 
 
@@ -185,22 +186,38 @@ class SearchEmoji(Emoji):
         return len(self.emojis)
 
 
-# TODO make SettingsEmoji class
+class SettingsGroup(Emoji):
+    def __init__(self, config: Config, board: "Board"):
+        super().__init__(group="Settings", char="⚙️")
+        self.config = config
+        self.board = board
+        self.offset = 0
+        for layout in config.layout:
+            e = Emoji(
+                char=layout.char,
+                group="layout",
+                name=layout.name,
+            )
+            self.emojis.append(e)
 
-type BoardEmoji = Emoji | RecentEmoji | SearchEmoji
+    def act(self, emoji: Emoji):
+        log.info(f"SettingsEmoji.act() called for {emoji}")
+        if emoji.group == "layout":
+            log.info(f"Changing layout to {emoji.name}")
+            self.board.set_layout(self.config.get_layout(emoji.name))
+            self.board._make_mapping()
+
+
+type BoardEmoji = Emoji | RecentGroup | SearchGroup | SettingsGroup
 type OffsetBoardEmoji = tuple[int, str, list[BoardEmoji]]
 
 
 class Board:
 
     def __init__(
-        self, keyboard: str, all_emojis: list[Emoji], emoji_groups: list[Emoji]
+        self, config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]
     ):
-        self._kbd_str: str = keyboard
-        self._rows: list[str] = keyboard.splitlines()
-        self._height: int = len(self._rows)
-        self._width: int = max(len(row) for row in self._rows)
-        self._key_count: int = sum(1 for char in keyboard if not char.isspace())
+        self.set_layout(config.get_layout())
         self._cursor_x: int = 0
         self._cursor_y: int = 0
 
@@ -210,6 +227,8 @@ class Board:
         self._main_emojis.insert(0, self._recent)
         self._search_group = SearchEmoji()
         self._main_emojis.insert(1, self._search_group)
+        self._settings_group = SettingsGroup(config, self)
+        self._main_emojis.insert(2, self._settings_group)
 
         self._emojis: list[BoardEmoji] = self._main_emojis
         self._offset: int = 0
@@ -218,6 +237,13 @@ class Board:
         self._board_path: list[OffsetBoardEmoji] = []
 
         self._current_key: str = self.get_key_at_pos(0, 0)
+
+    def set_layout(self, layout: str):
+        self._layout = layout
+        self._rows = self._layout.splitlines()
+        self._key_count = sum(1 for char in self._layout if not char.isspace())
+        self._height = len(self._rows)
+        self._width = max(len(row) for row in self._rows)
 
     @property
     def width(self) -> int:
@@ -268,6 +294,10 @@ class Board:
         return self._emojis == self._recent.emojis
 
     @property
+    def is_settings(self) -> bool:
+        return self._emojis == self._settings_group.emojis
+
+    @property
     def page_of_pages(self) -> tuple[int, int]:
         if self.emoji_count <= self._key_count:
             return (1, 1)
@@ -276,7 +306,11 @@ class Board:
         return (page, pages)
 
     def push_key(self, key: str):
+        key = self.has_key(key)
         emoji = self._mapping[key]
+        if self.is_settings and emoji:
+            self._settings_group.act(emoji)
+            return None
         self.push_board(emoji.emojis)
 
     def push_board(self, emojis: list[Emoji]):
@@ -295,7 +329,7 @@ class Board:
     def _make_mapping(self):
         self._mapping.clear()
         i = self._offset
-        for k in self._kbd_str:
+        for k in self._layout:
             if k not in (" ", "\n"):
                 if i < len(self._emojis):
                     self._mapping[k] = self._emojis[i]
@@ -331,9 +365,16 @@ class Board:
         self._mapping = self._make_mapping()
         return len(self._search_group.emojis)
 
-    def has_key(self, key: str) -> bool:
-        """Return True if the board has the given key mapped to an emoji."""
-        return key in self._mapping or key.upper() in self._mapping
+    def has_key(self, key: str) -> str:
+        """Return the given key if mapped to an emoji.
+        Return uppercase key if that is mapped.
+        Return empty string if not found."""
+        if key in self._mapping:
+            return key
+        if key.upper() in self._mapping:
+            return key.upper()
+        log.warning(f"Key '{key}' not found on board.")
+        return ""
 
     def get_emoji(self) -> Emoji | None:
         """Return the emoji at the current cursor position or None."""
@@ -341,19 +382,22 @@ class Board:
 
     def get_emoji_for_key(self, key: str) -> Emoji | None:
         """Return the emoji for the given key or None."""
-        return self._mapping.get(key, self._mapping.get(key.upper(), None))
+        key = self.has_key(key)
+        return self._mapping.get(key, None)
 
     def set_cursor_to_key(self, key: str) -> tuple[int, int]:
-        """Return the (x, y) position of the given key on the board."""
-        for y, row in enumerate(self._rows):
-            x = row.find(key)
-            if x >= 0:
-                self._current_key = key
-                (self._cursor_x, self._cursor_y) = (x, y)
-                return (x, y)
-        if key != key.upper():
-            return self.set_cursor_to_key(key.upper())
-        raise KeyError(f"Key '{key}' not found on board")
+        """Return the (x, y) position of the given key on the board.
+        If key not found, move cursor to first key."""
+        key = self.has_key(key)
+        if key:
+            for y, row in enumerate(self._rows):
+                x = row.find(key)
+                if x >= 0:
+                    self._current_key = key
+                    (self._cursor_x, self._cursor_y) = (x, y)
+                    return (x, y)
+        log.error(f"Key '{key}' not found on board.")
+        return self.move_cursor(-100, -100)
 
     def get_key_at_pos(self, x: int, y: int) -> str:
         if 0 <= y < self._height:
@@ -369,9 +413,7 @@ class Board:
                 f"Position x:{x} out of board {self._width}x{self._height}"
             )
 
-    def move_cursor(
-        self, dx: Literal[-100, -1, 0, 1, 100], dy: Literal[-100, -1, 0, 1, 100]
-    ) -> tuple[int, int]:
+    def move_cursor(self, dx: int, dy: int) -> tuple[int, int]:
         """Move the cursor by (dx, dy) and return the new (x, y) position.
         100/-100 jumps to end/start of row/column.
         Left/right moves at line start/end go to previous/next line."""
@@ -446,30 +488,8 @@ class Board:
         self._mapping = self._make_mapping()
 
 
-default_layouts: dict[str, str] = {
-    "de_qwertz": """
-1234567890ß´
-QWERTZUIOPÜ+
-ASDFGHJKLÖÄ#
-<YXCVBNM,.-
-""".strip(),
-    "us_qwerty": """
-# `1234567890-=
-# QWERTYUIOP[]\
-# ASDFGHJKL;'"
-# ZXCVBNM,./
-# """.strip(),
-    "corne_bone": """
-jduax phlmw
-ctieo bnrsg
-?,vfq ykz.-
-""".strip(),
-}
-
-
 def make_board(
-    layout: str, all_emojis: list[Emoji], emoji_groups: list[Emoji]
+    config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]
 ) -> Board:
-    if layout not in default_layouts:
-        raise KeyError(f"Unknown keyboard layout '{layout}'")
-    return Board(default_layouts[layout], all_emojis, emoji_groups)
+    board = Board(config, all_emojis, emoji_groups)
+    return board

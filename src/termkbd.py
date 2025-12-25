@@ -7,6 +7,7 @@ from wcwidth import wcswidth
 import textwrap
 import logging as log
 
+from config import load_config, Config
 from emojis import get_emojis_groups, Emoji
 from board import Board, make_board
 from tools import run_command
@@ -18,7 +19,8 @@ class DoneException(Exception):
 
 class TerminalKeyboard:
 
-    def __init__(self, daemon: bool = False):
+    def __init__(self, config: Config, daemon: bool = False):
+        self.config = config
         self.daemon = daemon
         # use list instead of str to keep graphemes together -
         # makes deletion and cursor movement easier
@@ -33,8 +35,8 @@ class TerminalKeyboard:
         self.cursor_y: int = 0
         self.prefix_key: bool = False
 
-        (self.all_emojis, self.emoji_groups) = get_emojis_groups()
-        self.board: Board = make_board("de_qwertz", self.all_emojis, self.emoji_groups)
+        (self.all_emojis, self.emoji_groups) = get_emojis_groups(self.config)
+        self.board: Board = make_board(self.config, self.all_emojis, self.emoji_groups)
 
         self.status_row: int = 2 + self.board._height + 1
         self.term_board: list[list[tuple[str, Emoji | None]]] = []
@@ -86,7 +88,7 @@ class TerminalKeyboard:
         log.info("Board displayed.")
 
     def hide_and_insert(self, text: str):
-        run_command(["./scripts/emoji-kbd-term-hl-close"], input=text)
+        run_command([self.config.terminal.close_cmd], input=text)
         self.emoji_input.clear()
         self.emoji_input_cursor = 0
 
@@ -369,9 +371,13 @@ class TerminalKeyboard:
             return
 
         # enter a sub board
-        if not e.unicode or (self.prefix_key and e.emojis):
+        if e.emojis and (not e.unicode or self.prefix_key):
             self.prefix_key = False
             board.push_board(e.emojis)
+            self.make_term_board(board._emojis)
+            return
+        if board.is_settings:
+            board.push_key(key)
             self.make_term_board(board._emojis)
             return
         self.prefix_key = False
@@ -424,10 +430,11 @@ class TerminalKeyboard:
 
 
 if __name__ == "__main__":
+    config = load_config()
     log.basicConfig(
-        filename=".local/termkbd.log",
-        # filemode='a',
-        level=log.INFO,
+        filename=f"{config.logging.log_dir}/termkbd.log",
+        filemode=config.logging.log_mode,
+        level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     log.info(f"Starting terminal Emoji Keyboard on {sys.platform}...")
@@ -435,7 +442,7 @@ if __name__ == "__main__":
         daemon = False
         if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
             daemon = True
-        term_keyboard = TerminalKeyboard(daemon)
+        term_keyboard = TerminalKeyboard(config, daemon)
         term_keyboard.run()
     except KeyboardInterrupt:
         pass

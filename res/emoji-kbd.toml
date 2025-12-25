@@ -1,25 +1,39 @@
 [board]
-layout = "US QWERTY"
-default_board = 0
+# one from below layouts
+layout = "DE"
+# by emoji, e.g. "", "⟲", "🔎", "😀", "👍️", ...
+default = "⟲"
 
-[ui]
+[terminal]
+width = 47
+height = 12
+font_size = 20
+# receives the emoji as stdin and hides terminal
+close_cmd = "./scripts/emoji-kbd-term-hl-close"
+
+[gui]
+# in px
+width = 600
+height = 280
+# in % of key size which is derived from window size above
 key_font_size = 0.2
 mark_font_size = 0.2
 emoji_font_size = 0.56
 emoji_font_size2 = 0.8
 
+
 [[layout]]
-name = "US QWERTY"
+name = "US"
 char = "🇺🇸"
 kbd = """
-`1234567890-=
-QWERTYUIOP[]\
-ASDFGHJKL;'"
+1234567890-=
+QWERTYUIOP[]
+ASDFGHJKL;'
 ZXCVBNM,./
 """
 
 [[layout]]
-name = "DE QWERTZ"
+name = "DE"
 char = "🇩🇪"
 kbd = """
 1234567890ß´
@@ -42,6 +56,8 @@ noto_color_emoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/noto
 openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
 unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
+
 [logging]
-log_file = ".local/emojikbd.log"
+log_dir = ".local/"
+log_mode = "w"
 log_level = "INFO"

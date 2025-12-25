@@ -27,6 +27,7 @@ from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 
 import logging as log
 
+from config import load_config
 from emojis import get_emojis_groups, Emoji
 from board import make_board
 
@@ -53,9 +54,11 @@ special_name_map = {
 
 
 class KeyboardWidget(QWidget):
-    def __init__(self):
+
+    def __init__(self, config) -> None:
         super().__init__()
         log.info("Creating main window...")
+        self.config = config
         self.setWindowIcon(QIcon("res/emoji-kbd.svg"))
         self.setWindowTitle("Emoji Kbd")
         self.setWindowFlag(Qt.WindowType.Tool, True)
@@ -63,8 +66,8 @@ class KeyboardWidget(QWidget):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
 
-        (self.all_emojis, self.emoji_groups) = get_emojis_groups()
-        self.board = make_board("de_qwertz", self.all_emojis, self.emoji_groups)
+        (self.all_emojis, self.emoji_groups) = get_emojis_groups(self.config)
+        self.board = make_board(self.config, self.all_emojis, self.emoji_groups)
         self.prefix_key = False
 
         self.last_scroll_time = 0
@@ -141,7 +144,7 @@ class KeyboardWidget(QWidget):
         self.setLayout(main_vbox)
 
         self.setMinimumSize(300, 160)
-        self.resize(600, 280)
+        self.resize(self.config.gui.width, self.config.gui.height)
 
     def paintEvent(self, _event):  # type: ignore
         painter = QPainter(self)
@@ -163,12 +166,12 @@ class KeyboardWidget(QWidget):
             self.height() - y - sl.height() - padding
         ) / self.board.height - padding
         size = int(min(key_width, key_height))
-        emoji_size = int(size * 0.56)
+        emoji_size = int(size * self.config.gui.emoji_font_size)
         if emoji_size != self.emoji_font.pointSize():
             self.emoji_font.setPointSize(emoji_size)
-            self.emoji_font2.setPointSize(int(size * 0.8))
-            self.mark_font.setPointSize(int(size * 0.2))
-            self.key_font.setPointSize(int(size * 0.2))
+            self.emoji_font2.setPointSize(int(size * self.config.gui.emoji_font_size2))
+            self.mark_font.setPointSize(int(size * self.config.gui.mark_font_size))
+            self.key_font.setPointSize(int(size * self.config.gui.key_font_size))
 
         self.start_x = start_x
         self.start_y = y
@@ -332,6 +335,8 @@ class KeyboardWidget(QWidget):
         if not e:
             return
         self.board.set_cursor_to_key(key)
+        if self.board.is_settings:
+            self.board.push_key(key)
         if not self.prefix_key and e.unicode:
             self.insert_emoji(e)
         elif e.emojis:
@@ -624,16 +629,17 @@ def setup_app() -> QApplication:
 
 
 if __name__ == "__main__":
+    config = load_config()
     log.basicConfig(
-        # filename='.local/guikbd.log',
-        # filemode='a',
-        level=log.INFO,
+        filename=f"{config.logging.log_dir}/guikbd.log",
+        filemode=config.logging.log_mode,
+        level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     log.info(f"Starting Qt6 Emoji Keyboard on {sys.platform}...")
     app = setup_app()
     app.setQuitOnLastWindowClosed(True)
-    window = KeyboardWidget()
+    window = KeyboardWidget(config)
 
     log.info("Starting main window...")
     window.show()

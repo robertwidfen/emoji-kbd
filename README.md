@@ -195,7 +195,6 @@ I like Walker, but not the emoji picker.
 
 # Todos
 
-- Add config file
 - Store config and other files in proper location, e.g. `~/.config/emoji-kbd/`
 - Add more board layouts
 

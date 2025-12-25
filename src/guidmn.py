@@ -12,6 +12,7 @@ from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
 import logging as log
 
+from config import load_config
 from guikbd import KeyboardWidget, setup_app
 
 SOCKET_HOST = "127.0.0.1"
@@ -124,8 +125,9 @@ class SocketServer(QObject):
 
 
 class DaemonKeyboardWidget(KeyboardWidget):
-    def __init__(self, server=None):
-        super().__init__()
+
+    def __init__(self, server, config):
+        super().__init__(config)
         self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.server = server
 
@@ -149,7 +151,7 @@ class DaemonKeyboardWidget(KeyboardWidget):
         log.info("Window hidden")
 
 
-def start_daemon():
+def start_daemon(config):
     log.info("Starting Emoji Keyboard Daemon...")
 
     log.info("Creating QApplication")
@@ -163,7 +165,7 @@ def start_daemon():
 
     # Create window with server reference
     log.info("Creating DaemonKeyboardWidget")
-    window = DaemonKeyboardWidget(server)
+    window = DaemonKeyboardWidget(server, config)
     server.window = window
 
     # Show window off-screen to initialize, then hide
@@ -237,19 +239,20 @@ def start_daemon_process(command: str):
 
 
 if __name__ == "__main__":
+    config = load_config()
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
-            filename=".local/guidmn.log",  # if not os.environ.get("TERM") else None,
-            filemode="a",
-            level=log.INFO,
+            filename=f"{config.logging.log_dir}/guidmn.log",
+            filemode=config.logging.log_mode,
+            level=config.logging.log_level,
             format="%(asctime)s - D %(levelname)s - %(message)s",
         )
-        start_daemon()
+        start_daemon(config)
     elif len(sys.argv) >= 2:
         log.basicConfig(
-            filename=".local/guidmn.log",
-            filemode="a",
-            level=log.INFO,
+            filename=f"{config.logging.log_dir}/guidmn.log",
+            filemode=config.logging.log_mode,
+            level=config.logging.log_level,
             format="%(asctime)s - C %(levelname)s - %(message)s",
         )
         # Client mode with commands
