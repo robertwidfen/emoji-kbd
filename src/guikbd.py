@@ -69,7 +69,7 @@ class KeyboardWidget(QWidget):
         (self.all_emojis, self.emoji_groups) = get_emojis_groups(self.config)
         self.board = make_board(self.config, self.all_emojis, self.emoji_groups)
         self.prefix_key = False
-
+        self.last_key = ""  # to track last key under mouse
         self.last_scroll_time = 0
 
         self.initUI()
@@ -530,7 +530,7 @@ class KeyboardWidget(QWidget):
             return True
         return False
 
-    def get_char_from_position(self, x: int, y: int) -> str | None:
+    def get_key_from_position(self, x: int, y: int) -> str | None:
         (start_x, start_y) = (self.start_x, self.start_y)
         (key_width, key_height) = (self.key_width, self.key_height)
         key_padding = self.padding
@@ -567,12 +567,12 @@ class KeyboardWidget(QWidget):
             self.setFocus()
             (x, y) = (event.pos().x(), event.pos().y())
             if button == Qt.MouseButton.LeftButton:
-                char = self.get_char_from_position(x, y)
+                char = self.get_key_from_position(x, y)
                 if char:
                     self.handle_key(char)
             elif button == Qt.MouseButton.RightButton:
                 self.board.pop_board()
-                char = self.get_char_from_position(x, y)
+                char = self.get_key_from_position(x, y)
                 self.show_status(char)
                 self.update()
 
@@ -580,8 +580,9 @@ class KeyboardWidget(QWidget):
 
     def mouseMoveEvent(self, event: QMouseEvent | None) -> None:  # type: ignore
         if event:
-            char = self.get_char_from_position(event.pos().x(), event.pos().y())
-            if char and char != self.board.current_key:
+            char = self.get_key_from_position(event.pos().x(), event.pos().y())
+            if char and char != self.last_key:
+                self.last_key = char
                 self.show_status(char)
                 self.update()
 
