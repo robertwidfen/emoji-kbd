@@ -1,19 +1,18 @@
+import logging as log
 import os
 import sys
+import subprocess
 import socket
 import threading
-import subprocess
 import time
-import qdarkstyle
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QGuiApplication, QCursor
 from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
-import logging as log
-
 from config import load_config
 from guikbd import KeyboardWidget, setup_app
+
 
 SOCKET_HOST = "127.0.0.1"
 PORT_FILE = ".local/emoji-kbd-daemon.port"

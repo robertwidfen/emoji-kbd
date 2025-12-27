@@ -1,5 +1,3 @@
-import logging
-from os import name
 import logging as log
 from typing import Callable, Literal
 
@@ -7,7 +5,7 @@ from config import Config
 from emojis import Emoji
 
 
-class RecentEmoji(Emoji):
+class RecentGroup(Emoji):
     def __init__(self):
         super().__init__(group="Recent List", char="⟲")
         self.load()
@@ -40,7 +38,9 @@ class RecentEmoji(Emoji):
         # sort and keep only top 100
         if not no_sort:
             self.emojis.sort(key=lambda e: e.order, reverse=True)
-        del self.emojis[100:]
+        # limit to 100 entries
+        if len(self.emojis) > 100:
+            del self.emojis[100:]
         self.save()
 
     def toggle_favorite(self, emoji: Emoji):
@@ -96,7 +96,7 @@ class RecentEmoji(Emoji):
             log.error(f"Saving recent emojis: {ex}")
 
 
-class SearchEmoji(Emoji):
+class SearchGroup(Emoji):
     def __init__(self):
         super().__init__(group="Search Results", char="🔎")
         self.offset = 0
@@ -223,9 +223,9 @@ class Board:
 
         self._all_emojis: list[Emoji] = all_emojis
         self._main_emojis: list[BoardEmoji] = emoji_groups
-        self._recent = RecentEmoji()
+        self._recent = RecentGroup()
         self._main_emojis.insert(0, self._recent)
-        self._search_group = SearchEmoji()
+        self._search_group = SearchGroup()
         self._main_emojis.insert(1, self._search_group)
         self._settings_group = SettingsGroup(config, self)
         self._main_emojis.insert(2, self._settings_group)

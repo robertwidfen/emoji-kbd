@@ -1,7 +1,7 @@
-import tomllib
-from dataclasses import dataclass, asdict
+from typing import Literal, get_origin, get_args
+from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Literal
+import tomllib
 
 
 @dataclass

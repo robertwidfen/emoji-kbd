@@ -1,11 +1,9 @@
+import logging as log
 import sys
-import subprocess
-from typing import LiteralString
 from blessed import Terminal
 from blessed.keyboard import Keystroke
 from wcwidth import wcswidth
 import textwrap
-import logging as log
 
 from config import load_config, Config
 from emojis import get_emojis_groups, Emoji

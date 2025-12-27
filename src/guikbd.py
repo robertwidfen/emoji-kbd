@@ -1,7 +1,7 @@
+import logging as log
 import sys
 import time
 import re
-from typing import Callable
 
 import qdarkstyle
 
@@ -25,7 +25,6 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 
-import logging as log
 
 from config import load_config
 from emojis import get_emojis_groups, Emoji

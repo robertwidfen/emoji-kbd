@@ -1,9 +1,8 @@
+import logging as log
 import os
 import subprocess
-from typing import LiteralString
 import urllib.request
 import csv
-import logging as log
 
 
 def add_emoji_to_unicode_data(file_path: str):
@@ -65,8 +64,6 @@ def run_command(command: list[str], input: str | None = None):
 
 if __name__ == "__main__":
     log.basicConfig(
-        # filename='app.log',
-        # filemode='a',
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
