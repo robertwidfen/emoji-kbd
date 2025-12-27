@@ -8,7 +8,7 @@ import textwrap
 from config import load_config, Config
 from emojis import get_emojis_groups, Emoji
 from board import Board, make_board
-from tools import run_command
+from tools import get_state_file, run_command
 
 
 class DoneException(Exception):
@@ -79,7 +79,7 @@ class TerminalKeyboard:
                             k = self.term.on_bright_black(k)
                         else:
                             k = self.term.reverse(k)
-                    if self.board.is_recent and e and e.order >= 100:
+                    if e and e.mark:
                         k = self.term.yellow(k)
                     term_line += f"{k}{self.pad_emoji(e)}"
                 print(term_line + self.term.clear_eol, end="")
@@ -375,7 +375,7 @@ class TerminalKeyboard:
             self.make_term_board(board._emojis)
             return
         if board.is_settings:
-            board.push_key(key)
+            board.push_key(board.current_key)
             self.make_term_board(board._emojis)
             return
         self.prefix_key = False
@@ -430,7 +430,7 @@ class TerminalKeyboard:
 if __name__ == "__main__":
     config = load_config()
     log.basicConfig(
-        filename=f"{config.logging.log_dir}/termkbd.log",
+        filename=f"{get_state_file('termkbd.log')}",
         filemode=config.logging.log_mode,
         level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",

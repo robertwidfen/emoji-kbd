@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 
 from config import Config, load_config
-import tools
+from tools import get_cache_file, download_if_missing
 
 
 class Emoji:
@@ -267,12 +267,12 @@ unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 
 
 def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
-    openmoji = ".local/openmoji.csv"
-    tools.download_if_missing(config.sources.openmoji, openmoji)
+    openmoji = get_cache_file("openmoji.csv")
+    download_if_missing(config.sources.openmoji, openmoji)
     emojis = read_openmoji_csv(openmoji)
 
-    unicode_data = ".local/UnicodeData.txt"
-    tools.download_if_missing(config.sources.unicode_data, unicode_data)
+    unicode_data = get_cache_file("UnicodeData.txt")
+    download_if_missing(config.sources.unicode_data, unicode_data)
     unicode_emojis = read_unicode_data(unicode_data)
 
     open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking

@@ -1,8 +1,10 @@
 import logging as log
 import os
+from pathlib import Path
 import subprocess
 import urllib.request
 import csv
+import shutil
 
 
 def add_emoji_to_unicode_data(file_path: str):
@@ -61,6 +63,42 @@ def run_command(command: list[str], input: str | None = None):
     except Exception as e:
         log.error(f"{command} failed with: {e}")
 
+
+def get_conf_file(filename: str) -> str:
+    config_dir = (
+        Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "emoji-kbd"
+    )
+    config_dir.mkdir(parents=True, exist_ok=True)
+    default_config = Path(__file__).parent.parent / "res" / filename
+    if not (config_dir / filename).exists() and default_config.exists():
+        shutil.copy(default_config, config_dir / filename)
+        log.info(f"Copied default config from {default_config}")
+    path = str(config_dir / filename)
+    log.info(f"Config dir: {path}")
+    return path
+
+
+def get_state_file(filename: str) -> str:
+    state_dir = (
+        Path(os.getenv("XDG_STATE_HOME", Path.home() / ".local/state")) / "emoji-kbd"
+    )
+    state_dir.mkdir(parents=True, exist_ok=True)
+    path = str(state_dir / filename)
+    log.info(f"State dir: {path}")
+    return path
+
+
+def get_cache_file(filename: str) -> str:
+    cache_dir = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "emoji-kbd"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    path = str(cache_dir / filename)
+    log.info(f"Cache dir: {path}")
+    return path
+
+
+# Cache directory
+cache_dir = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "emoji-kbd"
+cache_dir.mkdir(parents=True, exist_ok=True)
 
 if __name__ == "__main__":
     log.basicConfig(

@@ -3,6 +3,8 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 import tomllib
 
+from tools import get_conf_file
+
 
 @dataclass
 class BoardConfig:
@@ -50,7 +52,6 @@ class SourcesConfig:
 
 @dataclass
 class LoggingConfig:
-    log_dir: str = ".local/"
     log_mode: str = "w"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
@@ -105,7 +106,7 @@ class Config:
         raise ValueError(f"Layout '{name}' not found in configuration.")
 
 
-default_path = "res/emoji-kbd.toml"
+default_path = get_conf_file("emoji-kbd.toml")
 
 
 def load_config(config_path: str = default_path) -> Config:

@@ -12,6 +12,7 @@ from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
 from config import load_config
 from guikbd import KeyboardWidget, setup_app
+from tools import get_state_file
 
 
 SOCKET_HOST = "127.0.0.1"
@@ -241,7 +242,7 @@ if __name__ == "__main__":
     config = load_config()
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
-            filename=f"{config.logging.log_dir}/guidmn.log",
+            filename=f"{get_state_file('guidmn.log')}",
             filemode=config.logging.log_mode,
             level=config.logging.log_level,
             format="%(asctime)s - D %(levelname)s - %(message)s",
@@ -249,7 +250,7 @@ if __name__ == "__main__":
         start_daemon(config)
     elif len(sys.argv) >= 2:
         log.basicConfig(
-            filename=f"{config.logging.log_dir}/guidmn.log",
+            filename=f"{get_state_file('guidmn.log')}",
             filemode=config.logging.log_mode,
             level=config.logging.log_level,
             format="%(asctime)s - C %(levelname)s - %(message)s",

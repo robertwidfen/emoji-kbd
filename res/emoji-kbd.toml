@@ -58,6 +58,5 @@ unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
 
 [logging]
-log_dir = ".local/"
 log_mode = "w"
 log_level = "INFO"

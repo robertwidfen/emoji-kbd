@@ -29,6 +29,7 @@ from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 from config import load_config
 from emojis import get_emojis_groups, Emoji
 from board import make_board
+from tools import get_state_file
 
 
 focus_color = QColor("#3399FF")  # default focus color
@@ -631,7 +632,7 @@ def setup_app() -> QApplication:
 if __name__ == "__main__":
     config = load_config()
     log.basicConfig(
-        filename=f"{config.logging.log_dir}/guikbd.log",
+        filename=f"{get_state_file('guikbd.log')}",
         filemode=config.logging.log_mode,
         level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
