@@ -198,14 +198,25 @@ class SettingsGroup(Emoji):
                 group="layout",
                 name=layout.name,
             )
+            if layout.name == config.board.layout:
+                e.mark = "🟡"
             self.emojis.append(e)
 
     def act(self, emoji: Emoji):
-        log.info(f"SettingsEmoji.act() called for {emoji}")
+        log.info(f"Called SettingsEmoji.act({emoji.char}).")
         if emoji.group == "layout":
             log.info(f"Changing layout to {emoji.name}")
+            key_pos = self.board.get_key_pos()
             self.board.set_layout(self.config.get_layout(emoji.name))
             self.board._make_mapping()
+            self.board.move_cursor(-100, -100)
+            self.board.move_cursor(key_pos, 0)
+            for e in self.emojis:
+                if e.group == "layout":
+                    if e.name == emoji.name:
+                        e.mark = "🟡"
+                    else:
+                        e.mark = ""
 
 
 type BoardEmoji = Emoji | RecentGroup | SearchGroup | SettingsGroup
@@ -244,6 +255,15 @@ class Board:
         self._key_count = sum(1 for char in self._layout if not char.isspace())
         self._height = len(self._rows)
         self._width = max(len(row) for row in self._rows)
+
+    def get_key_pos(self, key: str | None = None) -> int:
+        if key is None:
+            key = self.current_key
+        key = self.has_key(key)
+        pos = self._layout.replace(" ", "").replace("\n", "").find(key)
+        if pos >= 0:
+            return pos
+        raise ValueError(f"Key '{key}' not found on board.")
 
     @property
     def width(self) -> int:
