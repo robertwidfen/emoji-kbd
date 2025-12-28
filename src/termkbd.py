@@ -79,8 +79,10 @@ class TerminalKeyboard:
                             k = self.term.on_bright_black(k)
                         else:
                             k = self.term.reverse(k)
-                    if e and e.mark:
+                    if e and e.mark in ("⭐️", "🟡"):
                         k = self.term.yellow(k)
+                    if e and e.mark in ("🟤",):
+                        k = self.term.lightsalmon(k)
                     term_line += f"{k}{self.pad_emoji(e)}"
                 print(term_line + self.term.clear_eol, end="")
         log.info("Board displayed.")
