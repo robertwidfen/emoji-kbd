@@ -45,50 +45,50 @@ If your window manager supports it, a left click in left half of status allows f
 |-----------------------------------------------------|----------------------------------|
 | **Global**                                                                             |
 | <kbd>Cursor</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>  | navigate around                  |
-| <kbd>Tab</kbd>                                      | enter/leave board                |
+| <kbd>Ctrl-I</kbd>                                   | focus input                      |
 | <kbd>Ctrl-F</kbd>                                   | focus search                     |
 | <kbd>PageUp</kbd>/<kbd>PageDown</kbd>               | scroll pages                     |
 | <kbd>Esc</kbd>                                      | back to previous board           |
 | <kbd>Space</kbd>                                    | prefix key                       |
 | **Input**                                                                              |
-| key on board                                        | insert emoji                     |
+| key on board                                        | select and insert emoji          |
 | <kbd>Enter</kbd>                                    | close and print result           |
 | <kbd>Right</kbd> at end                             | focus search                     |
+| <kbd>Tab</kbd>, <kbd>Down</kbd>                     | focus board                      |
 | **Search**                                                                             |
 | <kbd>Enter</kbd>                                    | insert emoji and back to input   |
-| <kbd>Esc</kbd>                                      | back to input                    |
-| <kbd>Left</kbd> at start                            | focus input                      |
 | <kbd>Right</kbd> at end                             | select next result               |
+| <kbd>Left</kbd> at start                            | focus input                      |
+| <kbd>Tab</kbd>, <kbd>Down</kbd>                     | focus board                      |
 | **Board**                                                                              |
-| key on board                                        | select emoji                     |
-| <kbd>Backspace</kbd>                                | back to previous board           |
+| key on board                                        | select and insert emoji          |
 | <kbd>Enter</kbd>                                    | insert emoji                     |
-| <kbd>Up</kbd> in first row                          | back to input                    |
+| <kbd>Up</kbd> in first row                          | focus input                      |
 | **Recent Board** additional keys                                                       |
-| key on board                                        | select emoji                     |
-| <kbd>Shift</kbd>+<kbd>Left</kbd>/<kbd>Right</kbd>   | move item left/right             |
+| key on board                                        | select and insert emoji          |
+| <kbd>Shift</kbd>+<kbd>Left</kbd>/<kbd>Right</kbd>   | move selected left/right         |
 | <kbd>Shift</kbd>+<kbd>Enter</kbd>                   | toggles favorite state           |
-| <kbd>Delete</kbd>                                   | removed item                     |
+| <kbd>Shift</kbd>+<kbd>Delete</kbd>                  | delete selected                  |
 | **Mouse** 🖱️                                                                           |
-| <kbd>Left</kbd>                                     | insert emoji                     |
-| <kbd>Left</kbd> in upper right corner               | open variants                    |
-| <kbd>Double Left</kbd>                              | insert emoji and close           |
-| <kbd>Right</kbd>                                    | back to previous board           |
+| <kbd>LeftClick</kbd>                                | insert emoji                     |
+| <kbd>LeftClick</kbd> in upper right corner          | open variants                    |
+| <kbd>DoubleLeftClick</kbd>                          | insert emoji and close           |
+| <kbd>RightClick</kbd>                               | back to previous board           |
 | <kbd>Wheel</kbd>                                    | scroll pages                     |
 
 # Recent List ⟲
 
 Used emojis will be put automatically to the recent list.
 
-Every item has a score and items are sorted by the score when opening the recent board.
+Every item has a score and items are sorted by score when opening the recent board.
 
-A score >= 100 makes a item a favorite which will not change anymore.
+A score >= 100 makes an item a favorite and it will not change anymore.
 
-When an item is inserted into the input its score will increase by 10 and the score of all others which are no favorite decrease by 1.
+When an item is inserted into the input its score will increase by 10 and the score of all others - except favorite - decreases by 1.
 
 # Search 🔎
 
-When entering search without a pattern it will display all emojis.
+When entering search without a pattern it will display all available emojis.
 
 With a pattern it will show matching items in the order of their score and select the first result.
 
@@ -105,11 +105,12 @@ python -m venv venv
 . venv/Scripts/activate
 pip install -r requirements.txt
 python src/guikbd.py # for testing
+python src/termkbd.py # for testing
 ```
 
 # Installation
 
-Integration into your system should work with one of the script in `scripts/*`.
+Integration into your system works with one of the scripts in `scripts/*`.
 
 ## Linux Hyprland
 
@@ -117,10 +118,11 @@ Install:
 - `nc` (netcat)
 - `wl-copy`
 - `wtype`
+- `kitty`
 
 In Arch by:
 ```shell
-sudo pacman -S openbsd-netcat wl-clipboard wtype
+sudo pacman -S openbsd-netcat wl-clipboard wtype kitty
 ```
 
 Add to `~/.config/hypr/bindings.conf` for the hotkey
@@ -157,7 +159,7 @@ Run:
 ```
 emoji-kbd.ahk
 ```
-It will overwrite `Win-.`, i.e. the Windows emoji picker.
+It will overwrite <kbd>Win-.</kbd>, i.e. the Windows emoji picker.
 If you prefer another hotkey edit the script.
 
 ## Terminal
@@ -181,10 +183,17 @@ or start the gui via daemon for faster opening - use "GET" to wait for result or
 
 # Customization
 
-`~/.config/emoji-kbd/emoji-kbd.toml` for settings and `~/.config/emoji-kbd/recent.txt` for recent list.
-`~/.cache/emoji-kbd` contains the emoji databases and `~/.local/state/emoji-kbd` the log files.
+Edit `~/.config/emoji-kbd/emoji-kbd.toml`
 
 For everything change the code 😉 or wait until it is added.
+
+# Other files
+
+- `~/.local/state/emoji-kbd/recent.txt` the recent list.
+- `~/.local/state/emoji-kbd/*.log` the log files.
+- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases"
+
+# Development
 
 When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the source tree.
 
@@ -201,7 +210,6 @@ I like Walker, but not the emoji picker.
 
 # Todos
 
-- Store config and other files in proper location, e.g. `~/.config/emoji-kbd/`
 - Add more board layouts
 
 # Random link list
