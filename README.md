@@ -181,7 +181,13 @@ or start the gui via daemon for faster opening - use "GET" to wait for result or
 
 # Customization
 
-Change the code 😉 or wait until it is added.
+`~/.config/emoji-kbd/emoji-kbd.toml` for settings and `~/.config/emoji-kbd/recent.txt` for recent list.
+`~/.cache/emoji-kbd` contains the emoji databases and `~/.local/state/emoji-kbd` the log files.
+
+For everything change the code 😉 or wait until it is added.
+
+When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the source tree.
+
 
 # Alternatives
 
