@@ -1,5 +1,11 @@
 {
     "cSpell.words": [
         "wcswidth"
-    ]
+    ],
+    "terminal.integrated.env.linux": {
+        "EMOJI_KBD_DEV": "1"
+    },
+    "terminal.integrated.env.osx": {
+        "EMOJI_KBD_DEV": "1"
+    }
 }
