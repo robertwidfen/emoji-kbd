@@ -242,7 +242,8 @@ if __name__ == "__main__":
     config = load_config()
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
-            filename=f"{get_state_file('guidmn.log')}",
+            force=True,
+            filename=get_state_file("guidmn.log"),
             filemode=config.logging.log_mode,
             level=config.logging.log_level,
             format="%(asctime)s - D %(levelname)s - %(message)s",
@@ -250,7 +251,8 @@ if __name__ == "__main__":
         start_daemon(config)
     elif len(sys.argv) >= 2:
         log.basicConfig(
-            filename=f"{get_state_file('guidmn.log')}",
+            force=True,
+            filename=get_state_file("guidmn.log"),
             filemode=config.logging.log_mode,
             level=config.logging.log_level,
             format="%(asctime)s - C %(levelname)s - %(message)s",

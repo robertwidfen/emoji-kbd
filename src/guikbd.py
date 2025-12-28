@@ -632,7 +632,8 @@ def setup_app() -> QApplication:
 if __name__ == "__main__":
     config = load_config()
     log.basicConfig(
-        filename=f"{get_state_file('guikbd.log')}",
+        force=True,
+        filename=get_state_file("guikbd.log"),
         filemode=config.logging.log_mode,
         level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
