@@ -172,7 +172,7 @@ class TerminalKeyboard:
         if self.search_input_selection:
             search_str = term.reverse(search_str)
             input_width += len(search_str) - len(self.search_input)
-        search_str = f"{search_str:<{input_width}}"
+        search_str = f"{search_str:<{input_width+1}}"
         inputs = f"> {term.on_bright_black(emoji_field)}   ⌕ {term.on_bright_black(search_str)}"
 
         # determine cursor position
