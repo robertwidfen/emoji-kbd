@@ -51,6 +51,15 @@ CTIEO BNRSG
 ?,VFQ YKZ.-
 """
 
+[[layout]]
+name = "Test"
+char = "🔬"
+kbd = """
+ 2 45678 0ß 
+QWE TZU OPÜ+
+A DF H KLÖ  
+"""
+
 [sources]
 noto_color_emoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
 openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
