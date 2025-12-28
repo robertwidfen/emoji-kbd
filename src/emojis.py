@@ -6,6 +6,24 @@ from dataclasses import dataclass
 from config import Config, load_config
 from tools import get_cache_file, download_if_missing
 
+# Map of special unicode codes to short names for display on keys
+special_name_map = {
+    "0020": "SP",  # SPACE
+    "00A0": "NB",  # NO-BREAK SPACE
+    "202F": "nNB",  # NARROW NO-BREAK SPACE
+    "2000": "ENQ",  # EN QUAD
+    "2001": "EMQ",  # EM QUAD
+    "2002": "EN",  # EN SPACE
+    "2003": "EM",  # EM SPACE
+    "2004": "3EM",  # THREE-PER-EM SPACE
+    "2005": "4EM",  # FOUR-PER-EM SPACE
+    "2006": "6EM",  # SIX-PER-EM SPACE
+    "2007": "FS",  # FIGURE SPACE
+    "2008": "PS",  # PUNCTUATION SPACE
+    "2009": "TS",  # THIN SPACE
+    "200A": "HS",  # HAIR SPACE
+}
+
 
 class Emoji:
 

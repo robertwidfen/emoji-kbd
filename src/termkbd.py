@@ -6,7 +6,7 @@ from wcwidth import wcswidth
 import textwrap
 
 from config import load_config, Config
-from emojis import get_emojis_groups, Emoji
+from emojis import special_name_map, get_emojis_groups, Emoji
 from board import Board, make_board
 from tools import get_state_file, run_command
 
@@ -84,8 +84,14 @@ class TerminalKeyboard:
     def pad_emoji(self, emoji: Emoji | None) -> str:
         if not emoji:
             return "   "
-        pad = 3 - wcswidth(emoji.char)
-        return f"{emoji.char}{' ' * pad}"
+        if emoji.unicode in special_name_map:
+            e_char = special_name_map[emoji.unicode]
+            pad = 3 - len(e_char)
+            e_char = self.term.cyan(e_char)
+        else:
+            e_char = emoji.char
+            pad = 3 - wcswidth(e_char)
+        return f"{e_char}{' ' * pad}"
 
     def show_board(self):
         log.info("Displaying board...")

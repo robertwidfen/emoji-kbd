@@ -27,30 +27,12 @@ from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
 
 
 from config import load_config
-from emojis import get_emojis_groups, Emoji
+from emojis import special_name_map, get_emojis_groups, Emoji
 from board import make_board
 from tools import get_state_file
 
 
 focus_color = QColor("#3399FF")  # default focus color
-
-# Map of special unicode codes to short names for display on keys
-special_name_map = {
-    "0020": "SP",  # SPACE
-    "00A0": "NBS",  # NO-BREAK SPACE
-    "202F": "nNBS",  # NARROW NO-BREAK SPACE
-    "2000": "ENQ",  # EN QUAD
-    "2001": "EMQ",  # EM QUAD
-    "2002": "ENS",  # EN SPACE
-    "2003": "EMS",  # EM SPACE
-    "2004": "3EMS",  # THREE-PER-EM SPACE
-    "2005": "4EMS",  # FOUR-PER-EM SPACE
-    "2006": "6EMS",  # SIX-PER-EM SPACE
-    "2007": "FS",  # FIGURE SPACE
-    "2008": "PS",  # PUNCTUATION SPACE
-    "2009": "TS",  # THIN SPACE
-    "200A": "HS",  # HAIR SPACE
-}
 
 
 class KeyboardWidget(QWidget):
