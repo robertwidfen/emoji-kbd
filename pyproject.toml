@@ -1,0 +1,76 @@
+[project]
+name = "emoji-kbd"
+version = "0.1.0"
+description = "Efficient emoji keyboard with GUI and terminal interfaces"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "robertwidfen", email = "126524724+robertwidfen@users.noreply.github.com" },
+]
+keywords = ["emoji", "keyboard", "productivity", "gui", "terminal"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+    "Environment :: X11 Applications :: Qt",
+    "Environment :: Console",
+]
+
+dependencies = [
+    "blessed>=1.20.0",
+    "qdarkstyle>=3.2.0",
+    "PyQt6>=6.6.0",
+    "wcwidth>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = ["black>=23.0.0", "mypy>=1.7.0", "ruff>=0.1.0"]
+
+[project.urls]
+Homepage = "https://github.com/robertwidfen/emoji-kbd"
+Repository = "https://github.com/robertwidfen/emoji-kbd"
+Issues = "https://github.com/robertwidfen/emoji-kbd/issues"
+
+[project.scripts]
+emoji-kbd-gui = "guikbd:main"
+emoji-kbd-term = "termkbd:main"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.black]
+line-length = 100
+target-version = ["py312", "py313"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long (handled by black)
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
