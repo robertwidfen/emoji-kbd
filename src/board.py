@@ -231,9 +231,11 @@ class Board:
     def __init__(
         self, config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]
     ):
-        self.set_layout(config.get_layout())
         self._cursor_x: int = 0
         self._cursor_y: int = 0
+        self._current_key: str = ""
+        self.set_layout(config.get_layout())
+        self.move_cursor(-100, -100)
 
         self._all_emojis: list[Emoji] = all_emojis
         self._main_emojis: list[BoardEmoji] = emoji_groups
@@ -249,8 +251,6 @@ class Board:
         self._mapping: dict[str, Emoji] = {}
         self._make_mapping()
         self._board_path: list[OffsetBoardEmoji] = []
-
-        self._current_key: str = self.get_key_at_pos(0, 0)
 
     def set_layout(self, layout: str):
         self._layout = layout
@@ -436,12 +436,18 @@ class Board:
                 f"Position x:{x} out of board {self._width}x{self._height}"
             )
 
-    def move_cursor(self, dx: int, dy: int) -> tuple[int, int]:
+    def move_cursor(
+        self, dx: int, dy: int, cx: int | None = None, cy: int | None = None
+    ) -> tuple[int, int]:
         """Move the cursor by (dx, dy) and return the new (x, y) position.
         100/-100 jumps to end/start of row/column.
         Left/right moves at line start/end go to previous/next line."""
-        x = self.cursor_x + dx
-        y = self.cursor_y + dy
+        if cx is None:
+            cx = self._cursor_x
+        if cy is None:
+            cy = self._cursor_y
+        x = cx + dx
+        y = cy + dy
 
         if dy <= -100:
             y = 0
@@ -454,37 +460,43 @@ class Board:
 
         if dx <= -100:
             x = 0
+            dx = 1
         elif dx >= 100:
             x = len(self._rows[y]) - 1
+            dx = -1
         elif x < 0:
             if y > 0:
                 y -= 1
                 x = len(self._rows[y]) - 1
+                dx = -1
             else:
                 x = 0
+                dx = 1
         elif x > len(self._rows[y]) - 1:
             if y < self._height - 1:
                 y += 1
                 x = 0
+                dx = 1
             else:
                 x = len(self._rows[y]) - 1
+                dx = -1
+
+        key = self._rows[y][x]
 
         # find next valid key in row
-        row = self._rows[y]
-        key = self._current_key
-        for i in range(len(row)):
-            key = row[max(0, x - i)]
-            if key != " ":
-                break
-            key = row[min(len(row) - 1, x + i)]
-            if key != " ":
-                break
+        if key == " ":
+            if dy and 0 < y < self._height - 1:
+                return self.move_cursor(dx, dy, x, y)
+            if (dy or dx < 0) and x > 0:
+                return self.move_cursor(-1, 0, x, y)
+            if (dy or dx > 0) and x < len(self._rows[y]):
+                return self.move_cursor(1, 0, x, y)
+            return (self._cursor_x, self._cursor_y)
 
         self._cursor_x = x
         self._cursor_y = y
         self._current_key = key
-
-        return (self.cursor_x, self.cursor_y)
+        return (x, y)
 
     def scroll(self, offset: int):
         new_offset = self._offset + self._key_count * offset
