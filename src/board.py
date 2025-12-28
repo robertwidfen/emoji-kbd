@@ -491,7 +491,7 @@ class Board:
         if new_offset < 0:
             new_offset = 0
         if new_offset >= len(self._emojis):
-            new_offset = (len(self._emojis) // self._key_count) * self._key_count
+            new_offset = self._offset
         self._offset = new_offset
         self._mapping = self._make_mapping()
 
