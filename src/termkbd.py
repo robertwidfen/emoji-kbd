@@ -102,13 +102,15 @@ class TerminalKeyboard:
                 for k, e in line:
                     if k == current_key:
                         if self.cursor_y == 0:
+                            # lighter if board is not focused
                             k = self.term.on_bright_black(k)
                         else:
                             k = self.term.reverse(k)
-                    if e and e.mark in ("⭐️", "🟡"):
-                        k = self.term.yellow(k)
-                    if e and e.mark in ("🟤",):
-                        k = self.term.lightsalmon(k)
+                    if e:
+                        if e.mark in ("⭐️", "🟡"):
+                            k = self.term.yellow(k)
+                        elif e.mark in ("🟤",):
+                            k = self.term.lightsalmon(k)
                     term_line += f"{k}{self.pad_emoji(e)}"
                 print(term_line + self.term.clear_eol, end="")
         log.info("Board displayed.")
