@@ -252,6 +252,12 @@ class Board:
         self._make_mapping()
         self._board_path: list[OffsetBoardEmoji] = []
 
+        if config.board.default:
+            for e in self.emojis:
+                if e.char == config.board.default:
+                    self.push_board(e.emojis)
+                    break
+
     def set_layout(self, layout: str):
         self._layout = layout
         self._rows = self._layout.splitlines()
