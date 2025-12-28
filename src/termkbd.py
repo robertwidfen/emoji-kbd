@@ -375,6 +375,8 @@ class TerminalKeyboard:
                 else:
                     board.move_cursor(0, -1)
         elif is_search_input and is_printable:
+            if key == "KEY_SPACE":
+                key = " "
             s = self.search_input
             c = self.search_input_cursor
             s = s[:c] + key + s[c:]
