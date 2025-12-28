@@ -74,16 +74,16 @@ def make_emoji_from_row(row: list[str]) -> Emoji:
 
 
 unicode_exclude_ranges = (
-    (0x000000, 0x00009F),
-    (0x000400, 0x001FFE),
-    (0x0020D0, 0x0020F0),
-    (0x002C00, 0x00FFDB),
-    (0x010100, 0x01EEFE),
+    (0x000000, 0x00009F),  # Normal characters
+    (0x000400, 0x001FFE),  # CJK and Hangul
+    (0x0020D0, 0x0020F0),  # Combining Diacritical Marks for Symbols
+    (0x002C00, 0x00FFDB),  # CJK and Hangul
+    (0x010100, 0x01EEFE),  # Various scripts
     (0x01F1E6, 0x01F1FF),  # REGIONAL INDICATOR SYMBOL LETTERS
-    (0x01F3FB, 0x01F3FF),
-    (0x01F9B0, 0x01F9B3),
-    (0x01FBFA, 0x033479),
-    (0x0E0001, 0xFFFFFF),
+    (0x01F3FB, 0x01F3FF),  # Skintone modifiers
+    (0x01F9B0, 0x01F9B3),  # Hair style modifiers
+    (0x01FBFA, 0x033479),  # Tags
+    (0x0E0001, 0xFFFFFF),  # Tags and private use
 )
 
 unicode_exclude_points = (0x00AD, 0x2028, 0x2029)
@@ -106,8 +106,8 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
             # Skip invalid or extra emojis
             if len(row) <= 3 or row[2].startswith("extras-"):
                 continue
-            if row[1].find("-") != -1:
-                unicode = int(row[1].split("-")[0], 16)
+            if row[1].find("-") == -1:
+                unicode = int(row[1], 16)
                 if exclude_unicode(unicode):
                     continue
             if any(st in row[1] for st in skintones):
