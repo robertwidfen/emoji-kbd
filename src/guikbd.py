@@ -360,6 +360,8 @@ class KeyboardWidget(QWidget):
     def handle_keyboard_press(self, source: QObject, event: QKeyEvent):
         key = event.key()
         key_text = event.text()
+        is_shift = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
+        is_control = event.modifiers() == Qt.KeyboardModifier.ControlModifier
 
         if (
             source in (self, self.emoji_input_field)
@@ -378,17 +380,16 @@ class KeyboardWidget(QWidget):
         elif key == Qt.Key.Key_Tab:
             if source in (self.emoji_input_field, self.search_field):
                 self.setFocus()
-            elif self.board.is_search:
-                self.search_field.setFocus()
             else:
                 self.emoji_input_field.setFocus()
             self.update()
 
-        elif (
-            key == Qt.Key.Key_F
-            and event.modifiers() == Qt.KeyboardModifier.ControlModifier
-        ):
+        elif is_control and key == Qt.Key.Key_F:
             self.search_field.setFocus()
+            self.update()
+
+        elif is_control and key == Qt.Key.Key_I:
+            self.emoji_input_field.setFocus()
             self.update()
 
         elif key in (
@@ -401,16 +402,14 @@ class KeyboardWidget(QWidget):
         ):
             return self.handle_cursor_navigation(source, event, key)
 
-        elif key == Qt.Key.Key_Escape or (
-            key == Qt.Key.Key_Backspace and source == self
-        ):
+        elif key == Qt.Key.Key_Escape:
             self.board.pop_board()
             self.show_status(self.board.current_key)
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
             self.update()
 
-        elif key == Qt.Key.Key_Delete and source == self:
+        elif key == Qt.Key.Key_Delete and source == self and is_shift:
             if self.board.recent_delete():
                 self.show_status("Deleted from recent.")
                 self.update()
@@ -425,13 +424,12 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
                 self.update()
             elif source is self:
-                isShift = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
-                if isShift and self.board.is_recent:
+                if is_shift and self.board.is_recent:
                     self.board.recent_toggle_favorite()
                     self.update()
                 else:
                     self.handle_key(self.board.current_key)
-                    if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                    if is_shift:
                         self.handle_close()
 
         elif key == Qt.Key.Key_PageUp:
