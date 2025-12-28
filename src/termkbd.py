@@ -15,6 +15,27 @@ class DoneException(Exception):
     pass
 
 
+missing_key_names = {
+    # by sequence
+    # which kitty_protocol enabled these are note mapped to names
+    "\x1b[1;129A": "KEY_UP",
+    "\x1b[1;129B": "KEY_DOWN",
+    "\x1b[1;129C": "KEY_RIGHT",
+    "\x1b[1;129D": "KEY_LEFT",
+    "\x1b[5;129~'": "KEY_PGUP",
+    "\x1b[6;129~'": "KEY_PGDOWN",
+    # ghostty
+    "\x1b[3;129~": "KEY_DELETE",
+    # by code
+    262: "KEY_HOME",
+    333: "KEY_DELETE",
+    360: "KEY_END",
+    339: "KEY_PGUP",
+    338: "KEY_PGDOWN",
+    " ": "KEY_SPACE",
+}
+
+
 class TerminalKeyboard:
 
     def __init__(self, config: Config, daemon: bool = False):
@@ -94,9 +115,10 @@ class TerminalKeyboard:
 
     def run(self):
         result = ""
-        sys.stdout.write(f"\033]2;Emoji Kbd\007")
+        print("\033]2;Emoji Kbd\007", end="", flush=True)  # Set terminal title
+
         # Context manager clears the screen on entry/exit
-        with self.term.cbreak(), self.term.fullscreen():
+        with self.term.cbreak(), self.term.fullscreen(), self.term.enable_kitty_keyboard():
             while True:
                 try:
                     self.paint_and_handle_key_press()
@@ -193,20 +215,28 @@ class TerminalKeyboard:
         print(end="", flush=True)
 
         log.info("Waiting for a keypress ......................")
-        key: Keystroke | None = None
+        key: Keystroke | str | None = None
         while not key:
             key = term.inkey(timeout=0.1, esc_delay=0.05)
-        log.info(f"Key pressed: {key!r}")
+        log.info(f"Key pressed: '{key.name}' '{key.code}' {key!r}")
 
-        if key.name == "KEY_RESIZE":
+        is_printable = key.isprintable()
+        key = missing_key_names.get(
+            key, missing_key_names.get(key.code, key.name or key)
+        )
+        if key == None:
+            return
+        log.info(f"Handling key: '{key}' {is_printable}...")
+
+        if key == "KEY_RESIZE":
             log.info(f"Terminal resized to {term.width}x{term.height}")
             return
 
-        if key.name == "KEY_CTRL_C":
+        if key == "KEY_CTRL_C":
             raise KeyboardInterrupt
 
-        is_enter = key.name in ("KEY_ENTER", "KEY_RETURN")
-        isCursor = key.name in (
+        is_enter = key in ("KEY_ENTER", "KEY_SHIFT_ENTER")
+        is_cursor = key in (
             "KEY_UP",
             "KEY_DOWN",
             "KEY_LEFT",
@@ -217,31 +247,40 @@ class TerminalKeyboard:
 
         if is_emoji_input and is_enter:
             raise DoneException()
-        elif key.name == "KEY_TAB":  # Tab key
+        elif key == "KEY_TAB":
             if is_board:
                 self.cursor_y = 0
+                self.cursor_x = 0
+                if board.is_search:
+                    board.pop_board()
             else:
                 self.cursor_y = 2 + row
             return
-        elif key.name == "KEY_CTRL_F":
+        elif key == "KEY_CTRL_I":
+            self.cursor_y = 0
+            self.cursor_x = 0
+            if board.is_search:
+                board.pop_board()
+            return
+        elif key == "KEY_CTRL_F":
             self.cursor_y = 0
             self.cursor_x = term.width
             self.search_input_selection = True
             board.search(self.search_input)
             return
 
-        if is_search_input and not isCursor and self.search_input_selection:
+        if is_search_input and not is_cursor and self.search_input_selection:
             self.search_input = ""
             self.search_input_cursor = 0
         self.search_input_selection = False
 
-        if key.name == "KEY_ESCAPE":
+        if key == "KEY_ESCAPE":
             board.pop_board()
             if is_search_input:
                 self.cursor_x = 0
             return
-        elif key.name == "KEY_BACKSPACE":
-            if is_emoji_input:
+        elif key == "KEY_BACKSPACE":
+            if is_emoji_input or is_board:
                 c = self.emoji_input_cursor
                 s = self.emoji_input
                 s = s[: c - 1] + s[c:]
@@ -256,11 +295,9 @@ class TerminalKeyboard:
                     self.search_input = s
                     self.search_input_cursor -= 1
                 board.search(self.search_input)
-            elif is_board:
-                board.pop_board()
             return
-        elif key.name == "KEY_DELETE":
-            if is_emoji_input:
+        elif key == "KEY_DELETE":
+            if is_emoji_input or is_board:
                 s = self.emoji_input
                 c = self.emoji_input_cursor
                 s = s[:c] + s[c + 1 :]
@@ -271,28 +308,28 @@ class TerminalKeyboard:
                 s = s[:c] + s[c + 1 :]
                 self.search_input = s
                 board.search(self.search_input)
-            elif is_board and board.is_recent:
-                board.recent_delete()
             return
-        elif key.name == "KEY_PGUP":
+        elif key == "KEY_PGUP":
             board.scroll(-1)
-        elif key.name == "KEY_PGDOWN":
+            return
+        elif key == "KEY_PGDOWN":
             board.scroll(1)
-        elif key.name == "KEY_HOME":
+            return
+        elif key == "KEY_HOME":
             if is_emoji_input:
                 self.emoji_input_cursor = 0
             elif is_search_input:
                 self.search_input_cursor = 0
             elif is_board:
                 board.move_cursor(-100, 0)
-        elif key.name == "KEY_END":
+        elif key == "KEY_END":
             if is_emoji_input:
                 self.emoji_input_cursor = len(self.emoji_input)
             elif is_search_input:
                 self.search_input_cursor = len(self.search_input)
             elif is_board:
                 board.move_cursor(100, 0)
-        elif key.name == "KEY_LEFT":
+        elif key == "KEY_LEFT":
             if is_emoji_input and self.emoji_input_cursor > 0:
                 self.emoji_input_cursor -= 1
             elif is_search_input:
@@ -303,7 +340,7 @@ class TerminalKeyboard:
                     board.pop_board()
             elif is_board:
                 board.move_cursor(-1, 0)
-        elif key.name == "KEY_RIGHT":
+        elif key == "KEY_RIGHT":
             if is_emoji_input:
                 if self.emoji_input_cursor < len(self.emoji_input):
                     self.emoji_input_cursor += 1
@@ -318,12 +355,12 @@ class TerminalKeyboard:
                     board.move_cursor(1, 0)
             elif is_board:
                 board.move_cursor(1, 0)
-        elif key.name == "KEY_DOWN":
+        elif key == "KEY_DOWN":
             if is_emoji_input or is_search_input:
                 self.cursor_y = 2
             elif is_board:
                 board.move_cursor(0, 1)
-        elif key.name == "KEY_UP":
+        elif key == "KEY_UP":
             if is_board:
                 if cursor_y == 2:
                     self.cursor_x = 0
@@ -332,7 +369,7 @@ class TerminalKeyboard:
                         board.pop_board()
                 else:
                     board.move_cursor(0, -1)
-        elif is_search_input and key.isprintable():
+        elif is_search_input and is_printable:
             s = self.search_input
             c = self.search_input_cursor
             s = s[:c] + key + s[c:]
@@ -342,32 +379,34 @@ class TerminalKeyboard:
             self.make_term_board(board._emojis)
             return
         elif is_board and board.is_recent:
-            if key == "\x1b[27;2;13~":  # Shift+Enter
+            if key == "KEY_SHIFT_ENTER":
                 board.recent_toggle_favorite()
                 return
-            elif key == "\x1b[1;2D":  # Shift+Left
+            elif key == "KEY_SHIFT_LEFT":
                 board.move_recent_emoji(-1)
                 return
-            elif key == "\x1b[1;2C":  # Shift+Right
+            elif key == "KEY_SHIFT_RIGHT":
                 board.move_recent_emoji(1)
                 return
-        elif key == " ":
+            elif key == "KEY_SHIFT_DELETE":
+                board.recent_delete()
+                return
+        elif key == "KEY_SPACE":
             self.prefix_key = True
             return
 
-        if key.isprintable():
+        if is_printable:
             if not board.get_emoji_for_key(key):
                 return
             board.set_cursor_to_key(key)
 
         e = board.get_emoji()
-        self.show_status(e)
         if not e:
             return
 
-        if is_board and isCursor:
+        if is_board and is_cursor:
             return
-        if isCursor or len(key) > 1:
+        if is_cursor or (not is_printable and not is_enter):
             return
 
         # enter a sub board
@@ -383,13 +422,14 @@ class TerminalKeyboard:
         self.prefix_key = False
 
         # it must be an Emoji so insert it
-        self.show_status(e)
         self.emoji_input.insert(self.emoji_input_cursor, e.char)
         self.emoji_input_cursor += 1
         board.recent_add()
 
         if is_search_input:
             self.cursor_x = 0
+            if board.is_search:
+                board.pop_board()
 
     def show_status(self, emoji: Emoji | None):
         term = self.term
