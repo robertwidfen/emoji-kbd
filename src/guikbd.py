@@ -245,9 +245,7 @@ class KeyboardWidget(QWidget):
             msgs.append("Page {}/{}".format(*page_of_pages))
         if isinstance(obj, str):
             msgs.append(obj)
-        if isinstance(obj, str) and self.board.has_key(obj):
-            obj = self.board.get_emoji_for_key(obj)
-        if isinstance(obj, Emoji):
+        elif isinstance(obj, Emoji):
             if obj.emojis:
                 msgs.append(f"{len(obj.emojis)} emojis")
             msgs.append(f"{obj.char}")
@@ -563,7 +561,12 @@ class KeyboardWidget(QWidget):
             char = self.get_key_from_position(event.pos().x(), event.pos().y())
             if char and char != self.last_key:
                 self.last_key = char
-                self.show_status(char)
+                self.board.set_cursor_to_key(char)
+                e = self.board.get_emoji_for_key(char)
+                if e:
+                    self.show_status(e)
+                else:
+                    self.show_status(char)
                 self.update()
 
             # Change cursor based on position over status label

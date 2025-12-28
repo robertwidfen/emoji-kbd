@@ -395,12 +395,14 @@ class Board:
         return len(self._search_group.emojis)
 
     def has_key(self, key: str) -> str:
-        """Return the given key if mapped to an emoji.
-        Return uppercase key if that is mapped.
+        """Return the given key if it is on the board.
+        Return uppercase key if that exists.
         Return empty string if not found."""
-        if key in self._mapping:
+        if key == " " or key == "":
+            return ""
+        if key in self._layout:
             return key
-        if key.upper() in self._mapping:
+        if key.upper() in self._layout:
             return key.upper()
         log.warning(f"Key '{key}' not found on board.")
         return ""
@@ -426,7 +428,7 @@ class Board:
                     (self._cursor_x, self._cursor_y) = (x, y)
                     return (x, y)
         log.error(f"Key '{key}' not found on board.")
-        return self.move_cursor(-100, -100)
+        return (-1, -1)
 
     def get_key_at_pos(self, x: int, y: int) -> str:
         if 0 <= y < self._height:
