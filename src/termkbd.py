@@ -70,7 +70,7 @@ class TerminalKeyboard:
             term_row = []
             for key in row:
                 if key == " ":
-                    term_row.append(("   ", None))
+                    term_row.append((" ", None))
                 elif key == "\n":
                     pass
                 elif i < len(emojis):
