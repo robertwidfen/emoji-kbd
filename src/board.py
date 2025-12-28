@@ -3,11 +3,14 @@ from typing import Callable, Literal
 
 from config import Config
 from emojis import Emoji
+from tools import get_state_file
 
 
 class RecentGroup(Emoji):
-    def __init__(self):
+
+    def __init__(self, recent_file: str):
         super().__init__(group="Recent List", char="⟲")
+        self.recent_file = recent_file
         self.load()
         self.offset = 0
 
@@ -59,7 +62,7 @@ class RecentGroup(Emoji):
 
     def load(self):
         try:
-            with open(".local/recent.txt", "r", encoding="utf-8") as f:
+            with open(self.recent_file, "r", encoding="utf-8") as f:
                 recent_list = []
                 for l in f.readlines():
                     (order, char, unicode, name, group, subgroup, tags) = (
@@ -87,7 +90,7 @@ class RecentGroup(Emoji):
 
     def save(self):
         try:
-            with open(".local/recent.txt", "w", encoding="utf-8") as f:
+            with open(self.recent_file, "w", encoding="utf-8") as f:
                 for e in self.emojis:
                     f.write(
                         f"{e.order};{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n"
@@ -234,7 +237,7 @@ class Board:
 
         self._all_emojis: list[Emoji] = all_emojis
         self._main_emojis: list[BoardEmoji] = emoji_groups
-        self._recent = RecentGroup()
+        self._recent = RecentGroup(get_state_file("recent.txt"))
         self._main_emojis.insert(0, self._recent)
         self._search_group = SearchGroup()
         self._main_emojis.insert(1, self._search_group)
