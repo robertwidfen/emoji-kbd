@@ -57,7 +57,6 @@ class TerminalKeyboard:
         (self.all_emojis, self.emoji_groups) = get_emojis_groups(self.config)
         self.board: Board = make_board(self.config, self.all_emojis, self.emoji_groups)
 
-        self.status_row: int = 2 + self.board._height + 1
         self.term_board: list[list[tuple[str, Emoji | None]]] = []
         self.term = Terminal()
         self.make_term_board(self.board._emojis)
@@ -433,7 +432,9 @@ class TerminalKeyboard:
 
     def show_status(self, emoji: Emoji | None):
         term = self.term
-        if self.status_row >= term.height:
+        status_row: int = 2 + self.board._height + 1
+
+        if status_row >= term.height:
             return
 
         msgs: list[str] = []
@@ -464,8 +465,8 @@ class TerminalKeyboard:
             wrapped = textwrap.wrap(line, width=term.width - 1)
             wrapped_msgs.extend(wrapped)
         wrapped_msgs.extend([""] * 4)  # clear old lines
-        for i in range(min(len(wrapped_msgs), term.height - self.status_row)):
-            with term.location(0, self.status_row + i):
+        for i in range(min(len(wrapped_msgs), term.height - status_row)):
+            with term.location(0, status_row + i):
                 print(wrapped_msgs[i] + term.clear_eol, end="")
 
 
