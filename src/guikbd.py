@@ -462,7 +462,7 @@ class KeyboardWidget(QWidget):
             s = emoji_input_field.text()
             if emoji_input_field.cursorPosition() == len(s.encode("utf-16-le")) // 2:
                 search_field.setFocus()
-            return True
+                return True
         elif isSearch and isLeft and search_field_pos == 0:
             emoji_input_field.setFocus()
             return True
