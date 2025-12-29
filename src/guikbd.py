@@ -275,7 +275,7 @@ class KeyboardWidget(QWidget):
                 "Use ',' to search group and/or subgroup, e.g. 'animal,', ',mammal' or 'ani,mam'."
             )
         elif new == self:
-            if self.board.path_len == 1:
+            if self.board.path_len == 0:
                 self.show_status(
                     "Cursor movement to select emoji/group, Enter inserts emoji or opens group. "
                     "PageUp/PageDown to scroll board, Esc/Backspace to go back to previous board."
