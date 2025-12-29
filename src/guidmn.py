@@ -156,7 +156,7 @@ def start_daemon(config):
     log.info("Starting Emoji Keyboard Daemon...")
 
     log.info("Creating QApplication")
-    app = setup_app()
+    app = setup_app(config)
     # Keep app running when window is closed
     app.setQuitOnLastWindowClosed(False)
 

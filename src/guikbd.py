@@ -18,18 +18,20 @@ from PyQt6.QtGui import (
     QKeyEvent,
     QMouseEvent,
     QPainter,
+    QFontDatabase,
     QFont,
     QColor,
     QWheelEvent,
     QIcon,
 )
-from PyQt6.QtCore import Qt, QRect, QRectF, QObject, QEvent
+from PyQt6.QtCore import Qt, QRectF, QObject, QEvent
 
 
-from config import load_config
+from config import Config, load_config
 from emojis import special_name_map, get_emojis_groups, Emoji
 from board import make_board
-from tools import get_state_file
+from tools import get_cache_file, get_state_file, download_if_missing
+from PyQt6.QtWidgets import QMessageBox
 
 
 focus_color = QColor("#3399FF")  # default focus color
@@ -75,17 +77,8 @@ class KeyboardWidget(QWidget):
         # Set up fonts
         self.key_font = QFont("Arial")
         self.emoji_font = QFont("Noto Color Emoji")
-        self.emoji_font.setFamilies(
-            ["Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji"]
-        )
         self.emoji_font2 = QFont("Noto Color Emoji")
-        self.emoji_font2.setFamilies(
-            ["Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji"]
-        )
         self.mark_font = QFont("Noto Color Emoji")
-        self.mark_font.setFamilies(
-            ["Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji"]
-        )
 
         # Set up the main layout and elements
         main_vbox = QVBoxLayout()
@@ -588,11 +581,12 @@ class KeyboardWidget(QWidget):
         return super().mouseMoveEvent(event)
 
 
-def setup_app() -> QApplication:
+def setup_app(config: Config) -> QApplication:
     app = QApplication(sys.argv)
     app.setApplicationName("Emoji Kbd")
     app.setDesktopFileName("emoji-kbd")
     app.setWindowIcon(QIcon("res/emoji-kbd.svg"))
+
     stylesheet = qdarkstyle.load_stylesheet_pyqt6()
     app.setStyleSheet(stylesheet)
     try:
@@ -608,7 +602,25 @@ def setup_app() -> QApplication:
         else:
             log.info("No focus border found")
     except Exception as e:
-        log.error(f"Error finding focus border color: {e}")
+        log.error(f"Failed to find focus border color: {e}")
+
+    noto_font = get_cache_file("NotoColorEmoji-Regular.ttf")
+
+    download_if_missing(config.sources.noto_color_emoji, noto_font)
+    # Check if Noto Color Emoji font is installed
+    font_families = QFontDatabase.families()
+    if "Noto Color Emoji" not in font_families:
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setWindowTitle("Font Not Installed")
+        msg.setText("Noto Color Emoji font is not installed on your system.")
+        msg.setInformativeText(
+            f"The font has been downloaded to:\n{noto_font}\n\n"
+            "Please install this font to display (flag, ...) emojis correctly."
+        )
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
     return app
 
 
@@ -622,7 +634,7 @@ if __name__ == "__main__":
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     log.info(f"Starting Qt6 Emoji Keyboard on {sys.platform}...")
-    app = setup_app()
+    app = setup_app(config)
     app.setQuitOnLastWindowClosed(True)
     window = KeyboardWidget(config)
 
