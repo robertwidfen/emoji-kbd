@@ -40,6 +40,10 @@ focus_color = QColor("#3399FF")  # default focus color
 emoji_font_family = "Segoe UI Emoji"  # Default fallback
 
 
+def winlin(win, lin):
+    return win if sys.platform == "win32" else lin
+
+
 class KeyboardWidget(QWidget):
 
     def __init__(self, config) -> None:
@@ -66,9 +70,7 @@ class KeyboardWidget(QWidget):
         # collect some metrics from the style
         style = QApplication.style()
         if style:
-            self.padding = style.pixelMetric(
-                QStyle.PixelMetric.PM_LayoutHorizontalSpacing
-            )
+            self.padding = style.pixelMetric(QStyle.PixelMetric.PM_LayoutHorizontalSpacing)
         else:
             self.padding = 5
 
@@ -137,18 +139,16 @@ class KeyboardWidget(QWidget):
         x = start_x
         padding = sf.pos().x() - eif.pos().x() - eif.width() + 1
         y = 2 * eif.pos().y() + tb.geometry().height()
-        key_width = (
-            sf.pos().x() + sf.width() - padding + 2
-        ) / self.board.width - padding
-        key_height = (
-            self.height() - y - sl.height() - padding
-        ) / self.board.height - padding
-        size = int(min(key_width, key_height))
+        key_width = (sf.pos().x() + sf.width() - padding + 2) / self.board.width - padding
+        key_height = (self.height() - y - sl.height() - padding) / self.board.height - padding
+        size = int(min(key_width, key_height)) - winlin(3, 0)
         emoji_size = int(size * self.config.gui.emoji_font_size)
         if emoji_size != self.emoji_font.pointSize():
             self.emoji_font.setPointSize(emoji_size)
-            self.emoji_font2.setPointSize(int(size * self.config.gui.emoji_font_size2))
-            self.mark_font.setPointSize(int(size * self.config.gui.mark_font_size))
+            self.emoji_font2.setPointSize(
+                int(size * self.config.gui.emoji_font_size2) - winlin(2, 0)
+            )
+            self.mark_font.setPointSize(int(size * self.config.gui.mark_font_size) - winlin(2, 0))
             self.key_font.setPointSize(int(size * self.config.gui.key_font_size))
 
         self.start_x = start_x
@@ -160,9 +160,7 @@ class KeyboardWidget(QWidget):
             for key in row:
                 if key != " ":
                     # Draw key outline
-                    rect = QRectF(
-                        int(x) + 0.5, int(y) + 0.5, int(key_width), int(key_height)
-                    )
+                    rect = QRectF(int(x) + 0.5, int(y) + 0.5, int(key_width), int(key_height))
                     pen = painter.pen()
                     pen.setWidth(1)
                     if self.board.current_key == key:
@@ -189,7 +187,7 @@ class KeyboardWidget(QWidget):
                         elif self.board.current_key == key:
                             painter.setFont(self.emoji_font2)
                             rect = QRectF(
-                                x - 10 + 1,
+                                x - 10 + winlin(0.5, 1),
                                 y - 10 + 1,
                                 key_width + 20,
                                 key_height + 20,
@@ -197,7 +195,7 @@ class KeyboardWidget(QWidget):
                         else:
                             painter.setFont(self.emoji_font)
                             rect = QRectF(
-                                x - 10 + 1,
+                                x - 10 + winlin(0, 1),
                                 y - 10 + 1.5,
                                 key_width + 20,
                                 key_height + 20,
@@ -208,7 +206,7 @@ class KeyboardWidget(QWidget):
                         if e.mark:
                             if not e.mark.isalnum():  # special mark
                                 painter.setFont(self.mark_font)
-                                rect = QRectF(x, y + 4, key_width - 2, key_height)
+                                rect = QRectF(x, y + winlin(2, 4), key_width - 2, key_height)
                             else:
                                 painter.setFont(self.key_font)
                                 rect = QRectF(x, y + 2, key_width - 2, key_height)
@@ -291,11 +289,7 @@ class KeyboardWidget(QWidget):
         self.update()
 
     def eventFilter(self, source: QObject, event: QEvent):  # type: ignore
-        if (
-            event
-            and event.type() == QEvent.Type.KeyPress
-            and isinstance(event, QKeyEvent)
-        ):
+        if event and event.type() == QEvent.Type.KeyPress and isinstance(event, QKeyEvent):
             if self.handle_keyboard_press(source, event):
                 return True
 
@@ -597,9 +591,7 @@ def setup_app(config: Config) -> QApplication:
     stylesheet = qdarkstyle.load_stylesheet_pyqt6()
     app.setStyleSheet(stylesheet)
     try:
-        matches = re.findall(
-            r"QLineEdit[^}]*:focus[^}]*border[^;]*#[0-9A-Fa-f]{6}", stylesheet
-        )
+        matches = re.findall(r"QLineEdit[^}]*:focus[^}]*border[^;]*#[0-9A-Fa-f]{6}", stylesheet)
         if matches:
             m = "\n".join(set(matches))
             c = m.split("border: ")[1].split(" ")[2].strip()
