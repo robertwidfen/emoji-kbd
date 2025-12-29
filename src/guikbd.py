@@ -286,7 +286,7 @@ class KeyboardWidget(QWidget):
                     "Shift+Enter to toggle favorite (star) status."
                 )
             else:
-                self.show_status(self.board.current_key)
+                self.show_status(self.board.get_emoji())
 
         self.update()
 
@@ -318,7 +318,7 @@ class KeyboardWidget(QWidget):
             self.insert_emoji(e)
         elif e.emojis:
             self.board.push_board(e.emojis)
-        self.show_status(key)
+        self.show_status(self.board.get_emoji())
         self.update()
 
     def handle_close(self):
@@ -500,7 +500,7 @@ class KeyboardWidget(QWidget):
                 self.board.move_cursor(-1, 0)
             elif isRight:
                 self.board.move_cursor(1, 0)
-            self.show_status(self.board.current_key)
+            self.show_status(self.board.get_emoji())
             self.update()
             return True
         return False
@@ -548,8 +548,7 @@ class KeyboardWidget(QWidget):
                     self.handle_key(char)
             elif button == Qt.MouseButton.RightButton:
                 self.board.pop_board()
-                char = self.get_key_from_position(x, y)
-                self.show_status(char)
+                self.show_status(self.board.get_emoji())
                 self.update()
 
         return super().mousePressEvent(event)
