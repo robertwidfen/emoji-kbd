@@ -1,14 +1,36 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-; #ErrorStdOut
+#ErrorStdOut
 #Warn All, MsgBox
 
 Persistent
 SetWorkingDir A_ScriptDir . "\.."
 
+if EnvGet("EMOJI_KBD_DEV") {
+    state_dir := A_ScriptDir . ".local\"
+    log_file := "*"
+}
+else {
+    state_dir := EnvGet("USERPROFILE") . "\.local\state\emoji-kbd\"
+    log_file := state_dir . "emoji-kbd.log"
+}
+
+Log_Info(msg) {
+    FileAppend(FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss") . " " . msg . "`n", log_file)
+}
+
+Log_Info("Starting emoji-kbd.ahk")
+
 SendEmojiKbdShowCommand() {
     try {
-        p := Trim(FileRead(".local\emoji-kbd-daemon.port"))
+        port_file := state_dir . "emoji-kbd-daemon.port"
+        if !FileExist(port_file) {
+            MsgBox("Port file '" . port_file . "' not found.", "Error", "Icon!")
+            return false
+        }
+        Log_Info("Port file: " . port_file)
+        port := Trim(FileRead(port_file))
+        Log_Info("Port: " . port)
         wsaData := Buffer(400, 0)  ; Proper WSAData buffer size
         if (DllCall("Ws2_32\WSAStartup", "UShort", 0x202, "Ptr", wsaData) != 0) {
             return false
@@ -20,7 +42,7 @@ SendEmojiKbdShowCommand() {
         }
         a := Buffer(16, 0)
         NumPut("UShort", 2, a)
-        NumPut("UShort", DllCall("Ws2_32\htons", "UShort", Integer(p), "UShort"), a, 2)
+        NumPut("UShort", DllCall("Ws2_32\htons", "UShort", Integer(port), "UShort"), a, 2)
         NumPut("UInt", DllCall("Ws2_32\inet_addr", "AStr", "127.0.0.1", "UInt"), a, 4)
         if (DllCall("Ws2_32\connect", "Ptr", s, "Ptr", a, "Int", 16, "Int") != 0) {
             DllCall("Ws2_32\closesocket", "Ptr", s)
@@ -39,16 +61,17 @@ SendEmojiKbdShowCommand() {
             return true
         }
         else {
-            msgBox("Emoji Kbd window not showing.")
+            Log_Info("Emoji Kbd window not showing.")
             return false
         }
-    } catch {
+    } catch as err {
+        Log_Info("Error: SendEmojiKbdShowCommand " . A_LastError . "`n" . err.Message . "`n" . err.Stack)
         return false
     }
 }
 
 ; Setup tray menu
-TraySetIcon("emoji-kbd.ico")
+TraySetIcon("res/emoji-kbd.ico")
 A_IconTip := "Emoji Kbd"
 A_TrayMenu.Delete()
 A_TrayMenu.Add("&Show", ActShow)
@@ -81,29 +104,28 @@ ActShow(*) {
     if not SendEmojiKbdShowCommand() {
         Run('.\venv\Scripts\python.exe src/guidmn.py SHOW', , "Hide")
         if not WinWait("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits", , 11) {
-            MsgBox("Cannot start Emoji Kbd Daemon")
+            MsgBox("Cannot start Emoji Kbd Daemon. Check '" . log_file . "'.", "Error", "Icon!")
             return
         }
     }
 
     if WinExist("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits") {
         WinWaitClose("Emoji Kbd ahk_class Qt6101QWindowToolSaveBits")
-    }
-
-    if (A_Clipboard != "") {
-        if (activeWindow and WinExist("ahk_id " . activeWindow)) {
-            WinActivate("ahk_id " . activeWindow)
-            WinWaitActive("ahk_id " . activeWindow, , 2)
-        }
-        else {
-            MouseGetPos(, , &windowUnderMouse)
-            if windowUnderMouse
-                WinActivate("ahk_id " . windowUnderMouse)
-        }
-        if WinExist("A") {
-            ; Send Shift-Insert to paste clipboard contents
-            Send("+{Insert}")
-            ; Change binding above to use different paste key sequence
+        if (A_Clipboard != "") {
+            if (activeWindow and WinExist("ahk_id " . activeWindow)) {
+                WinActivate("ahk_id " . activeWindow)
+                WinWaitActive("ahk_id " . activeWindow, , 2)
+            }
+            else {
+                MouseGetPos(, , &windowUnderMouse)
+                if windowUnderMouse
+                    WinActivate("ahk_id " . windowUnderMouse)
+            }
+            if WinExist("A") {
+                ; Send Shift-Insert to paste clipboard contents
+                Send("+{Insert}")
+                ; Change binding above to use different paste key sequence
+            }
         }
     }
 }
