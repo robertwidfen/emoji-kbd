@@ -314,10 +314,13 @@ class KeyboardWidget(QWidget):
         self.board.set_cursor_to_key(key)
         if self.board.is_settings:
             self.board.push_key(key)
-        if not self.prefix_key and e.unicode:
+        elif self.prefix_key or not e.unicode:
+            if self.prefix_key and self.board.is_recent:
+                self.board.recent_toggle_favorite()
+            elif (self.prefix_key or not e.unicode) and e.emojis:
+                self.board.push_board(e.emojis)
+        else:
             self.insert_emoji(e)
-        elif e.emojis:
-            self.board.push_board(e.emojis)
         self.show_status(self.board.get_emoji())
         self.update()
 
