@@ -346,7 +346,6 @@ class Board:
         self._board_path.append((self._offset, self._current_key, self._emojis))
         self._emojis = emojis
         self._offset = 0
-        self.move_cursor(-100, -100)
         self._mapping = self._make_mapping()
 
     def pop_board(self):
