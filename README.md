@@ -1,4 +1,4 @@
-# Emoji Kbd
+# Emoji Kbd <img src="res/emoji-kbd.svg" alt="Emoji Keyboard" width="32" style="vertical-align: bottom; padding-bottom: 4px"/>
 
 It is all about efficiency - the fewer keys you need to type the better.
 Emoji Kbd is made for efficiency.
