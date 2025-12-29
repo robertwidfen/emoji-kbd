@@ -166,8 +166,9 @@ class KeyboardWidget(QWidget):
                     pen = painter.pen()
                     pen.setWidth(1)
                     if self.board.current_key == key:
+                        pen.setWidth(2)
                         if self.hasFocus():
-                            pen.setColor(focus_color)
+                            pen.setColor(self.palette().link().color())
                         else:
                             pen.setColor(self.palette().highlight().color())
                     else:
