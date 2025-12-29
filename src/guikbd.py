@@ -1,4 +1,5 @@
 import logging as log
+import os
 import sys
 import time
 import re
@@ -35,6 +36,8 @@ from PyQt6.QtWidgets import QMessageBox
 
 
 focus_color = QColor("#3399FF")  # default focus color
+
+emoji_font_family = "Segoe UI Emoji"  # Default fallback
 
 
 class KeyboardWidget(QWidget):
@@ -76,9 +79,9 @@ class KeyboardWidget(QWidget):
 
         # Set up fonts
         self.key_font = QFont("Arial")
-        self.emoji_font = QFont("Noto Color Emoji")
-        self.emoji_font2 = QFont("Noto Color Emoji")
-        self.mark_font = QFont("Noto Color Emoji")
+        self.emoji_font = QFont(emoji_font_family)
+        self.emoji_font2 = QFont(emoji_font_family)
+        self.mark_font = QFont(emoji_font_family)
 
         # Set up the main layout and elements
         main_vbox = QVBoxLayout()
@@ -88,7 +91,7 @@ class KeyboardWidget(QWidget):
 
         font_size = QApplication.font().pointSize()
         w = QLineEdit(self)
-        w.setFont(QFont("Noto Color Emoji", font_size + 4))
+        w.setFont(QFont(emoji_font_family, font_size + 4))
         w.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         w.installEventFilter(self)
         self.emoji_input_field = w
@@ -604,22 +607,49 @@ def setup_app(config: Config) -> QApplication:
     except Exception as e:
         log.error(f"Failed to find focus border color: {e}")
 
-    noto_font = get_cache_file("NotoColorEmoji-Regular.ttf")
-
-    download_if_missing(config.sources.noto_color_emoji, noto_font)
     # Check if Noto Color Emoji font is installed
+    if sys.platform == "win32":
+        noto_url = config.sources.noto_color_emoji_win32
+    else:
+        noto_url = config.sources.noto_color_emoji
+    noto_filename = noto_url.split("/")[-1]
+    noto_font = get_cache_file(noto_filename)
     font_families = QFontDatabase.families()
-    if "Noto Color Emoji" not in font_families:
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Icon.Warning)
-        msg.setWindowTitle("Font Not Installed")
-        msg.setText("Noto Color Emoji font is not installed on your system.")
-        msg.setInformativeText(
-            f"The font has been downloaded to:\n{noto_font}\n\n"
-            "Please install this font to display (flag, ...) emojis correctly."
-        )
-        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        msg.exec()
+    global emoji_font_family
+
+    if "Noto Color Emoji" in font_families:
+        log.info("Noto Color Emoji font is installed. Using it.")
+        emoji_font_family = "Noto Color Emoji"
+    else:
+        log.info("Noto Color Emoji font is not installed.")
+        if os.path.exists(noto_font):
+            log.info("Noto Color Emoji font found in cache.")
+        else:
+            log.info("Downloading Noto Color Emoji font ...")
+            download_if_missing(noto_url, noto_font)
+            log.info("Done.")
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Font Not Installed")
+            msg.setText("Noto Color Emoji font is not installed on your system.")
+            msg.setInformativeText(
+                f"The font has been downloaded to:\n{noto_font}\n\n"
+                "It will be used by Emoji Kbd.\n"
+                "You may install this font to display (flag, ...) emojis also in other apps."
+            )
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
+        id = QFontDatabase.addApplicationFont(noto_font)
+        if id == -1:
+            log.error(f"Failed to load Noto Color Emoji font from {noto_font}")
+        else:
+            families = QFontDatabase.applicationFontFamilies(id)
+            if families:
+                emoji_font_family = families[0]
+                log.info(f"Loaded Noto Color Emoji font from {noto_font}: {families}")
+            else:
+                log.warning(f"No families found for font {noto_font}")
 
     return app
 

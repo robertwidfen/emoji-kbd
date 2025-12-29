@@ -61,7 +61,8 @@ A DF H KLÖ
 """
 
 [sources]
-noto_color_emoji = "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
+noto_color_emoji = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"
+noto_color_emoji_win32 = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
 openmoji = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
 unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 

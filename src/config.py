@@ -40,8 +40,10 @@ class LayoutConfig:
 @dataclass
 class SourcesConfig:
     noto_color_emoji: str = (
-        "https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/"
-        "NotoColorEmoji-Regular.ttf"
+        "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"
+    )
+    noto_color_emoji_win32: str = (
+        "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
     )
     openmoji: str = (
         "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/"
@@ -87,6 +89,7 @@ CTIEO BNRSG
 """,
     ),
 ]
+
 
 @dataclass
 class Config:
