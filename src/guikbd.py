@@ -282,7 +282,7 @@ class KeyboardWidget(QWidget):
                 )
             elif self.board.is_recent:
                 self.show_status(
-                    "Use Shift-Left/Right to reorder recent emojis. Delete to remove. "
+                    "Shift-Left/Right to reorder recent emojis. Shift+Delete to remove. "
                     "Shift+Enter to toggle favorite (star) status."
                 )
             else:
