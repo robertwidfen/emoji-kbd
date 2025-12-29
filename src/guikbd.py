@@ -512,8 +512,9 @@ class KeyboardWidget(QWidget):
         col = int((x - start_x) // (key_width + key_padding))
         row = int((y - start_y) // (key_height + key_padding))
         if row >= 0 and col >= 0 and row < self.board.height and col < self.board.width:
-            xp = start_x + col * (key_width + key_padding) + key_width - 2 * key_padding
-            yp = start_y + row * (key_height + key_padding) + 2 * key_padding
+            mark_size = self.mark_font.pointSize()
+            xp = start_x + col * (key_width + key_padding) + key_width - mark_size - 2
+            yp = start_y + row * (key_height + key_padding) + mark_size + 4
             # print(f"Mouse at row {row}, col {col} {x},{y} vs {xp},{yp}")
             if x >= xp and y <= yp:
                 self.prefix_key = True
