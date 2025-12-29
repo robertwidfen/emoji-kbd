@@ -30,7 +30,7 @@ and have fun using it. 😉
 
 Top left is the emoji input field and on the right the search field.
 
-In the middle is a (key)board like overview of emoji groups or emojis. 
+In the middle is a (key)board like overview of emoji groups or emojis.
 Each one has a <kbd>key</kbd> associated with it that opens the group or inserts the emoji.
 
 At the bottom is a status field showing information about the selected emoji.
@@ -96,7 +96,8 @@ With a pattern it will show matching items in the order of their score and selec
 
 Install:
 - Python 3.12+
-- [Noto Color Emoji](https://github.com/google/fonts/raw/refs/heads/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf) font
+
+For displaying emojis the [Noto Color Emoji](https://github.com/googlefonts/noto-emoji/tree/main/fonts) font is used - otherwise flags and some other newer emojis will not display correctly.
 
 # Building
 
@@ -119,13 +120,14 @@ Install:
 - `wl-copy`
 - `wtype`
 - `kitty`
+- `noto-fonts-emoji`
 
 In Arch by:
 ```shell
-sudo pacman -S openbsd-netcat wl-clipboard wtype kitty
+sudo pacman -S openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
 ```
 
-Add to `~/.config/hypr/bindings.conf` for the hotkey
+Add hotkey to `~/.config/hypr/bindings.conf`
 ```toml
 unbind = SUPER, period
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
@@ -133,7 +135,7 @@ bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-hl-open
 ```
 
-Add to `~/.config/hypr/hyprland.conf` for fast opening and floating window
+Add for fast opening and floating window to `~/.config/hypr/hyprland.conf`
 ```toml
 windowrulev2 = tag -floating-window, title:^Emoji Kbd$
 windowrulev2 = tag -terminal, title:^Emoji Kbd$
@@ -155,6 +157,12 @@ for a launcher entry and adjust the paths in the copied file.
 Install:
 - [Autohotkey v2](https://autohotkey.com/)
 
+If you have Noto Color Emoji font already installed, make sure it is the
+[Windows compatible](https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf) one - otherwise flags render very slowly.
+
+First startup on windows might be slow due to downloading for emoji databases and Noto font and you get a warning that the daemon could not be started.
+Just wait a bit longer or check the logs.
+
 Run:
 ```
 emoji-kbd.ahk
@@ -164,11 +172,13 @@ If you prefer another hotkey edit the script.
 
 ## Terminal
 
-In the terminal you may also use the terminal-only version:
+Only kitty fully supports displaying all emojis (flags, ..) and without misalignment!
+
+Start terminal version:
 ```shell
 python src/termkbd.py
 ```
-or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprctl:
+or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprland:
 ```shell.
 ./scripts/emoji-kbd-kitty-hl-open
 ```
@@ -187,16 +197,15 @@ Edit `~/.config/emoji-kbd/emoji-kbd.toml`
 
 For everything change the code 😉 or wait until it is added.
 
-# Other files
+# Other Files
 
 - `~/.local/state/emoji-kbd/recent.txt` the recent list.
 - `~/.local/state/emoji-kbd/*.log` the log files.
-- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases"
+- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases" and Noto font - delete these and start Emoji Kbd again to update to new versions
 
 # Development
 
 When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the source tree.
-
 
 # Alternatives
 
@@ -218,4 +227,4 @@ I like Walker, but not the emoji picker.
 - https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 - https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com
 - https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/
-- https://github.com/alacritty/alacritty/issues/3975 
+- https://github.com/alacritty/alacritty/issues/3975
