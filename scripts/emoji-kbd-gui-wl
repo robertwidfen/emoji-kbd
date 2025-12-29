@@ -1,5 +1,11 @@
 #!/bin/bash
 cd "$(dirname "$0")/.."
-printf "GET\n" | { nc localhost $(cat .local/emoji-kbd-daemon.port) || python src/guidmn.py GET; } > /dev/null
-wtype -M Shift -k Insert -m Shift
 
+if [ -n "$EMOJI_KBD_DEV" ]; then
+    PORT_FILE=".local/emoji-kbd-daemon.port"
+else
+    PORT_FILE="$HOME/.local/state/emoji-kbd/emoji-kbd-daemon.port"
+fi
+
+printf "GET\n" | { nc localhost $(cat "$PORT_FILE") || python src/guidmn.py GET; } > /dev/null
+wtype -M Shift -k Insert -m Shift
