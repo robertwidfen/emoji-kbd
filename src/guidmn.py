@@ -16,7 +16,6 @@ from tools import get_state_file
 
 
 SOCKET_HOST = "127.0.0.1"
-PORT_FILE = ".local/emoji-kbd-daemon.port"
 
 
 class SocketServer(QObject):
@@ -70,7 +69,9 @@ class SocketServer(QObject):
 
                 self.port = server_socket.getsockname()[1]
                 log.info(f"Socket server listening on {SOCKET_HOST}:{self.port}")
-                with open(".local/emoji-kbd-daemon.port", "w") as f:
+                port_file = get_state_file("emoji-kbd-daemon.port")
+                log.info(f"Writing port to '{port_file}'.")
+                with open(port_file, "w") as f:
                     f.write(str(self.port))
 
                 while self.running:
@@ -195,7 +196,7 @@ def start_daemon(config):
 
 def send_command(command: str, start_daemon_enabled=True) -> str | None:
     try:
-        with open(PORT_FILE, "r") as f:
+        with open(get_state_file("emoji-kbd-daemon.port"), "r") as f:
             port = int(f.read().strip())
         command = command.strip().upper()
         log.info(f"Sending command '{command}' to port {port}...")
