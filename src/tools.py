@@ -76,7 +76,7 @@ def get_conf_file(filename: str) -> str:
         shutil.copy(default_config, config_dir / filename)
         log.info(f"Copied default config from {default_config}")
     path = str(config_dir / filename)
-    log.info(f"Config dir: {path}")
+    log.info(f"Config file: {path}")
     return path
 
 
@@ -88,7 +88,7 @@ def get_state_file(filename: str) -> str:
     )
     state_dir.mkdir(parents=True, exist_ok=True)
     path = str(state_dir / filename)
-    log.info(f"State dir: {path}")
+    log.info(f"State file: {path}")
     return path
 
 
@@ -98,7 +98,7 @@ def get_cache_file(filename: str) -> str:
     cache_dir = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "emoji-kbd"
     cache_dir.mkdir(parents=True, exist_ok=True)
     path = str(cache_dir / filename)
-    log.info(f"Cache dir: {path}")
+    log.info(f"Cache file: {path}")
     return path
 
 
