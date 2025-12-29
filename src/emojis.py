@@ -193,7 +193,7 @@ group_patterns = (
     (0, "", "^(extras-unicode|component|)$", "", ""),
     # normalized groups
     (0x040, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬"),
-    (0x030, "😐️", "smileys-emotion", "face-neutral-skeptical", "😔😪😴🫩🫪🥸🧐"),
+    (0x030, "😐️", "smileys-emotion", "face-neutral-skeptical", "🤔🫡😔😪😴🫩🫪🥸🧐"),
     (0x020, "☹️", "smileys-emotion", "negative|concerned|unwell", ""),
     (0x060, "❤️", "smileys-emotion", "emotion|heart", ""),
     (0x010, "😀", "smileys-emotion", "", ""),
