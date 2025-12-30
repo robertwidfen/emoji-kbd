@@ -195,8 +195,8 @@ class KeyboardWidget(QWidget):
                         else:
                             painter.setFont(self.emoji_font)
                             rect = QRectF(
-                                x - 10 + winlin(0, 1),
-                                y - 10 + 1.5,
+                                x - 10 + winlin(0, 0),
+                                y - 10 + winlin(0, 3),
                                 key_width + 20,
                                 key_height + 20,
                             )
