@@ -19,7 +19,9 @@ The gui with Corne Bone layout
 <img alt="Gui Corne Bone layout" src="res/screenshots/gui-corne-bone.png" width="500" />
 
 In the terminal - use kitty for best results - other terminals do not handle all graphemes,
-e.g ghostty work mostly, alacritty not so well - you will see miss alignment of columns.
+e.g ghostty works mostly, alacritty not so well - you will see miss alignment of columns,
+monochrome emojis, etc.
+
 You may also need to play with font config to get Noto Color Emoji available in your terminal.
 
 <img alt="Terminal DE layout" src="res/screenshots/term-de.png" width="500" />
@@ -47,7 +49,7 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>Cursor</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>  | navigate around                  |
 | <kbd>Ctrl-I</kbd>                                   | focus input                      |
 | <kbd>Ctrl-F</kbd>                                   | focus search                     |
-| <kbd>PageUp</kbd>/<kbd>PageDown</kbd>               | scroll pages                     |
+| <kbd>PageUp</kbd>/<kbd>PageDown</kbd>               | scroll page up/down              |
 | <kbd>Esc</kbd>                                      | back to previous board           |
 | <kbd>Space</kbd>                                    | prefix key                       |
 | **Input**                                                                              |
@@ -65,10 +67,9 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>Enter</kbd>                                    | insert emoji                     |
 | <kbd>Up</kbd> in first row                          | focus input                      |
 | **Recent Board** additional keys                                                       |
-| key on board                                        | select and insert emoji          |
-| <kbd>Shift</kbd>+<kbd>Left</kbd>/<kbd>Right</kbd>   | move selected left/right         |
-| <kbd>Shift</kbd>+<kbd>Enter</kbd>                   | toggles favorite state           |
-| <kbd>Shift</kbd>+<kbd>Delete</kbd>                  | delete selected                  |
+| <kbd>Shift-Left</kbd>/<kbd>Right</kbd>              | move selected left/right         |
+| <kbd>Shift-Enter</kbd>                              | toggles favorite state           |
+| <kbd>Shift-Delete</kbd>                             | delete selected                  |
 | **Mouse** 🖱️                                                                           |
 | <kbd>LeftClick</kbd>                                | insert emoji                     |
 | <kbd>LeftClick</kbd> in upper right corner          | open variants                    |
@@ -128,7 +129,7 @@ sudo pacman -S openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
 ```
 
 Add hotkey to `~/.config/hypr/bindings.conf`
-```toml
+```shell
 unbind = SUPER, period
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
 bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
@@ -136,10 +137,10 @@ bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 ```
 
 Add for fast opening and floating window to `~/.config/hypr/hyprland.conf`
-```toml
+```shell
 windowrulev2 = tag -floating-window, title:^Emoji Kbd$
 windowrulev2 = tag -terminal, title:^Emoji Kbd$
-wwindowrulev2 = noanim, title:^Emoji Kbd$
+windowrulev2 = noanim, title:^Emoji Kbd$
 windowrulev2 = float, title:^Emoji Kbd$
 windowrulev2 = center, title:^Emoji Kbd$
 windowrulev2 = unset size, title:^Emoji Kbd$
@@ -160,12 +161,12 @@ Install:
 If you have Noto Color Emoji font already installed, make sure it is the
 [Windows compatible](https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf) one - otherwise flags render very slowly.
 
-First startup on windows might be slow due to downloading for emoji databases and Noto font and you get a warning that the daemon could not be started.
+First startup on windows might be slow due to downloading emoji databases and Noto font and you may get a warning that the daemon could not be started.
 Just wait a bit longer or check the logs.
 
 Run:
-```
-emoji-kbd.ahk
+```cmd
+scripts\emoji-kbd.ahk
 ```
 It will overwrite <kbd>Win-.</kbd>, i.e. the Windows emoji picker.
 If you prefer another hotkey edit the script.
@@ -195,7 +196,7 @@ or start the gui via daemon for faster opening - use "GET" to wait for result or
 
 Edit `~/.config/emoji-kbd/emoji-kbd.toml`
 
-For everything change the code 😉 or wait until it is added.
+For everything else - change the code 😉 or wait until it is added.
 
 # Other Files
 
@@ -213,12 +214,13 @@ I started to use emojis with Windows 10 but disliked the new picker from Windows
 
 Looking for alternatives I found https://github.com/gilleswaeber/emoji-keyboard from Gilles Weber and added the recent emojis board and was very happy with it for years.
 
-But when switching back to Linux for the desktop I could not find a proper alternative and thus made my own one - Emoji Kbd - inspired by Gilles.
+But when switching back to Linux for the desktop I could not find a proper alternative and thus made my own one - Emoji Kbd - inspired by emoji-keyboard.
 
 I like Walker, but not the emoji picker.
 
 # Todos
 
+- Update screenshots
 - Add more board layouts
 
 # Random link list
