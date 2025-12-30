@@ -12,21 +12,17 @@ Three key presses are enough to get an emoji from the recent list:
 
 The gui with DE layout
 
-<img alt="Gui DE layout" src="res/screenshots/gui-de.png" width="550" />
+https://github.com/user-attachments/assets/93a74a6d-8692-4574-b4c1-11c6136bea9f
 
-The gui with Corne Bone layout
-
-<img alt="Gui Corne Bone layout" src="res/screenshots/gui-corne-bone.png" width="500" />
-
-In the terminal - use kitty for best results - other terminals do not handle all graphemes,
+Terminal - use kitty for best results - other terminals do not handle all graphemes,
 e.g ghostty works mostly, alacritty not so well - you will see miss alignment of columns,
 monochrome emojis, etc.
 
 You may also need to play with font config to get Noto Color Emoji available in your terminal.
 
-<img alt="Terminal DE layout" src="res/screenshots/term-de.png" width="500" />
+https://github.com/user-attachments/assets/48af346a-b527-45f0-903d-0144b973e36c
 
-and have fun using it. 😉
+Have fun using it. 😉
 
 # UI
 
