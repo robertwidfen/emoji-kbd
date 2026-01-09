@@ -4,6 +4,7 @@ It is all about efficiency - the fewer keys you need to type the better.
 Emoji Kbd is made for efficiency.
 
 Three key presses are enough to get an emoji from the recent list:
+
 1. Press hotkey <kbd>Win-.</kbd> to open Emoji Kbd
 2. Press <kbd>key</kbd> of associated emoji
 3. Press <kbd>Enter</kbd> to close and insert
@@ -92,6 +93,7 @@ With a pattern it will show matching items in the order of their score and selec
 # Requirements
 
 Install:
+
 - Python 3.12+
 
 For displaying emojis the [Noto Color Emoji](https://github.com/googlefonts/noto-emoji/tree/main/fonts) font is used - otherwise flags and some other newer emojis will not display correctly.
@@ -113,6 +115,7 @@ Integration into your system works with one of the scripts in `scripts/*`.
 ## Linux Hyprland
 
 Install:
+
 - `nc` (netcat)
 - `wl-copy`
 - `wtype`
@@ -120,11 +123,13 @@ Install:
 - `noto-fonts-emoji`
 
 In Arch by:
+
 ```shell
 sudo pacman -S openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
 ```
 
 Add hotkey to `~/.config/hypr/bindings.conf`
+
 ```shell
 unbind = SUPER, period
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
@@ -133,6 +138,7 @@ bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 ```
 
 Add for fast opening and floating window to `~/.config/hypr/hyprland.conf`
+
 ```shell
 windowrulev2 = tag -floating-window, title:^Emoji Kbd$
 windowrulev2 = tag -terminal, title:^Emoji Kbd$
@@ -146,12 +152,19 @@ windowrulev2 = unset size, title:^Emoji Kbd$
 #windowrulev2 = maxsize 800 400, title:^Emoji Kbd$
 ```
 
+With hyprland 0.53 you will need to rewrite the winrules toggles
+
+```shell
+windowrule = match:title ^(Emoji Kbd)$, animation 0, float 1, center 1, max_size 800 600
+```
+
 Optionally copy `res/emoji-kbd.desktop` to `~/.local/share/applications/`
 for a launcher entry and adjust the paths in the copied file.
 
 ## Windows
 
 Install:
+
 - [Autohotkey v2](https://autohotkey.com/)
 
 If you have Noto Color Emoji font already installed, make sure it is the
@@ -161,9 +174,11 @@ First startup on windows might be slow due to downloading emoji databases and No
 Just wait a bit longer or check the logs.
 
 Run:
+
 ```cmd
 scripts\emoji-kbd.ahk
 ```
+
 It will overwrite <kbd>Win-.</kbd>, i.e. the Windows emoji picker.
 If you prefer another hotkey edit the script.
 
@@ -172,18 +187,25 @@ If you prefer another hotkey edit the script.
 Only kitty fully supports displaying all emojis (flags, ..) and without misalignment!
 
 Start terminal version:
+
 ```shell
 python src/termkbd.py
 ```
+
 or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprland:
+
 ```shell.
 ./scripts/emoji-kbd-kitty-hl-open
 ```
+
 or start the gui:
+
 ```shell
 python src/guikbd.py
 ```
+
 or start the gui via daemon for faster opening - use "GET" to wait for result or "SHOW" to just show gui:
+
 ```shell
 ./scripts/emoji-kbd-gui-wl
 ```
@@ -208,7 +230,7 @@ When the environment variable `EMOJI_KBD_DEV` is set to a value the config file 
 
 I started to use emojis with Windows 10 but disliked the new picker from Windows 11 as it had a much smaller recent list.
 
-Looking for alternatives I found https://github.com/gilleswaeber/emoji-keyboard from Gilles Weber and added the recent emojis board and was very happy with it for years.
+Looking for alternatives I found <https://github.com/gilleswaeber/emoji-keyboard> from Gilles Weber and added the recent emojis board and was very happy with it for years.
 
 But when switching back to Linux for the desktop I could not find a proper alternative and thus made my own one - Emoji Kbd - inspired by emoji-keyboard.
 
@@ -221,8 +243,8 @@ I like Walker, but not the emoji picker.
 
 # Random link list
 
-- https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv
-- https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
-- https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com
-- https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/
-- https://github.com/alacritty/alacritty/issues/3975
+- <https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv>
+- <https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt>
+- <https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com>
+- <https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/>
+- <https://github.com/alacritty/alacritty/issues/3975>
