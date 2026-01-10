@@ -327,7 +327,7 @@ class KeyboardWidget(QWidget):
         self.quit()
 
     def quit(self):
-        log.info("Quitting emoji keyboard...")
+        log.info("Quitting Emoji Kbd...")
         self.close()
         QApplication.quit()
 
@@ -659,7 +659,7 @@ if __name__ == "__main__":
         level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    log.info(f"Starting Qt6 Emoji Keyboard on {sys.platform}...")
+    log.info(f"Starting Qt6 Emoji Kbd on {sys.platform}...")
     app = setup_app(config)
     app.setQuitOnLastWindowClosed(True)
     window = KeyboardWidget(config)

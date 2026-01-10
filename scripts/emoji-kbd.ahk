@@ -134,6 +134,6 @@ ActShow(*) {
     }
 }
 
-; Win-Dot: Show emoji keyboard and insert clipboard contents
+; Win-Dot: Show Emoji Kbd and insert clipboard contents
 #.:: ActShow()
 ; Change binding above to use different hotkey

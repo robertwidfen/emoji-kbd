@@ -131,7 +131,7 @@ class DaemonKeyboardWidget(KeyboardWidget):
         self.server = server
 
     def quit(self):
-        log.info("Hiding emoji keyboard...")
+        log.info("Hiding Emoji Kbd...")
         self.close()
 
     def closeEvent(self, event):  # type: ignore
@@ -151,7 +151,7 @@ class DaemonKeyboardWidget(KeyboardWidget):
 
 
 def start_daemon(config):
-    log.info("Starting Emoji Keyboard Daemon...")
+    log.info("Starting Emoji Kbd Daemon...")
 
     log.info("Creating QApplication")
     app = setup_app(config)
@@ -207,7 +207,7 @@ def send_command(command: str, start_daemon_enabled=True) -> str | None:
     except (ConnectionRefusedError, FileNotFoundError, ValueError) as e:
         log.error(f"Exception: {e}")
         if start_daemon_enabled:
-            log.error("Emoji keyboard daemon not running - trying to start it.")
+            log.error("Emoji Kbd daemon not running - trying to start it.")
             return start_daemon_process(command)
         return None
     except Exception as e:

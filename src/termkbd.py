@@ -483,7 +483,7 @@ if __name__ == "__main__":
         level=config.logging.log_level,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    log.info(f"Starting terminal Emoji Keyboard on {sys.platform}...")
+    log.info(f"Starting terminal Emoji Kbd on {sys.platform}...")
     try:
         daemon = False
         if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
