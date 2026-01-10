@@ -3,7 +3,7 @@ import logging as log
 import os
 import shutil
 import subprocess
-import urllib.request
+import requests
 from pathlib import Path
 
 
@@ -40,7 +40,19 @@ def add_emoji_to_unicode_data(file_path: str):
 def download(url, local_filename):
     try:
         log.info(f"Downloading '{url}'...")
-        urllib.request.urlretrieve(url, local_filename)
+        file_dir = Path(local_filename).parent
+        file_dir.mkdir(parents=True, exist_ok=True)
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        with open(local_filename, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+
         log.info(f"Saved download successfully to '{local_filename}'.")
     except Exception as e:
         log.error(f"Error downloading the file: {e}")
