@@ -2,7 +2,6 @@ import csv
 import logging as log
 import os
 import re
-import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
@@ -89,6 +88,7 @@ def make_emoji_from_row(row: list[str]) -> Emoji:
         name=row[4],
         tags=row[5],
     )
+
 
 # FIXME move to config
 unicode_exclude_ranges = (
@@ -387,6 +387,7 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
 
     return groups
 
+
 def fix_locale_names(lc_map, emojis: list[Emoji]):
     for e in emojis:
         e.group = lc_map["groups"].get(e.group, e.group)
@@ -395,6 +396,7 @@ def fix_locale_names(lc_map, emojis: list[Emoji]):
         e.name = lc_map.get(e.unicode, e.name)
         if e.emojis:
             fix_locale_names(lc_map, e.emojis)
+
 
 def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     locales = {"en"}
@@ -483,11 +485,6 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]] 
     emoji_cache_file = get_cache_file("emojis-cache.txt")
     if not (os.path.exists(emoji_cache_file) and os.path.exists(group_cache_file)):
         return None
-
-    # add emojibase data also to cache file_set
-    emojibase_data = get_cache_file("emojibase")
-    for path in os.listdir(emojibase_data):
-        get_cache_file(f"emojibase/{path}")
 
     groups: list[Emoji] = []
     group_map: dict[str, Emoji] = {}

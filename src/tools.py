@@ -94,7 +94,7 @@ def get_conf_file(filename: str) -> str:
 
 def get_state_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = str(Path(".local") / filename)
+        path = str(Path(".local") / "state" / filename)
     else:
         state_home = os.getenv("XDG_STATE_HOME", Path.home() / ".local" / "state")
         state_dir = Path(state_home) / "emoji-kbd"
@@ -103,17 +103,15 @@ def get_state_file(filename: str) -> str:
     log.info(f"State file: {path}")
     return path
 
-cache_file_set = set()
 
 def get_cache_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = str(Path(".local") / filename)
+        path = str(Path(".local") / "cache" / filename)
     else:
         cache_home = os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")
         cache_dir = Path(cache_home) / "emoji-kbd"
         cache_dir.mkdir(parents=True, exist_ok=True)
         path = str(cache_dir / filename)
-    cache_file_set.add(path)
     log.info(f"Cache file: {path}")
     return path
 

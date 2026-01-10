@@ -5,7 +5,7 @@ from typing import Literal
 
 from config import Config
 from emojis import Emoji
-from tools import cache_file_set, get_state_file
+from tools import get_cache_file, get_state_file
 
 
 class RecentGroup(Emoji):
@@ -233,14 +233,13 @@ class SettingsGroup(Emoji):
                         e.mark = ""
         elif emoji.group == "reset cache":
             log.info("Resetting cache and exiting.")
-            for cache_file in cache_file_set:
-                try:
-                    if Path(cache_file).is_file():
-                        Path(cache_file).unlink()
-                        log.info(f"Deleted cache file: {cache_file}")
-                except FileNotFoundError:
-                    pass
+            cache_dir = Path(get_cache_file("dir")).parent
+            for cache_file in cache_dir.rglob("*"):
+                if cache_file.is_file():
+                    cache_file.unlink()
+                    log.info(f"Deleted cache file: {cache_file}")
             exit(0)
+
 
 type BoardEmoji = Emoji | RecentGroup | SearchGroup | SettingsGroup
 type OffsetBoardEmoji = tuple[int, str, list[BoardEmoji]]
