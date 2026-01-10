@@ -135,6 +135,7 @@ def read_openmoji_csv(file_path: str) -> list[Emoji]:
                 continue
             e = make_emoji_from_row(row)
             emojis.append(e)
+    log.info(f"openmoji: {len(emojis)} emojis loaded.")
     return emojis
 
 
@@ -178,7 +179,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
                     e = Emoji(char, unicode, group, subgroup or category, name)
                     emojis.append(e)
                     break
-    log.info(f"UnicodeData: {len(emojis)} emojis loaded.")
+    log.info(f"UnicodeData: {len(emojis)} unicode symbols loaded.")
     return emojis
 
 
@@ -290,13 +291,18 @@ def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     unicode_emojis = read_unicode_data(unicode_data)
 
     open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
+    duplicates = 0
     for e in unicode_emojis:
         if e.unicode not in open_emojis_set:
             emojis.append(e)
-
+        else:
+            duplicates += 1
+    log.info(f"UnicodeData: {duplicates} duplicate symbols skipped.")
     groups = get_grouped_emojis(emojis)
 
-    log.info(f"{len(emojis)} emojis in {len(groups)} groups loaded.")
+    log.info(
+        f"{len(emojis)} emojis and {len(unicode_emojis)-duplicates} symbols in {len(groups)} groups loaded."
+    )
     return (emojis, groups)
 
 
