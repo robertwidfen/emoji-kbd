@@ -1,4 +1,6 @@
-# Emoji Kbd <img src="res/emoji-kbd.svg" alt="Emoji Keyboard" width="32" style="vertical-align: bottom; padding-bottom: 4px"/>
+# Emoji Kbd <img src="res/emoji-kbd.svg" alt="Emoji Kbd" width="32" style="vertical-align: bottom; padding-bottom: 4px"/>
+
+Packed with 7158 emojis and 5256 symbols in 35 groups.
 
 It is all about efficiency - the fewer keys you need to type the better.
 Emoji Kbd is made for efficiency.
@@ -96,7 +98,14 @@ Install:
 
 - Python 3.12+
 
+Other requirements will be downloaded automatically.
+
 For displaying emojis the [Noto Color Emoji](https://github.com/googlefonts/noto-emoji/tree/main/fonts) font is used - otherwise flags and some other newer emojis will not display correctly.
+
+The emoji groups are built from:
+[Openmoji](https://github.com/hfg-gmuend/openmoji)
+and
+[UnicodeData](https://www.unicode.org/Public/UCD/latest/ucd/).
 
 # Building
 
@@ -152,7 +161,7 @@ windowrulev2 = unset size, title:^Emoji Kbd$
 #windowrulev2 = maxsize 800 400, title:^Emoji Kbd$
 ```
 
-With hyprland 0.53 you will need to rewrite the winrules toggles
+With hyprland 0.53 you will need to rewrite the winrules:
 
 ```shell
 windowrule = match:title ^(Emoji Kbd)$, animation 0, float 1, center 1, max_size 800 600
@@ -220,7 +229,7 @@ For everything else - change the code 😉 or wait until it is added.
 
 - `~/.local/state/emoji-kbd/recent.txt` the recent list.
 - `~/.local/state/emoji-kbd/*.log` the log files.
-- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases" and Noto font - delete these and start Emoji Kbd again to update to new versions
+- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases" and Noto font - delete these and start Emoji Kbd again to update to new versions.
 
 # Development
 
@@ -238,8 +247,8 @@ I like Walker, but not the emoji picker.
 
 # Todos
 
-- Update screenshots
 - Add more board layouts
+- ...
 
 # Random link list
 
