@@ -280,12 +280,6 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
     return groups
 
 
-openmoji_src = (
-    "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
-)
-unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
-
-
 def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     openmoji = get_cache_file("openmoji.csv")
     download_if_missing(config.sources.openmoji, openmoji)
