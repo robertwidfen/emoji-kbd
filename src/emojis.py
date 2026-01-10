@@ -1,10 +1,10 @@
-import logging as log
 import csv
+import logging as log
 import re
 from dataclasses import dataclass
 
 from config import Config, load_config
-from tools import get_cache_file, download_if_missing
+from tools import download_if_missing, get_cache_file
 
 # Map of special unicode codes to short names for display on keys
 special_name_map = {
@@ -26,7 +26,6 @@ special_name_map = {
 
 
 class Emoji:
-
     def __init__(
         self,
         char: str,
@@ -117,7 +116,7 @@ def exclude_unicode(unicode: int) -> bool:
 # emoji,hexcode,group,subgroups,annotation,tags,openmoji_tags
 def read_openmoji_csv(file_path: str) -> list[Emoji]:
     emojis: list[Emoji] = []
-    with open(file_path, mode="r", encoding="utf-8") as csvfile:
+    with open(file_path, encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip header
         for row in reader:
@@ -155,7 +154,7 @@ unicode_grouping = (
 # hexcode;name;category;...
 def read_unicode_data(file_path: str) -> list[Emoji]:
     emojis: list[Emoji] = []
-    with open(file_path, mode="r", encoding="utf-8") as csvfile:
+    with open(file_path, encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile, delimiter=";")
         for row in reader:
             if len(row) < 3:
@@ -281,7 +280,9 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
     return groups
 
 
-openmoji_src = "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+openmoji_src = (
+    "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
+)
 unicodedata_src = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
 

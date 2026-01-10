@@ -1,7 +1,7 @@
-from typing import Literal, get_origin, get_args
-from dataclasses import dataclass, field, fields
-from pathlib import Path
 import tomllib
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Literal, get_args, get_origin
 
 from tools import get_conf_file
 
@@ -42,12 +42,9 @@ class SourcesConfig:
     noto_color_emoji: str = (
         "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"
     )
-    noto_color_emoji_win32: str = (
-        "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
-    )
+    noto_color_emoji_win32: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
     openmoji: str = (
-        "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/"
-        "data/openmoji.csv"
+        "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
     )
     unicode_data: str = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
 
@@ -176,7 +173,7 @@ if __name__ == "__main__":
                     value = getattr(value, part)
 
             print(value)
-        except (AttributeError, IndexError, KeyError) as e:
+        except (AttributeError, IndexError, KeyError):
             print(f"Error: Invalid query path '{query}'", file=sys.stderr)
             sys.exit(1)
         except FileNotFoundError as e:

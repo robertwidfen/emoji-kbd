@@ -1,19 +1,18 @@
 import logging as log
 import os
-import sys
-import subprocess
 import socket
+import subprocess
+import sys
 import threading
 import time
 
+from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QCursor, QGuiApplication
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QGuiApplication, QCursor
-from PyQt6.QtCore import QTimer, pyqtSignal, QObject, Qt
 
 from config import load_config
 from guikbd import KeyboardWidget, setup_app
 from tools import get_state_file
-
 
 SOCKET_HOST = "127.0.0.1"
 
@@ -59,7 +58,7 @@ class SocketServer(QObject):
         thread.start()
 
     def run_server(self):
-        log.info(f"Starting socket server...")
+        log.info("Starting socket server...")
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -112,12 +111,12 @@ class SocketServer(QObject):
                                 conn.sendall(response)
                             elif data == "QUIT":
                                 conn.sendall(b"OK\n")
-                                log.info(f"Quit command received, shutting down.")
+                                log.info("Quit command received, shutting down.")
                                 QTimer.singleShot(100, QApplication.instance().quit)  # type: ignore
                                 break
                             else:
                                 log.error(f"Unknown command '{data}'")
-                    except socket.timeout:
+                    except TimeoutError:
                         continue
                     except Exception as e:
                         log.error(f"Socket error: {e}")
@@ -126,7 +125,6 @@ class SocketServer(QObject):
 
 
 class DaemonKeyboardWidget(KeyboardWidget):
-
     def __init__(self, server, config):
         super().__init__(config)
         self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
@@ -196,13 +194,13 @@ def start_daemon(config):
 
 def send_command(command: str, start_daemon_enabled=True) -> str | None:
     try:
-        with open(get_state_file("emoji-kbd-daemon.port"), "r") as f:
+        with open(get_state_file("emoji-kbd-daemon.port")) as f:
             port = int(f.read().strip())
         command = command.strip().upper()
         log.info(f"Sending command '{command}' to port {port}...")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((SOCKET_HOST, port))
-            s.sendall(f"{command}\n".encode("utf-8"))
+            s.sendall(f"{command}\n".encode())
             response = s.recv(1024).decode("utf-8").strip()
             log.info(f"Received response: '{response}'")
             return response
@@ -234,7 +232,7 @@ def start_daemon_process(command: str):
         time.sleep(0.1)
         result = send_command(command, False)
         if result != None:
-            log.info(f"Daemon started.")
+            log.info("Daemon started.")
             return result
     raise RuntimeError("Failed to start daemon")
 

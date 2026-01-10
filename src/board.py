@@ -1,5 +1,6 @@
 import logging as log
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 from config import Config
 from emojis import Emoji
@@ -7,7 +8,6 @@ from tools import get_state_file
 
 
 class RecentGroup(Emoji):
-
     def __init__(self, recent_file: str):
         super().__init__(group="Recent List", char="⟲")
         self.recent_file = recent_file
@@ -62,12 +62,10 @@ class RecentGroup(Emoji):
 
     def load(self):
         try:
-            with open(self.recent_file, "r", encoding="utf-8") as f:
+            with open(self.recent_file, encoding="utf-8") as f:
                 recent_list = []
                 for l in f.readlines():
-                    (order, char, unicode, name, group, subgroup, tags) = (
-                        l.strip().split(";", 6)
-                    )
+                    (order, char, unicode, name, group, subgroup, tags) = l.strip().split(";", 6)
                     order = int(order)
                     e = Emoji(*(char, unicode, group, subgroup, name, tags))
                     if order >= 100:
@@ -156,9 +154,7 @@ class SearchGroup(Emoji):
                 if group:
                     matches = self.filter_emojis(matches, group, lambda e: e.group)
                 if subgroup:
-                    matches = self.filter_emojis(
-                        matches, subgroup, lambda e: e.subgroup
-                    )
+                    matches = self.filter_emojis(matches, subgroup, lambda e: e.subgroup)
             elif n.startswith("+"):
                 n = n[1:].upper()
                 if n:
@@ -227,10 +223,7 @@ type OffsetBoardEmoji = tuple[int, str, list[BoardEmoji]]
 
 
 class Board:
-
-    def __init__(
-        self, config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]
-    ):
+    def __init__(self, config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]):
         self._cursor_x: int = 0
         self._cursor_y: int = 0
         self._current_key: str = ""
@@ -433,15 +426,11 @@ class Board:
         if 0 <= y < self._height:
             row = self._rows[y]
         else:
-            raise IndexError(
-                f"Position y:{y} out of board {self._width}x{self._height}"
-            )
+            raise IndexError(f"Position y:{y} out of board {self._width}x{self._height}")
         if 0 <= x < len(row):
             return row[x]
         else:
-            raise IndexError(
-                f"Position x:{x} out of board {self._width}x{self._height}"
-            )
+            raise IndexError(f"Position x:{x} out of board {self._width}x{self._height}")
 
     def move_cursor(
         self, dx: int, dy: int, cx: int | None = None, cy: int | None = None
@@ -519,9 +508,7 @@ class Board:
         if not e:
             return
         i = self._recent.emojis.index(e)
-        if (direction == -1 and i == 0) or (
-            direction == 1 and i + 1 == len(self._recent.emojis)
-        ):
+        if (direction == -1 and i == 0) or (direction == 1 and i + 1 == len(self._recent.emojis)):
             return
         r = self._recent.emojis
         r[i], r[i + direction] = r[i + direction], r[i]
@@ -530,8 +517,6 @@ class Board:
         self._mapping = self._make_mapping()
 
 
-def make_board(
-    config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]
-) -> Board:
+def make_board(config: Config, all_emojis: list[Emoji], emoji_groups: list[Emoji]) -> Board:
     board = Board(config, all_emojis, emoji_groups)
     return board

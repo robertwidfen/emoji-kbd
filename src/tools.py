@@ -1,15 +1,15 @@
+import csv
 import logging as log
 import os
-from pathlib import Path
+import shutil
 import subprocess
 import urllib.request
-import csv
-import shutil
+from pathlib import Path
 
 
 def add_emoji_to_unicode_data(file_path: str):
     with (
-        open(file_path, mode="r", encoding="utf-8") as csvfile,
+        open(file_path, encoding="utf-8") as csvfile,
         open(
             os.path.dirname(file_path) + f"/e{os.path.basename(file_path)}",
             mode="w",
@@ -66,9 +66,7 @@ def run_command(command: list[str], input: str | None = None):
 def get_conf_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
         return str(Path("res") / filename)
-    config_dir = (
-        Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "emoji-kbd"
-    )
+    config_dir = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "emoji-kbd"
     config_dir.mkdir(parents=True, exist_ok=True)
     default_config = Path(__file__).parent.parent / "res" / filename
     if not (config_dir / filename).exists() and default_config.exists():
@@ -82,9 +80,7 @@ def get_conf_file(filename: str) -> str:
 def get_state_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
         return str(Path(".local") / filename)
-    state_dir = (
-        Path(os.getenv("XDG_STATE_HOME", Path.home() / ".local/state")) / "emoji-kbd"
-    )
+    state_dir = Path(os.getenv("XDG_STATE_HOME", Path.home() / ".local/state")) / "emoji-kbd"
     state_dir.mkdir(parents=True, exist_ok=True)
     path = str(state_dir / filename)
     log.info(f"State file: {path}")

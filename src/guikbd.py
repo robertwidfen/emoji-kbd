@@ -1,39 +1,36 @@
 import logging as log
 import os
+import re
 import sys
 import time
-import re
 
 import qdarkstyle
-
-from PyQt6.QtWidgets import (
-    QApplication,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLineEdit,
-    QLabel,
-    QStyle,
-)
+from PyQt6.QtCore import QEvent, QObject, QRectF, Qt
 from PyQt6.QtGui import (
+    QColor,
+    QFont,
+    QFontDatabase,
+    QIcon,
     QKeyEvent,
     QMouseEvent,
     QPainter,
-    QFontDatabase,
-    QFont,
-    QColor,
     QWheelEvent,
-    QIcon,
 )
-from PyQt6.QtCore import Qt, QRectF, QObject, QEvent
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QStyle,
+    QVBoxLayout,
+    QWidget,
+)
 
-
-from config import Config, load_config
-from emojis import special_name_map, get_emojis_groups, Emoji
 from board import make_board
-from tools import get_cache_file, get_state_file, download_if_missing
-from PyQt6.QtWidgets import QMessageBox
-
+from config import Config, load_config
+from emojis import Emoji, get_emojis_groups, special_name_map
+from tools import download_if_missing, get_cache_file, get_state_file
 
 focus_color = QColor("#3399FF")  # default focus color
 
@@ -45,7 +42,6 @@ def winlin(win, lin):
 
 
 class KeyboardWidget(QWidget):
-
     def __init__(self, config) -> None:
         super().__init__()
         log.info("Creating main window...")
@@ -211,13 +207,17 @@ class KeyboardWidget(QWidget):
                                 painter.setFont(self.key_font)
                                 rect = QRectF(x, y + 2, key_width - 2, key_height)
                             painter.drawText(
-                                rect, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop, e.mark  # type: ignore
+                                rect,
+                                Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
+                                e.mark,  # type: ignore
                             )
 
                     # Draw key label
                     painter.setFont(self.key_font)
                     rect = QRectF(x + 2, y + 2, key_width, key_height)
-                    painter.drawText(rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, key)  # type: ignore
+                    painter.drawText(
+                        rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop, key
+                    )  # type: ignore
 
                 x += key_width + padding
 

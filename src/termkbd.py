@@ -1,13 +1,14 @@
 import logging as log
 import sys
+import textwrap
+
 from blessed import Terminal
 from blessed.keyboard import Keystroke
 from wcwidth import wcswidth
-import textwrap
 
-from config import load_config, Config
-from emojis import special_name_map, get_emojis_groups, Emoji
 from board import Board, make_board
+from config import Config, load_config
+from emojis import Emoji, get_emojis_groups, special_name_map
 from tools import get_state_file, run_command
 
 
@@ -37,7 +38,6 @@ missing_key_names = {
 
 
 class TerminalKeyboard:
-
     def __init__(self, config: Config, daemon: bool = False):
         self.config = config
         self.daemon = daemon
@@ -179,19 +179,15 @@ class TerminalKeyboard:
         if self.search_input_selection:
             search_str = term.reverse(search_str)
             input_width += len(search_str) - len(self.search_input)
-        search_str = f"{search_str:<{input_width+1}}"
+        search_str = f"{search_str:<{input_width + 1}}"
         inputs = f"> {term.on_bright_black(emoji_field)}   ⌕ {term.on_bright_black(search_str)}"
 
         # determine cursor position
         if is_emoji_input:
-            cursor_x = 2 + wcswidth(
-                "".join(self.emoji_input[: self.emoji_input_cursor])
-            )
+            cursor_x = 2 + wcswidth("".join(self.emoji_input[: self.emoji_input_cursor]))
         elif is_search_input:
             cursor_x = (
-                wcswidth(emoji_field)
-                + 7
-                + wcswidth(self.search_input[: self.search_input_cursor])
+                wcswidth(emoji_field) + 7 + wcswidth(self.search_input[: self.search_input_cursor])
             )
         elif is_board:
             cursor_y = 2 + self.board.cursor_y
@@ -228,9 +224,7 @@ class TerminalKeyboard:
         log.info(f"Key pressed: '{key.name}' '{key.code}' {key!r}")
 
         is_printable = key.isprintable()
-        key = missing_key_names.get(
-            key, missing_key_names.get(key.code, key.name or key)
-        )
+        key = missing_key_names.get(key, missing_key_names.get(key.code, key.name or key))
         if key == None:
             return
         log.info(f"Handling key: '{key}' {is_printable}...")
