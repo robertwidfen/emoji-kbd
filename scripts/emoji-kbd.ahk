@@ -15,6 +15,10 @@ else {
     log_file := state_dir . "emoji-kbd.log"
 }
 
+if !DirExist(state_dir) {
+    DirCreate(state_dir)
+}
+
 Log_Info(msg) {
     FileAppend(FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss") . " " . msg . "`n", log_file)
 }
