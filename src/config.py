@@ -168,7 +168,7 @@ def load_config(config_path: str = default_path) -> Config:
     try:
         return __load_config(config_path)
     except Exception as e:
-        log.error(f"Failed to load configuration: {e}")
+        log.error(f"Failed to load configuration from {config_path}: {e}")
         raise
 
 if __name__ == "__main__":
