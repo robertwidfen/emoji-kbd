@@ -534,6 +534,7 @@ def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
 
 def main():
     log.basicConfig(
+        force=True,
         level=log.INFO,
         format="%(asctime)s.%(msecs)03d %(message)s",
         datefmt="%M:%S",
