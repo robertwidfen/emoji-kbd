@@ -413,14 +413,17 @@ class TerminalKeyboard:
             return
 
         # enter a sub board
-        if e.emojis and (not e.unicode or self.prefix_key):
-            self.prefix_key = False
-            board.push_board(e.emojis)
-            self.make_term_board(board._emojis)
-            return
         if board.is_settings:
             board.push_key(board.current_key)
             self.make_term_board(board._emojis)
+            return
+        if self.prefix_key or not e.unicode:
+            if self.prefix_key and self.board.is_recent:
+                self.board.recent_toggle_favorite()
+            elif (self.prefix_key or not e.unicode) and e.emojis:
+                self.board.push_board(e.emojis)
+                self.make_term_board(board._emojis)
+            self.prefix_key = False
             return
         self.prefix_key = False
 
