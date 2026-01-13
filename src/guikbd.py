@@ -469,6 +469,8 @@ class KeyboardWidget(QWidget):
             return True
         elif isSearch and isRight and (search_field_at_end | isShift):
             self.board.move_cursor(1, 0)
+            if search_field_at_end:
+                self.search_field.deselect()
             self.update()
             return True
         elif isRecent and isLeft and isShift:
