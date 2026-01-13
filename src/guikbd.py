@@ -395,8 +395,8 @@ class KeyboardWidget(QWidget):
                 e = self.board.get_emoji()
                 if e:
                     self.insert_emoji(e)
-                self.emoji_input_field.setFocus()
-                self.update()
+                    self.emoji_input_field.setFocus()
+                    self.update()
             elif source is self:
                 if is_shift and self.board.is_recent:
                     self.board.recent_toggle_favorite()
