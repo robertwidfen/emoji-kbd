@@ -141,12 +141,14 @@ Add hotkey to `~/.config/hypr/bindings.conf`
 
 ```shell
 unbind = SUPER, period
-#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
-bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
+bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
+#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 #bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-hl-open
 ```
 
-Add for fast opening and floating window to `~/.config/hypr/hyprland.conf`
+Add for fast opening (noanim) and floating window to `~/.config/hypr/hyprland.conf`
+
+With hyprland <= 0.52:
 
 ```shell
 windowrulev2 = tag -floating-window, title:^Emoji Kbd$
@@ -155,16 +157,25 @@ windowrulev2 = noanim, title:^Emoji Kbd$
 windowrulev2 = float, title:^Emoji Kbd$
 windowrulev2 = center, title:^Emoji Kbd$
 windowrulev2 = unset size, title:^Emoji Kbd$
-# you may need to set/adjust the size also
+# you may also want to set/adjust the size
 #windowrulev2 = size 600 285, title:^Emoji Kbd$
 #windowrulev2 = minsize 500 200, title:^Emoji Kbd$
 #windowrulev2 = maxsize 800 400, title:^Emoji Kbd$
 ```
 
-With hyprland 0.53 you will need to rewrite the winrules:
+With hyprland >= 0.53:
 
 ```shell
-windowrule = match:title ^(Emoji Kbd)$, animation 0, float 1, center 1, max_size 800 600
+windowrule {
+    name = Emoji Kbd
+    match:title = ^(Emoji Kbd)$
+    tag = -floating-window
+    tag = -terminal
+    no_anim = on
+    float = on
+    center = on
+    max_size = 800 600
+}
 ```
 
 Optionally copy `res/emoji-kbd.desktop` to `~/.local/share/applications/`
