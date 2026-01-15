@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run guidmn.py quit",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/guidmn.py",
+            "args": [
+                "quit"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "EMOJI_KBD_DEV": "1"
+            }
+        }
+    ]
+}
