@@ -206,7 +206,7 @@ def send_command(command: str, start_daemon_enabled=True) -> str | None:
             return response
     except (ConnectionRefusedError, FileNotFoundError, ValueError) as e:
         log.error(f"Exception: {e}")
-        if start_daemon_enabled:
+        if command != "QUIT" and start_daemon_enabled:
             log.error("Emoji Kbd daemon not running - trying to start it.")
             return start_daemon_process(command)
         return None
