@@ -263,7 +263,7 @@ if __name__ == "__main__":
                 print("No result")
                 sys.exit(-1)
             else:
-                print(result, end="")
+                print(result)
     else:
         print(f"Usage: {sys.argv[0]} [--daemon] [SHOW|GET|QUIT]", file=sys.stderr)
         sys.exit(1)

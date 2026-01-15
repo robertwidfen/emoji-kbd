@@ -136,7 +136,7 @@ class TerminalKeyboard:
                     if not self.daemon:
                         break
                     self.hide_and_insert(result)
-        print(result, end="", flush=True)
+        print(result)
 
     def get_cursor_x(self) -> int:
         key = self.board._current_key
