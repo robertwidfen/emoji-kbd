@@ -652,7 +652,7 @@ def setup_app(config: Config) -> QApplication:
     return app
 
 
-if __name__ == "__main__":
+def main():
     config = load_config()
     log.basicConfig(
         force=True,
@@ -677,3 +677,7 @@ if __name__ == "__main__":
     # for t in (" ear, hear", " ear, hear ", "hear ", " hear ", " hear"):
     #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

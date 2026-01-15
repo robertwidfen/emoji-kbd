@@ -13,7 +13,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: End Users/Desktop",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Utilities",
@@ -38,6 +37,7 @@ Issues = "https://github.com/robertwidfen/emoji-kbd/issues"
 
 [project.scripts]
 emoji-kbd-gui = "guikbd:main"
+emoji-kbd-guidmn = "guidmn:main"
 emoji-kbd-term = "termkbd:main"
 
 [build-system]

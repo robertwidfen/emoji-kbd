@@ -237,7 +237,7 @@ def start_daemon_process(command: str):
     raise RuntimeError("Failed to start daemon")
 
 
-if __name__ == "__main__":
+def main():
     config = load_config()
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
@@ -267,3 +267,7 @@ if __name__ == "__main__":
     else:
         print(f"Usage: {sys.argv[0]} [--daemon] [SHOW|GET|QUIT]", file=sys.stderr)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

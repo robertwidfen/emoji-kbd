@@ -477,7 +477,7 @@ class TerminalKeyboard:
                 print(wrapped_msgs[i] + term.clear_eol, end="")
 
 
-if __name__ == "__main__":
+def main():
     config = load_config()
     log.basicConfig(
         force=True,
@@ -495,3 +495,7 @@ if __name__ == "__main__":
         term_keyboard.run()
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == "__main__":
+    main()
