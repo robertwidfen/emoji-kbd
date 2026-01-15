@@ -25,10 +25,17 @@ dependencies = [
     "qdarkstyle>=3.2.0",
     "PyQt6>=6.6.0",
     "wcwidth>=0.2.0",
+    "pytest>=8.0.0",
 ]
 
 [project.optional-dependencies]
-dev = ["black>=23.0.0", "mypy>=1.7.0", "ruff>=0.1.0"]
+dev = [
+    "black>=23.0.0",
+    "mypy>=1.7.0",
+    "ruff>=0.1.0",
+    "pytest>=8.0.0",
+    "pytest-mock",
+]
 
 [project.urls]
 Homepage = "https://github.com/robertwidfen/emoji-kbd"
@@ -84,3 +91,8 @@ python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v --import-mode=importlib"

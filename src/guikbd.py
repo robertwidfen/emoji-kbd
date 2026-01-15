@@ -668,14 +668,6 @@ def main():
 
     log.info("Starting main window...")
     window.show()
-    # for t in ("ear", "ear ", " ear", " ear "):
-    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
-    # for t in ("ears", " ears", "ears ", " ears ", " ears "):
-    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
-    # for t in ("hear", " hear", "hear ", " hear ", " hear"):
-    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
-    # for t in (" ear, hear", " ear, hear ", "hear ", " hear ", " hear"):
-    #     log.info(f"Testing match function with '{t}': {window.match(t, 'ear')}")
     sys.exit(app.exec())
 
 
