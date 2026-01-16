@@ -1,17 +1,26 @@
 # Emoji Kbd <img src="res/emoji-kbd.svg" alt="Emoji Kbd" width="32" style="vertical-align: bottom; padding-bottom: 4px"/>
 
-Packed with 7158 emojis and 5256 symbols in 35 groups.
+## 🚀 Features
+
+- Packed with 7158 emojis 🤩 and 5256 symbols Ω in 35 groups ⯒.
+- Fast and cross ⚔️ platform.
+- Combined favorites ⭐️ and recent ⟲ list.
+- Powerful search 🔎.
+- Terminal 📟️ version available.
+- Keyboard ⌨️ and mouse 🖱️ support.
+
+## 🎯 Why Choose Emoji Kbd?
 
 It is all about efficiency - the fewer keys you need to type the better.
 Emoji Kbd is made for efficiency.
 
 Three key presses are enough to get an emoji from the recent list:
 
-1. Press hotkey <kbd>Win-.</kbd> to open Emoji Kbd
-2. Press <kbd>key</kbd> of associated emoji
-3. Press <kbd>Enter</kbd> to close and insert
+1. Press <kbd>Win-.</kbd> to open Emoji Kbd.
+2. Press the  associated <kbd>key</kbd> of an emoji.
+3. Press <kbd>Enter</kbd> to close and insert.
 
-# Screenshots
+## 🖼️ Screenshots
 
 The gui with DE layout
 
@@ -25,9 +34,7 @@ You may also need to play with font config to get Noto Color Emoji available in 
 
 <video src="https://github.com/user-attachments/assets/48af346a-b527-45f0-903d-0144b973e36c" width="500" alt="Terminal Demo" controls></video>
 
-Have fun using it. 😉
-
-# UI
+## 👆 UI
 
 Top left is the emoji input field and on the right the search field.
 
@@ -40,7 +47,7 @@ Closing will copy the content of the input field to the clipboard and print it t
 
 If your window manager supports it, a left click in left half of status allows for moving the window and in right half allows for resizing.
 
-# Key bindings
+## 🔑 Key bindings
 
 | Key 🖮                                              | Action                           |
 |-----------------------------------------------------|----------------------------------|
@@ -76,7 +83,7 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>RightClick</kbd>                               | back to previous board           |
 | <kbd>Wheel</kbd>                                    | scroll pages                     |
 
-# Recent List ⟲
+## ⟲ Recent List 
 
 Used emojis will be put automatically to the recent list.
 
@@ -86,13 +93,18 @@ A score >= 100 makes an item a favorite and it will not change anymore.
 
 When an item is inserted into the input its score will increase by 10 and the score of all others - except favorite - decreases by 1.
 
-# Search 🔎
+## 🔎 Search 
 
 When entering search without a pattern it will display all available emojis.
 
-With a pattern it will show matching items in the order of their score and select the first result.
+With a pattern it will show items matching by name or tag in the order of their score and select the first result.
 
-# Requirements
+Special patterns are:
+- "#" prefix for tag search, e.g. "#heart"
+- "," to separate group,subgroup search, e.g. ",heart"
+- "+" prefix for hex code search
+
+## 🛠️ Requirements
 
 Install:
 
@@ -107,7 +119,7 @@ The emoji groups are built from:
 and
 [UnicodeData](https://www.unicode.org/Public/UCD/latest/ucd/).
 
-# Building
+## 🔧 Building
 
 ```shell
 python -m venv venv
@@ -117,11 +129,11 @@ python src/guikbd.py # for testing
 python src/termkbd.py # for testing
 ```
 
-# Installation
+## 🔨 Installation
 
 Integration into your system works with one of the scripts in `scripts/*`.
 
-## Linux Hyprland
+### 💧 Linux Hyprland
 
 Install:
 
@@ -181,7 +193,7 @@ windowrule {
 Optionally copy `res/emoji-kbd.desktop` to `~/.local/share/applications/`
 for a launcher entry and adjust the paths in the copied file.
 
-## Windows
+### 🪟 Windows
 
 Install:
 
@@ -202,7 +214,7 @@ scripts\emoji-kbd.ahk
 It will overwrite <kbd>Win-.</kbd>, i.e. the Windows emoji picker.
 If you prefer another hotkey edit the script.
 
-## Terminal
+### 📟 Terminal
 
 Only kitty fully supports displaying all emojis (flags, ..) and without misalignment!
 
@@ -214,7 +226,7 @@ python src/termkbd.py
 
 or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprland:
 
-```shell.
+```shell
 ./scripts/emoji-kbd-kitty-hl-open
 ```
 
@@ -227,26 +239,26 @@ python src/guikbd.py
 or start the gui via daemon for faster opening - use "GET" to wait for result or "SHOW" to just show gui:
 
 ```shell
-./scripts/emoji-kbd-gui-wl
+python src/guidmn.py get
 ```
 
-# Customization
+## ⚙️ Customization
 
 Edit `~/.config/emoji-kbd/emoji-kbd.toml`
 
 For everything else - change the code 😉 or wait until it is added.
 
-# Other Files
+## Other Files
 
 - `~/.local/state/emoji-kbd/recent.txt` the recent list.
 - `~/.local/state/emoji-kbd/*.log` the log files.
 - `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases" and Noto font - delete these and start Emoji Kbd again to update to new versions.
 
-# Development
+## Development
 
 When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the source tree.
 
-# Alternatives
+## Alternatives
 
 I started to use emojis with Windows 10 but disliked the new picker from Windows 11 as it had a much smaller recent list.
 
@@ -256,12 +268,12 @@ But when switching back to Linux for the desktop I could not find a proper alter
 
 I like Walker, but not the emoji picker.
 
-# Todos
+## Todos
 
 - Add more board layouts
 - ...
 
-# Random link list
+## Random link list
 
 - <https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv>
 - <https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt>
