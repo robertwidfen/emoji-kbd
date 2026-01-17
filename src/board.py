@@ -182,9 +182,12 @@ class SearchGroup(Emoji):
         else:
             if needle.startswith("+"):
                 code = needle[1:].upper()
-                char = chr(int(code, 16))
-                e = Emoji(char=char, unicode=code, name="Generated Character")
-                self.emojis.append(e)
+                try:
+                    char = chr(int(code, 16))
+                    e = Emoji(char=char, unicode=code, name="Generated Character")
+                    self.emojis.append(e)
+                except ValueError:
+                    pass
 
         return len(self.emojis)
 
