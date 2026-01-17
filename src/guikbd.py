@@ -387,7 +387,7 @@ class KeyboardWidget(QWidget):
 
         elif key == Qt.Key.Key_Escape:
             self.board.pop_board()
-            self.show_status(self.board.current_key)
+            self.show_status(self.board.get_emoji())
             if source is self.search_field:
                 self.emoji_input_field.setFocus()
             self.update()
