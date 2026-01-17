@@ -58,6 +58,7 @@ class KeyboardWidget(QWidget):
         self.prefix_key = False
         self.last_key = ""  # to track last key under mouse
         self.last_scroll_time = 0
+        self.keep_focus = False
 
         self.initUI()
         log.info("Creating main window done.")
@@ -300,6 +301,10 @@ class KeyboardWidget(QWidget):
         self.board.recent_add()
         self.copy_to_clipboard()
         self.show_status(f"{emoji.unicode}, {emoji.name}, {emoji.tags}")
+        if not self.keep_focus:
+            self.emoji_input_field.setFocus()
+            if self.search_field.hasFocus() or self.board.is_search:
+                self.board.pop_board()
 
     def handle_key(self, key: str):
         e = self.board.get_emoji_for_key(key)
@@ -354,6 +359,7 @@ class KeyboardWidget(QWidget):
         elif key == Qt.Key.Key_Tab:
             if source in (self.emoji_input_field, self.search_field):
                 self.setFocus()
+                self.keep_focus = True
             else:
                 self.emoji_input_field.setFocus()
             self.update()
@@ -403,8 +409,6 @@ class KeyboardWidget(QWidget):
                     self.update()
                 else:
                     self.handle_key(self.board.current_key)
-                    if is_shift:
-                        self.handle_close()
 
         elif key == Qt.Key.Key_PageUp:
             self.scroll_board(-1)
@@ -453,6 +457,7 @@ class KeyboardWidget(QWidget):
 
         if not isSelf and isDown:
             self.setFocus()
+            self.keep_focus = False
             self.update()
             return True
         elif isInput and isRight:

@@ -53,6 +53,7 @@ class TerminalKeyboard:
         self.cursor_x: int = 2
         self.cursor_y: int = 0
         self.prefix_key: bool = False
+        self.keep_focus = False
 
         (self.all_emojis, self.emoji_groups) = get_emojis_groups(self.config)
         self.board: Board = make_board(self.config, self.all_emojis, self.emoji_groups)
@@ -256,6 +257,7 @@ class TerminalKeyboard:
                     board.pop_board()
             else:
                 self.cursor_y = 2 + row
+                self.keep_focus = True
             return
         elif key == "KEY_CTRL_I":
             self.cursor_y = 0
@@ -359,6 +361,7 @@ class TerminalKeyboard:
         elif key == "KEY_DOWN":
             if is_emoji_input or is_search_input:
                 self.cursor_y = 2
+                self.keep_focus = False
             elif is_board:
                 board.move_cursor(0, 1)
         elif key == "KEY_UP":
@@ -432,9 +435,10 @@ class TerminalKeyboard:
         self.emoji_input_cursor += 1
         board.recent_add()
 
-        if is_search_input:
+        if not self.keep_focus:
             self.cursor_x = 0
-            if board.is_search:
+            self.cursor_y = 0
+            if is_search_input or board.is_search:
                 board.pop_board()
 
     def show_status(self, emoji: Emoji | None):

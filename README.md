@@ -57,24 +57,26 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>Ctrl-F</kbd>                                   | focus search                     |
 | <kbd>PageUp</kbd>/<kbd>PageDown</kbd>               | scroll page up/down              |
 | <kbd>Esc</kbd>                                      | back to previous board           |
-| <kbd>Space</kbd>                                    | prefix key                       |
+| **Input** and **Search**                                                               |
+| <kbd>Down</kbd>                                     | focus board                      |
+| <kbd>Tab</kbd>                                      | focus board and keep focus       |
 | **Input**                                                                              |
 | key on board                                        | select and insert emoji          |
 | <kbd>Enter</kbd>                                    | close and print result           |
 | <kbd>Right</kbd> at end                             | focus search                     |
-| <kbd>Tab</kbd>, <kbd>Down</kbd>                     | focus board                      |
 | **Search**                                                                             |
-| <kbd>Enter</kbd>                                    | insert emoji and back to input   |
-| <kbd>Right</kbd> at end                             | select next result               |
+| <kbd>Enter</kbd>                                    | insert first match               |
+| <kbd>Right</kbd> at end                             | select next match                |
 | <kbd>Left</kbd> at start                            | focus input                      |
-| <kbd>Tab</kbd>, <kbd>Down</kbd>                     | focus board                      |
 | **Board**                                                                              |
 | key on board                                        | select and insert emoji          |
+| <kbd>Space</kbd> + key on board                     | open variants                    |
 | <kbd>Enter</kbd>                                    | insert emoji                     |
 | <kbd>Up</kbd> in first row                          | focus input                      |
 | **Recent Board** additional keys                                                       |
 | <kbd>Shift-Left</kbd>/<kbd>Right</kbd>              | move selected left/right         |
 | <kbd>Shift-Enter</kbd>                              | toggles favorite state           |
+| <kbd>Space</kbd> + key on board                     | toggles favorite state           |
 | <kbd>Shift-Delete</kbd>                             | delete selected                  |
 | **Mouse** 🖱️                                                                           |
 | <kbd>LeftClick</kbd>                                | insert emoji                     |
@@ -82,6 +84,10 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>DoubleLeftClick</kbd>                          | insert emoji and close           |
 | <kbd>RightClick</kbd>                               | back to previous board           |
 | <kbd>Wheel</kbd>                                    | scroll pages                     |
+
+There are two ways to enter the board from the input or search field.
+- With <kbd>Tab</kbd> focus will be kept on board when inserting emoji.
+- With <kbd>Down</kbd> focus will return to input field when inserting emoji.
 
 ## ⟲ Recent List 
 
