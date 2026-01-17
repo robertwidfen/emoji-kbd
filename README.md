@@ -273,6 +273,12 @@ I like Walker, but not the emoji picker.
 - Add more board layouts
 - ...
 
+## Licenses
+
+- Emoji Kbd: GPL-3.0 or later
+- OpenMoji: All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0
+- UnicodeData.txt: This software uses Unicode Data. Copyright © 1991-2026 Unicode, Inc.
+
 ## Random link list
 
 - <https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv>
