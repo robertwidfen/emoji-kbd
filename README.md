@@ -87,11 +87,13 @@ If your window manager supports it, a left click in left half of status allows f
 
 Used emojis will be put automatically to the recent list.
 
+Items will be added without variants.
+
 Every item has a score and items are sorted by score when opening the recent board.
 
 A score >= 100 makes an item a favorite and it will not change anymore.
 
-When an item is inserted into the input its score will increase by 10 and the score of all others - except favorite - decreases by 1.
+When an item is inserted into the input its score will increase by 10 and the score of all others - except favorites - decreases by 1.
 
 ## 🔎 Search 
 
