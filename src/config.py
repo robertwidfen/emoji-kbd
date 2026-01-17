@@ -39,14 +39,10 @@ class LayoutConfig:
 
 @dataclass
 class SourcesConfig:
-    noto_color_emoji: str = (
-        "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"
-    )
-    noto_color_emoji_win32: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
-    openmoji: str = (
-        "https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv"
-    )
-    unicode_data: str = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
+    noto_color_emoji: str = ""
+    noto_color_emoji_win32: str = ""
+    emojibase: str = ""
+    unicode_data: str = ""
 
 
 @dataclass

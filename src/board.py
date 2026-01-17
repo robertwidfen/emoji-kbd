@@ -156,9 +156,9 @@ class SearchGroup(Emoji):
             if "," in n:
                 (group, subgroup) = n.split(",", 1)
                 if group:
-                    matches = self.filter_emojis(matches, group, lambda e: e.group)
+                    matches = self.filter_emojis(matches, group, lambda e: e.group.lower())
                 if subgroup:
-                    matches = self.filter_emojis(matches, subgroup, lambda e: e.subgroup)
+                    matches = self.filter_emojis(matches, subgroup, lambda e: e.subgroup.lower())
             elif n.startswith("+"):
                 n = n[1:].upper()
                 if n:
@@ -166,10 +166,10 @@ class SearchGroup(Emoji):
             elif n.startswith("#"):
                 n = n[1:]
                 if n:
-                    matches = self.filter_emojis(matches, n, lambda e: e.tags)
+                    matches = self.filter_emojis(matches, n, lambda e: e.tags.lower())
             else:
-                name_matches = self.filter_emojis(matches, n, lambda e: e.name, 1)
-                tag_matches = self.filter_emojis(matches, n, lambda e: e.tags, 1)
+                name_matches = self.filter_emojis(matches, n, lambda e: e.name.lower(), 1)
+                tag_matches = self.filter_emojis(matches, n, lambda e: e.tags.lower(), 1)
                 matches = list(set(name_matches + tag_matches))
         if matches:
             # for e in matches:  # show match score for debugging

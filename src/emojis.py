@@ -1,5 +1,6 @@
 import csv
 import logging as log
+import os
 import re
 from dataclasses import dataclass
 
@@ -38,13 +39,13 @@ class Emoji:
     ):
         self.char = char  # the emoji character
         self.unicode = unicode.upper()  # the unicode codepoint(s) as string
-        self.group = group.lower()  # the emoji group
-        self.subgroup = subgroup.lower()  # the emoji subgroup
-        self.name = name.lower()  # the emoji name/annotation
-        self.tags = tags.lower()  # the emoji tags
-        self.emojis: list[Emoji] = []  # list of sub emjojis, e.g. skintone variants
-        self.mark: str = ""  # mark for skintone variants, etc.
-        self.order = order  # order for sorting and recently used
+        self.group = group  # the emoji group
+        self.subgroup = subgroup  # the emoji subgroup
+        self.name = name  # the emoji name/annotation
+        self.tags = tags  # the emoji tags
+        self.emojis: list[Emoji] = []  # list of sub emojis, e.g. group, skintone variants
+        self.mark: str = ""  # mark for skintone variants, favorites, etc.
+        self.order = order  # optional order for sorting and recently used
 
     def __repr__(self):
         return f"Emoji({self.char}, {self.unicode}, {self.name}, {self.group} > {self.subgroup}, tags={self.tags}, emojis={len(self.emojis) if self.emojis else 0}, order={self.order})"
@@ -54,6 +55,8 @@ class Emoji:
             self.emojis = []
         if not self.char:
             self.char = emoji.char
+        if not self.group:
+            self.group = emoji.group
         if emoji.subgroup not in self.subgroup:
             if self.subgroup:
                 self.subgroup += ", "
@@ -73,10 +76,6 @@ class Emoji:
         e.emojis = self.emojis.copy()
         e.mark = self.mark
         return e
-
-
-#             👍🏻        👍🏼        👍🏽        👍🏾        👍🏿
-skintones = ("-1F3FB", "-1F3FC", "-1F3FD", "-1F3FE", "-1F3FF")
 
 
 def make_emoji_from_row(row: list[str]) -> Emoji:
@@ -112,33 +111,55 @@ def exclude_unicode(unicode: int) -> bool:
     return exclude_range or exclude_char
 
 
-# openmoji.csv format:
-# emoji,hexcode,group,subgroups,annotation,tags,openmoji_tags
-def read_openmoji_csv(file_path: str) -> list[Emoji]:
-    emojis: list[Emoji] = []
-    with open(file_path, encoding="utf-8") as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)  # Skip header
-        for row in reader:
-            # Skip invalid or extra emojis
-            if len(row) <= 3 or row[2].startswith("extras-"):
+def read_emojibase_data(file_path) -> tuple[list[Emoji], dict[str, str], dict[str, str]]:
+    import json
+
+    with open(file_path + "/messages.raw.json", encoding="utf-8") as f:
+        messages = json.load(f)
+    groups = {}
+    for g in messages["groups"]:
+        groups[g["key"]] = g["message"]
+        groups[g["order"]] = g["key"]
+    subgroups = {}
+    for sg in messages["subgroups"]:
+        subgroups[sg["key"]] = sg["message"]
+        subgroups[sg["order"]] = sg["key"]
+
+    with open(file_path + "/data.raw.json", encoding="utf-8") as f:
+        data = json.load(f)
+
+    emojis = []
+    for item in data:
+        if item["hexcode"].find("-") == -1:
+            unicode = int(item["hexcode"], 16)
+            if exclude_unicode(unicode):
                 continue
-            if row[1].find("-") == -1:
-                unicode = int(row[1], 16)
-                if exclude_unicode(unicode):
-                    continue
-            if any(st in row[1] for st in skintones):
-                e = make_emoji_from_row(row)
-                if not emojis[-1].mark:
-                    emojis[-1].mark = "🟤"
-                emojis[-1].append(e)
-                continue
-            e = make_emoji_from_row(row)
-            emojis.append(e)
-    log.info(f"openmoji: {len(emojis)} emojis loaded.")
-    return emojis
+        emoji = Emoji(
+            char=item["emoji"],
+            unicode=item["hexcode"],
+            group=groups.get(item["group"], ""),
+            subgroup=subgroups.get(item["subgroup"], ""),
+            name=item["label"],
+            tags=", ".join(item["tags"]),
+        )
+        if "skins" in item:
+            emoji.mark = "🟤"
+            for skin in item["skins"]:
+                skin_emoji = Emoji(
+                    char=skin["emoji"],
+                    unicode=skin["hexcode"],
+                    group=emoji.group,
+                    subgroup=emoji.subgroup,
+                    name=skin["label"],
+                    tags=emoji.tags,
+                )
+                emoji.append(skin_emoji)
+        emojis.append(emoji)
+
+    return (emojis, groups, subgroups)
 
 
+# A list of patterns to group UnicodeData.txt.
 # group_name, subgroup|None, name_regex|None, category_regex|None
 unicode_grouping = (
     ("box drawing", "", re.compile("box drawings "), None),
@@ -179,18 +200,16 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
                     e = Emoji(char, unicode, group, subgroup or category, name)
                     emojis.append(e)
                     break
-    log.info(f"UnicodeData: {len(emojis)} unicode symbols loaded.")
+
     return emojis
 
 
-# A list of patterns to normalize groups.
-# First match defines the normalized group.
-# Either match of group & subgroup or char in char_list.
+# A list of patterns to build new groups.
+# First match defines the group.
+# Either match by group & subgroup or char in char_list.
 # Item format:
 #   order on board, char, group_regex, subgroup_regex, char_list
 group_patterns = (
-    # ignored ones
-    (0, "", "^(extras-unicode|component|)$", "", ""),
     # normalized groups
     (0x040, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬"),
     (0x030, "😐️", "smileys-emotion", "face-neutral-skeptical", "🤔🫡😔😪😴🫩🫪🥸🧐"),
@@ -243,15 +262,14 @@ class GroupPattern:
         return self.char.__hash__()
 
 
-group_patterns_compiled: list[GroupPattern] = []
-for p in group_patterns:
-    p = list(p)
-    p[2] = re.compile(p[2]) if p[2] else None  # type: ignore
-    p[3] = re.compile(p[3]) if p[3] else None  # type: ignore
-    group_patterns_compiled.append(GroupPattern(*p))  # type: ignore
-
-
 def normalize_group(emoji: Emoji) -> GroupPattern:
+    group_patterns_compiled: list[GroupPattern] = []
+    for p in group_patterns:
+        p = list(p)
+        p[2] = re.compile(p[2]) if p[2] else None  # type: ignore
+        p[3] = re.compile(p[3]) if p[3] else None  # type: ignore
+        group_patterns_compiled.append(GroupPattern(*p))  # type: ignore
+
     for p in group_patterns_compiled:
         if p.chars and emoji.char in p.chars:
             return p
@@ -274,53 +292,129 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
         if g.order == 0:
             continue
         if g.char not in group_map:
-            groups.append(Emoji(g.char, "", e.group, e.subgroup, "group", "", g.order))
+            groups.append(Emoji(g.char, "", e.group, e.subgroup, "Group", "", g.order))
             group_map[g.char] = groups[-1]
         group_map[g.char].append(e)
     groups.sort(key=lambda e: e.order)
     return groups
 
 
-def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
-    openmoji = get_cache_file("openmoji.csv")
-    download_if_missing(config.sources.openmoji, openmoji)
-    emojis = read_openmoji_csv(openmoji)
+def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
+    groups: list[Emoji] = []
+    group_map: dict[str, Emoji] = {}
+    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
+    with open(group_cache_file, encoding="utf-8") as f:
+        for line in f:
+            (char, emojis_str) = line.strip().split(";")
+            g = Emoji(char, "", name="Group")
+            groups.append(g)
+            for e in emojis_str.split(","):
+                group_map[e] = g
+    log.info(f"Emoji group cache file '{group_cache_file}' loaded.")
+
+    emojis: list[Emoji] = []
+    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
+    with open(emoji_cache_file, encoding="utf-8") as f:
+        for line in f:
+            is_skin_tone = line.startswith("\t")
+            (char, unicode, name, group, subgroup, tags) = line.strip().split(";")
+            e = Emoji(char, unicode, group, subgroup, name, tags)
+            if is_skin_tone:
+                if not emojis[-1].mark:
+                    emojis[-1].mark = "🟤"
+                emojis[-1].append(e)
+            else:
+                emojis.append(e)
+                group_map[e.unicode].append(e)
+    log.info(f"Emoji cache file '{emoji_cache_file}' loaded.")
+
+    return (emojis, groups)
+
+
+def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emoji]]:
+    emojibase_data = get_cache_file("emojibase")
+    os.makedirs(emojibase_data, exist_ok=True)
+
+    for f in ("/data.raw.json", "/messages.raw.json"):
+        download_if_missing(config.sources.emojibase + f, emojibase_data + f)
+
+    (emojis, lc_groups, lc_subgroups) = read_emojibase_data(emojibase_data)
+    log.info(f"Emojibase file '{emojibase_data}' with {len(emojis)} emojis loaded.")
+    skin_tones = 0
+    for e in emojis:
+        if e.emojis:
+            skin_tones += len(e.emojis)
+    log.info(f"{skin_tones} skin tone variants found.")
+    log.info(f"A total of {len(emojis) + skin_tones} emojis.")
 
     unicode_data = get_cache_file("UnicodeData.txt")
     download_if_missing(config.sources.unicode_data, unicode_data)
     unicode_emojis = read_unicode_data(unicode_data)
+    log.info(f"UnicodeData file '{unicode_data}' with {len(unicode_emojis)} symbols loaded.")
 
-    open_emojis_set = set(e.unicode for e in emojis)  # for duplicate checking
+    # duplicate checking
+    emojis_set = set(e.unicode for e in emojis)
     duplicates = 0
     for e in unicode_emojis:
-        if e.unicode not in open_emojis_set:
+        if e.unicode not in emojis_set:
             emojis.append(e)
         else:
             duplicates += 1
-    log.info(f"UnicodeData: {duplicates} duplicate symbols skipped.")
-    groups = get_grouped_emojis(emojis)
+    log.info(f"Skipped {duplicates} duplicate symbols from UnicodeData.txt.")
+    log.info(f"{len(unicode_emojis) - duplicates} symbols remain.")
+    log.info(f"{len(emojis)} emojis and symbols collected.")
 
-    log.info(
-        f"{len(emojis)} emojis and {len(unicode_emojis)-duplicates} symbols in {len(groups)} groups loaded."
-    )
+    groups = get_grouped_emojis(emojis)
+    log.info(f"Grouped into {len(groups)} groups.")
+
+    # change group and subgroup to locale names
+    for e in emojis:
+        e.group = lc_groups.get(e.group, e.group)
+        e.subgroup = lc_subgroups.get(e.subgroup, e.subgroup)
+        for e in e.emojis:
+            e.group = lc_groups.get(e.group, e.group)
+            e.subgroup = lc_subgroups.get(e.subgroup, e.subgroup)
+
+    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
+    with open(emoji_cache_file, "w", encoding="utf-8") as f:
+        for e in emojis:
+            f.write(f"{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n")
+            for e in e.emojis:
+                f.write(f"\t{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n")
+
+    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
+    with open(group_cache_file, "w", encoding="utf-8") as f:
+        for g in groups:
+            emojis_in_group = ",".join(e.unicode for e in g.emojis)
+            f.write(f"{g.char};{emojis_in_group}\n")
+
+    log.info(f"Caches written to '{emoji_cache_file}' and '{group_cache_file}'.")
+
     return (emojis, groups)
+
+
+def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
+    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
+    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
+
+    if not (os.path.exists(emoji_cache_file) and os.path.exists(group_cache_file)):
+        get_emojis_groups_build_cache(config)
+
+    return get_cached_emojis_groups(config)
 
 
 def main():
     log.basicConfig(
-        level=log.ERROR,
-        format="%(asctime)s - %(levelname)s - %(message)s",
+        level=log.INFO,
+        format="%(asctime)s.%(msecs)03d %(message)s",
+        datefmt="%M:%S",
     )
+    log.info("Loading emojis...")
     config = load_config()
     (emojis, groups) = get_emojis_groups(config)
-    print(f"{len(emojis)} emojis loaded.")
-    print(f"{len(groups)} groups generated.")
     for g in groups:
         print(f"{g!r}")
-        print("\t", end="")
-        for e in g.emojis[:70]:
-            print(e.char, end="")
-        print()
+        print(f"\t {''.join(e.char for e in g.emojis)}")
 
 
 if __name__ == "__main__":

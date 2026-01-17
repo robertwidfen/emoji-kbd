@@ -2,7 +2,7 @@
 
 ## 🚀 Features
 
-- Packed with 7158 emojis 🤩 and 5256 symbols Ω in 35 groups ⯒.
+- Packed with 3940 emojis 🤩 including 2030 skin tone variants and 5249 symbols Ω in 35 groups ⯒.
 - Fast and cross ⚔️ platform.
 - Combined favorites ⭐️ and recent ⟲ list.
 - Powerful search 🔎.
@@ -283,9 +283,9 @@ I like Walker, but not the emoji picker.
 
 ## Licenses
 
-- Emoji Kbd: GPL-3.0 or later
-- OpenMoji: All emojis designed by OpenMoji – the open-source emoji and icon project. License: CC BY-SA 4.0
-- UnicodeData.txt: This software uses Unicode Data. Copyright © 1991-2026 Unicode, Inc.
+- **Emoji Kbd**: [GPL-3.0-or-later](LICENSE)
+- **Emojibase**: Copyright (c) Miles Johnson. License: [MIT License](https://github.com/milesj/emojibase/blob/master/packages/data/LICENSE).
+- **UnicodeData**: Copyright © 1991-2026 Unicode, Inc. All rights reserved. Distributed under the [Unicode License Agreement](https://www.unicode.org/copyright.html).
 
 ## Random link list
 
