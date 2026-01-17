@@ -243,6 +243,8 @@ class KeyboardWidget(QWidget):
         if isinstance(obj, str):
             msgs.append(obj)
         elif isinstance(obj, Emoji):
+            if self.board.is_search:
+                msgs.append(f"Score {obj.order}")
             if obj.emojis:
                 msgs.append(f"{len(obj.emojis)} emojis")
             msgs.append(f"{obj.char}")
