@@ -227,6 +227,7 @@ class KeyboardWidget(QWidget):
 
     def search_emojis(self, needle: str):
         self.board.search(needle)
+        self.show_status(self.board.get_emoji())
         self.update()
 
     def copy_to_clipboard(self):
