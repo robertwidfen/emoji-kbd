@@ -358,6 +358,10 @@ class TerminalKeyboard:
                     board.move_cursor(1, 0)
             elif is_board:
                 board.move_cursor(1, 0)
+        elif key == "KEY_SHIFT_RIGHT" and is_search_input:
+            board.move_cursor(1, 0)
+        elif key == "KEY_SHIFT_LEFT" and is_search_input:
+            board.move_cursor(-1, 0)
         elif key == "KEY_DOWN":
             if is_emoji_input or is_search_input:
                 self.cursor_y = 2
