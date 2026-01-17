@@ -106,17 +106,21 @@ class SearchGroup(Emoji):
         pos = text.find(needle)
         if pos == -1:
             return 0
-        score = 1
+        score = 0
         while pos != -1:
+            score += 1
+            # score match at word start higher
             if pos == 0:
-                score += 7  # score match at word start higher
+                score += 11
             elif not text[pos - 1].isalnum():
-                score += 4
+                score += 7
+            # score match at word end higher
             end_pos = pos + len(needle)
             if end_pos == len(text):
-                score += 5  # score match at word end higher
-            elif not text[end_pos].isalnum():
                 score += 2
+            elif not text[end_pos].isalnum():
+                score += 1
+            # continue searching
             pos = text.find(needle, end_pos + 1)
         return score
 

@@ -8,59 +8,64 @@ from board import SearchGroup
 
 
 def test_match():
+    tests = [
+        [
+            "Testing exact matches:",
+            ("ear", "ear"),
+            ("ear ", "ear"),
+            (" ear", "ear"),
+            (" ear ", "ear"),
+        ],
+        [
+            "Testing matches at word start:",
+            ("ears", "ear"),
+            (" ears", "ear"),
+            ("ears ", "ear"),
+            (" ears ", "ear"),
+        ],
+        [
+            "Testing matches at word end:",
+            ("hear", "ear"),
+            (" hear", "ear"),
+            ("hear", "ear"),
+            (" hear  ", "ear"),
+        ],
+        [
+            "Testing matches within words:",
+            ("hear", "ear"),
+            (" hear", "ear"),
+            ("hear ", "ear"),
+            (" hear ", "ear"),
+        ],
+        [
+            "Testing multiple matches:",
+            (" ear, hear", "ear"),
+            (" ear, hear ", "ear"),
+            ("hear, ear", "ear"),
+        ],
+        [
+            "Testing odd cases:",
+            (" licht ", "lich"),
+            (" unlich, anlich", "lich"),
+            ("ohr", "ohr"),
+            (" ohr,", "ohr"),
+            ("ohr mit", "ohr"),
+            (" ohr", "ohr"),
+        ],
+        [
+            "Testing no matches:",
+            ("hello", "ear"),
+            ("test", "ear"),
+        ],
+    ]
+
     search = SearchGroup()
 
-    print("Testing exact matches:")
-    tests = [
-        ("ear", "ear"),
-        ("ear ", "ear"),
-        (" ear", "ear"),
-        (" ear ", "ear"),
-    ]
-    for text, needle in tests:
-        score = search.match(text, needle)
-        print(f"  match('{text}', '{needle}') = {score}")
-
-    print("\nTesting matches at word end:")
-    tests = [
-        ("ears", "ear"),
-        (" ears", "ear"),
-        ("ears ", "ear"),
-        (" ears ", "ear"),
-    ]
-    for text, needle in tests:
-        score = search.match(text, needle)
-        print(f"  match('{text}', '{needle}') = {score}")
-
-    print("\nTesting matches within words:")
-    tests = [
-        ("hear", "ear"),
-        (" hear", "ear"),
-        ("hear ", "ear"),
-        (" hear ", "ear"),
-    ]
-    for text, needle in tests:
-        score = search.match(text, needle)
-        print(f"  match('{text}', '{needle}') = {score}")
-
-    print("\nTesting multiple matches:")
-    tests = [
-        (" ear, hear", "ear"),
-        (" ear, hear ", "ear"),
-        ("hear, ear", "ear"),
-    ]
-    for text, needle in tests:
-        score = search.match(text, needle)
-        print(f"  match('{text}', '{needle}') = {score}")
-
-    print("\nTesting no matches:")
-    tests = [
-        ("hello", "ear"),
-        ("test", "ear"),
-    ]
-    for text, needle in tests:
-        score = search.match(text, needle)
-        print(f"  match('{text}', '{needle}') = {score}")
+    for t in tests:
+        print(t[0])
+        for text, needle in t[1:]:
+            score = search.match(text, needle)
+            print(f"  match('{text}', '{needle}') = {score}")
 
 
 if __name__ == "__main__":
