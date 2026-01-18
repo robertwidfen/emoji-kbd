@@ -211,7 +211,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
 #   order on board, char, group_regex, subgroup_regex, char_list
 group_patterns = (
     # normalized groups
-    (0x040, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬"),
+    (0x040, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬🫈"),
     (0x030, "😐️", "smileys-emotion", "face-neutral-skeptical", "🤔🫡😔😪😴🫩🫪🥸🧐"),
     (0x020, "☹️", "smileys-emotion", "negative|concerned|unwell", ""),
     (0x060, "❤️", "smileys-emotion", "emotion|heart", ""),
@@ -220,7 +220,7 @@ group_patterns = (
     (0x080, "💃", "people-body", "sport|activity|game|award-medal", ""),
     (0x081, "⚽️", "activities", "sport|activity|game|award-medal", "🎭️🖼️"),
     (0x070, "🧑", "people-body", "", ""),
-    (0x090, "🐒", "animals-nature", "animal", "🫈🫍"),
+    (0x090, "🐒", "animals-nature", "animal", "🫍"),
     (0x100, "🌿", "animals-nature", "plant", ""),
     (0x120, "🍽️", "food-drink", "dishware", ""),
     (0x110, "🍎", "food-drink", "", ""),
