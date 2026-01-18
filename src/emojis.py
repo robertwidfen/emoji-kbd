@@ -219,7 +219,7 @@ group_patterns = (
     (0x050, "👍️", "people-body", "hand|body", "👣🫆"),
     (0x080, "💃", "people-body", "sport|activity|game|award-medal", ""),
     (0x081, "⚽️", "activities", "sport|activity|game|award-medal", "🎭️🖼️"),
-    (0x070, "💁‍♂️", "people-body", "", ""),
+    (0x070, "🧑", "people-body", "", ""),
     (0x090, "🐒", "animals-nature", "animal", "🫈🫍"),
     (0x100, "🌿", "animals-nature", "plant", ""),
     (0x120, "🍽️", "food-drink", "dishware", ""),
