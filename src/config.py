@@ -96,9 +96,9 @@ class Config:
     def get_layout(self, name: str | None = None) -> str:
         if name is None:
             name = self.board.layout
-        for l in self.layout:
-            if l.name.lower() == name.lower():
-                return l.kbd
+        for layout in self.layout:
+            if layout.name.lower() == name.lower():
+                return layout.kbd
         raise ValueError(f"Layout '{name}' not found in configuration.")
 
 
@@ -126,7 +126,7 @@ def load_config(config_path: str = default_path) -> Config:
             raise ValueError(f"Unknown config section: {key}")
         field_type = Config.__dataclass_fields__[key].type
         if callable(field_type):  # dataclass
-            if get_origin(field_type) == list:
+            if get_origin(field_type) is list:
                 item_type = get_args(field_type)[0]
                 items = []
                 for item in value:
