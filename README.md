@@ -130,9 +130,9 @@ and
 ## 🔧 Building
 
 ```shell
-python -m venv venv
-. venv/Scripts/activate
-pip install -r requirements.txt
+python -m venv .venv
+source .venv/Scripts/activate
+pip install -r requirements.txt # or: uv sync
 python src/guikbd.py # for testing
 python src/termkbd.py # for testing
 ```
