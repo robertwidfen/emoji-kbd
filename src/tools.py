@@ -33,8 +33,8 @@ def add_emoji_to_unicode_data(file_path: str):
 
             try:
                 outfile.write(f"{char},{','.join(row)}\n")
-            except:
-                pass
+            except UnicodeEncodeError:
+                log.error(f"Encoding error at '{unicode}'.")
 
 
 def download(url, local_filename):

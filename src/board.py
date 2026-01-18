@@ -64,8 +64,8 @@ class RecentGroup(Emoji):
         try:
             with open(self.recent_file, encoding="utf-8") as f:
                 recent_list = []
-                for l in f.readlines():
-                    (order, char, unicode, name, group, subgroup, tags) = l.strip().split(";", 6)
+                for line in f.readlines():
+                    (order, char, unicode, name, group, subgroup, tags) = line.strip().split(";", 6)
                     order = int(order)
                     e = Emoji(*(char, unicode, group, subgroup, name, tags))
                     if order >= 100:

@@ -106,7 +106,7 @@ unicode_exclude_points = (0x00AD, 0x2028, 0x2029)
 
 
 def exclude_unicode(unicode: int) -> bool:
-    exclude_range = any([l <= unicode <= h for (l, h) in unicode_exclude_ranges])
+    exclude_range = any([start <= unicode <= stop for (start, stop) in unicode_exclude_ranges])
     exclude_char = unicode in unicode_exclude_points
     return exclude_range or exclude_char
 
