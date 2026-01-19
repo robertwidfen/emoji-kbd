@@ -1,3 +1,4 @@
+import logging as log
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -48,7 +49,7 @@ class SourcesConfig:
 
 @dataclass
 class LoggingConfig:
-    log_mode: str = "w"
+    log_mode: Literal["w", "a"] = "w"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
 
@@ -106,12 +107,14 @@ class Config:
 default_path = get_conf_file("emoji-kbd.toml")
 
 
-def load_config(config_path: str = default_path) -> Config:
+def __load_config(config_path: str = default_path) -> Config:
     """Load configuration from TOML file.
 
     Raises:
-        FileNotFoundError: If config file doesn't exist
+        FileNotFoundError: If config file does not exist
         tomllib.TOMLDecodeError: If config file is malformed
+        KeyError: If section/key does not exit
+        ValueError: If field type does not match
     """
     path = Path(config_path)
     if not path.exists():
@@ -124,7 +127,7 @@ def load_config(config_path: str = default_path) -> Config:
 
     for key, value in data.items():
         if key not in Config.__dataclass_fields__:
-            raise ValueError(f"Unknown config section: {key}")
+            raise KeyError(f"Unknown config section '{key}'")
         field_type = Config.__dataclass_fields__[key].type
         if callable(field_type):  # dataclass
             if get_origin(field_type) is list:
@@ -134,12 +137,38 @@ def load_config(config_path: str = default_path) -> Config:
                     items.append(item_type(**item))
                 config.__setattr__(key, items)
             else:  # single dataclass
+                for sub_key in value:
+                    if sub_key not in field_type.__annotations__:
+                        raise KeyError(f"Unknown key '{sub_key}' in section '{key}'")
+                    expected_type = field_type.__annotations__[sub_key]
+                    actual_value = value[sub_key]
+                    origin = get_origin(expected_type)
+                    if origin is Literal:
+                        # For Literal types, check if value is one of the allowed values
+                        allowed_values = get_args(expected_type)
+                        if actual_value not in allowed_values:
+                            raise ValueError(
+                                f"Invalid value for key '{sub_key}' in section '{key}'. "
+                                f"Expected one of {allowed_values}, got {actual_value}."
+                            )
+                    else:
+                        if not isinstance(actual_value, expected_type):
+                            raise ValueError(
+                                f"Invalid type for key '{sub_key}' in section '{key}'. "
+                                f"Expected {expected_type.__name__}, got {type(actual_value).__name__}."
+                            )
                 config.__setattr__(key, field_type(**value))
         else:
             config.__setattr__(key, value)
 
     return config
 
+def load_config(config_path: str = default_path) -> Config:
+    try:
+        return __load_config(config_path)
+    except Exception as e:
+        log.error(f"Failed to load configuration: {e}")
+        raise
 
 if __name__ == "__main__":
     import sys

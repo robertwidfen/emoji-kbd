@@ -238,7 +238,13 @@ def start_daemon_process(command: str):
 
 
 def main():
-    config = load_config()
+    log.basicConfig(force=True, filename=get_state_file("guidmn.log"))
+    try:
+        config = load_config()
+    except Exception as e:
+        print(f"ERROR: Failed to load configuration: {e}", file=sys.stderr)
+        sys.exit(1)
+
     if len(sys.argv) >= 2 and sys.argv[1] == "--daemon":
         log.basicConfig(
             force=True,

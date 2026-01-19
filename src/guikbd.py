@@ -661,7 +661,15 @@ def setup_app(config: Config) -> QApplication:
 
 
 def main():
-    config = load_config()
+    config_error = None
+    log.basicConfig(force=True, filename=get_state_file("guikbd.log"))
+    try:
+        config = load_config()
+    except Exception as e:
+        config = Config()  # load default config to show window
+        log.error(f"Failed to load configuration: {e}")
+        config_error = e
+
     log.basicConfig(
         force=True,
         filename=get_state_file("guikbd.log"),
@@ -671,6 +679,16 @@ def main():
     )
     log.info(f"Starting Qt6 Emoji Kbd on {sys.platform}...")
     app = setup_app(config)
+    if config_error:
+        log.error(f"Failed to load configuration: {config_error}")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setWindowTitle("Configuration Load Error")
+        msg.setText("Failed to load configuration file.")
+        msg.setInformativeText(str(config_error))
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+        sys.exit(1)
     app.setQuitOnLastWindowClosed(True)
     window = KeyboardWidget(config)
 

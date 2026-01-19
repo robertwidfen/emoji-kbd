@@ -486,7 +486,12 @@ class TerminalKeyboard:
 
 
 def main():
-    config = load_config()
+    log.basicConfig(force=True, filename=get_state_file("termkbd.log"))
+    try:
+        config = load_config()
+    except Exception as e:
+        print(f"ERROR: Failed to load configuration: {e}", file=sys.stderr)
+        sys.exit(1)
     log.basicConfig(
         force=True,
         filename=get_state_file("termkbd.log"),

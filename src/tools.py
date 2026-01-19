@@ -49,7 +49,10 @@ def download(url, local_filename):
 
 def download_if_missing(url: str, local_filename: str) -> bool:
     if not os.path.exists(local_filename):
-        download(url, local_filename)
+        try:
+            download(url, local_filename)
+        except Exception as e:
+            raise ValueError(f"Failed to download '{url}' to '{local_filename}'.") from e
     return os.path.exists(local_filename)
 
 

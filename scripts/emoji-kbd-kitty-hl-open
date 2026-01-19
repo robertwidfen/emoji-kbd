@@ -1,14 +1,22 @@
 #!/bin/bash
 cd "$(dirname "$0")/.."
+source .venv/bin/activate
 
 if ! hyprctl clients -j | jq -e '.[] | select(.title == "Emoji Kbd")' > /dev/null; then
+    if ! python src/config.py; then
+        kitty --title "Emoji Kbd" -o remember_window_size=no \
+            -o initial_window_width=80c -o initial_window_height=24c \
+            -o font_size=12 \
+            --hold=yes -e python src/config.py
+        exit 0
+    fi
     width=$(python src/config.py terminal.width)
     height=$(python src/config.py terminal.height)
     font_size=$(python src/config.py terminal.font_size)
     kitty --title "Emoji Kbd" -o remember_window_size=no \
         -o initial_window_width=${width}c -o initial_window_height=${height}c \
         -o font_size=${font_size} \
-        --hold=no -e python src/termkbd.py --daemon &
+        --hold=yes -e python src/termkbd.py --daemon &
 else
     hyprctl dispatch movetoworkspace '+0,title:^Emoji Kbd$'
 fi
