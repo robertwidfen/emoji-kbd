@@ -88,7 +88,7 @@ def make_emoji_from_row(row: list[str]) -> Emoji:
         tags=row[5],
     )
 
-
+# FIXME move to config
 unicode_exclude_ranges = (
     (0x000000, 0x00009F),  # Normal characters
     (0x000400, 0x001FFE),  # CJK and Hangul
@@ -102,6 +102,7 @@ unicode_exclude_ranges = (
     (0x0E0001, 0xFFFFFF),  # Tags and private use
 )
 
+# FIXME move to config
 unicode_exclude_points = (0x00AD, 0x2028, 0x2029)
 
 
@@ -161,6 +162,7 @@ def read_emojibase_data(file_path) -> tuple[list[Emoji], dict[str, str], dict[st
 
 # A list of patterns to group UnicodeData.txt.
 # group_name, subgroup|None, name_regex|None, category_regex|None
+# FIXME move to config
 unicode_grouping = (
     ("box drawing", "", re.compile("box drawings "), None),
     ("arrows", "", re.compile("arrow"), None),
@@ -209,6 +211,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
 # Either match by group & subgroup or char in char_list.
 # Item format:
 #   order on board, char, group_regex, subgroup_regex, char_list
+# FIXME move to config
 group_patterns = (
     # normalized groups
     (0x040, "🤡", "smileys-emotion", "costume|cat|monkey", "😈👿💀☠️🗿🪬🫈"),
