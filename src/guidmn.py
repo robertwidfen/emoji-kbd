@@ -231,7 +231,7 @@ def start_daemon_process(command: str):
     for i in range(50):  # Wait up to 5 seconds
         time.sleep(0.1)
         result = send_command(command, False)
-        if result != None:
+        if result is not None:
             log.info("Daemon started.")
             return result
     raise RuntimeError("Failed to start daemon")
@@ -259,7 +259,7 @@ def main():
         # Client mode with commands
         for a in sys.argv[1:]:
             result = send_command(a)
-            if result == None:
+            if result is None:
                 print("No result")
                 sys.exit(-1)
             else:

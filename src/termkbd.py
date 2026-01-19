@@ -226,7 +226,7 @@ class TerminalKeyboard:
 
         is_printable = key.isprintable()
         key = missing_key_names.get(key, missing_key_names.get(key.code, key.name or key))
-        if key == None:
+        if key is None:
             return
         log.info(f"Handling key: '{key}' {is_printable}...")
 
