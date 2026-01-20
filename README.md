@@ -3,11 +3,13 @@
 ## 🚀 Features
 
 - Packed with 3940 emojis 🤩 including 2030 skin tone variants and 5249 symbols Ω in 35 groups ⯒.
-- Fast and cross ⚔️ platform.
+- Fast keyboard ⌨️ and mouse 🖱️ navigation.
 - Combined favorites ⭐️ and recent ⟲ list.
 - Powerful search 🔎.
+- Grouping of people emojis differing just by gender 🎅🤶🧑‍🎄 
 - Terminal 📟️ version available.
-- Keyboard ⌨️ and mouse 🖱️ support.
+- Localization 🏳️‍🌈 where available.
+- Cross ⚔️ platform.
 
 ## 🎯 Why Choose Emoji Kbd?
 
@@ -17,12 +19,12 @@ Emoji Kbd is made for efficiency.
 Three key presses are enough to get an emoji from the recent list:
 
 1. Press <kbd>Win-.</kbd> to open Emoji Kbd.
-2. Press the  associated <kbd>key</kbd> of an emoji.
+2. Press the associated <kbd>key</kbd> of an emoji.
 3. Press <kbd>Enter</kbd> to close and insert.
 
 ## 🖼️ Screenshots
 
-The gui with DE layout
+The GUI with DE layout
 
 <video src="https://github.com/user-attachments/assets/93a74a6d-8692-4574-b4c1-11c6136bea9f" width="500" alt="GUI Demo" controls></video>
 
@@ -123,7 +125,7 @@ Other requirements will be downloaded automatically.
 For displaying emojis the [Noto Color Emoji](https://github.com/googlefonts/noto-emoji/tree/main/fonts) font is used - otherwise flags and some other newer emojis will not display correctly.
 
 The emoji groups are built from:
-[Openmoji](https://github.com/hfg-gmuend/openmoji)
+[Emojibase](https://github.com/milesj/emojibase/raw/refs/heads/master/packages/data)
 and
 [UnicodeData](https://www.unicode.org/Public/UCD/latest/ucd/).
 
@@ -259,11 +261,11 @@ For everything else - change the code 😉 or wait until it is added.
 
 - `~/.local/state/emoji-kbd/recent.txt` the recent list.
 - `~/.local/state/emoji-kbd/*.log` the log files.
-- `~/.cache/emoji-kbd/*` openmoji.csv and UnicodeData.txt "databases" and Noto font - delete these and start Emoji Kbd again to update to new versions.
+- `~/.cache/emoji-kbd/*` emoji databases and Noto font - delete these and start Emoji Kbd again to update to newer versions.
 
 ## Development
 
-When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the source tree.
+When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the repo.
 
 ## Alternatives
 
@@ -278,6 +280,7 @@ I like Walker, but not the emoji picker.
 ## Todos
 
 - Add more board layouts
+- https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/common/annotations/de.xml
 - ...
 
 ## Licenses
@@ -286,10 +289,3 @@ I like Walker, but not the emoji picker.
 - **Emojibase**: Copyright (c) Miles Johnson. License: [MIT License](https://github.com/milesj/emojibase/blob/master/packages/data/LICENSE).
 - **UnicodeData**: Copyright © 1991-2026 Unicode, Inc. All rights reserved. Distributed under the [Unicode License Agreement](https://www.unicode.org/copyright.html).
 
-## Random link list
-
-- <https://raw.githubusercontent.com/hfg-gmuend/openmoji/refs/heads/master/data/openmoji.csv>
-- <https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt>
-- <https://github.com/googlefonts/noto-emoji/issues/90?utm_source=chatgpt.com>
-- <https://debuggerboy.com/emoji-fonts-for-alacritty-in-debian-11/>
-- <https://github.com/alacritty/alacritty/issues/3975>
