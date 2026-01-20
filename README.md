@@ -161,9 +161,8 @@ Add hotkey to `~/.config/hypr/bindings.conf`
 
 ```shell
 unbind = SUPER, period
-bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
-#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
-#bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-ghostty-hl-open
+# bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
+bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
 ```
 
 Add for fast opening (noanim) and floating window to `~/.config/hypr/hyprland.conf`
