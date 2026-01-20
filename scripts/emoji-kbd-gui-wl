@@ -1,5 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")/.."
+source .venv/bin/activate
 
 if [ -n "$EMOJI_KBD_DEV" ]; then
     PORT_FILE=".local/emoji-kbd-daemon.port"
