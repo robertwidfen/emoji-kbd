@@ -2,6 +2,8 @@ import csv
 import logging as log
 import os
 import re
+import sys
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
 from config import Config, load_config
@@ -194,15 +196,23 @@ unicode_grouping = (
 
 # UnicodeData.txt format:
 # hexcode;name;category;...
-def read_unicode_data(file_path: str) -> list[Emoji]:
+def read_unicode_data(file_path: str, emojibase_set: set[str]) -> list[Emoji]:
     emojis: list[Emoji] = []
+    duplicates = 0
+    excluded = 0
+    symbol_count = 0
     with open(file_path, encoding="utf-8") as csvfile:
         reader = csv.reader(csvfile, delimiter=";")
         for row in reader:
             if len(row) < 3:
                 continue
+            symbol_count += 1
             unicode = int(row[0], 16)
             if exclude_unicode(unicode):
+                excluded += 1
+                continue
+            if row[0] in emojibase_set:
+                duplicates += 1
                 continue
 
             char = chr(unicode)
@@ -221,6 +231,7 @@ def read_unicode_data(file_path: str) -> list[Emoji]:
                     emojis.append(e)
                     break
 
+    log.info(f"{symbol_count} symbols found, {excluded} excluded, {duplicates} duplicates.")
     return emojis
 
 
@@ -379,23 +390,23 @@ def get_grouped_emojis(emojis: list[Emoji]) -> list[Emoji]:
 def fix_locale_names(lc_map, emojis: list[Emoji]):
     for e in emojis:
         e.group = lc_map["groups"].get(e.group, e.group)
-        e.subgroup = lc_map["subgroups"].get(e.subgroup, e.subgroup)
+        subgroup = e.subgroup.split(", ")
+        e.subgroup = ", ".join([lc_map["subgroups"].get(sg, sg) for sg in subgroup])
         e.name = lc_map.get(e.unicode, e.name)
         if e.emojis:
             fix_locale_names(lc_map, e.emojis)
 
 def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     locales = {"en"}
-    locales.add(config.sources.emojibase_locale)
+    locales.add(config.board.locale)
     for locale in locales:
         for db in ("data.raw.json", "messages.raw.json"):
             url = f"{config.sources.emojibase}/{locale}/{db}"
             local_file = get_cache_file(f"emojibase/{locale}-{db}")
             download_if_missing(url, local_file)
-    locale = config.sources.emojibase_locale
     emojibase_data = get_cache_file("emojibase/")
-    (base_emojis, lc_map) = read_emojibase_data(emojibase_data, locale)
-    log.info(f"Emojibase file '{emojibase_data}' with {len(base_emojis)} emojis loaded.")
+    (base_emojis, lc_map) = read_emojibase_data(emojibase_data, config.board.locale)
+    log.info(f"Loaded {len(base_emojis)} emojis from '{emojibase_data}'.")
     variants = 0
     for e in base_emojis:
         if e.emojis:
@@ -407,21 +418,35 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
     emojis = squash_gender_emojis(base_emojis)
     log.info(f"Squashed into {len(emojis)} grouped emojis.")
 
-    unicode_data = get_cache_file("UnicodeData.txt")
+    unicode_data = get_cache_file("unicode-data.txt")
     download_if_missing(config.sources.unicode_data, unicode_data)
-    unicode_emojis = read_unicode_data(unicode_data)
-    log.info(f"UnicodeData file '{unicode_data}' with {len(unicode_emojis)} symbols loaded.")
+    emojibase_set = set(e.unicode for e in base_emojis)
+    unicode_emojis = read_unicode_data(unicode_data, emojibase_set)
+    log.info(f"Loaded {len(unicode_emojis)} symbols from '{unicode_data}'.")
 
-    # duplicate checking
-    emojis_set = set(e.unicode for e in base_emojis)
-    duplicates = 0
+    unicode_annotations_file = get_cache_file(f"{config.board.locale}-annotations.xml")
+    url = config.sources.unicode_annotations + f"{config.board.locale}.xml"
+    download_if_missing(url, unicode_annotations_file)
+    xml = ET.parse(unicode_annotations_file)
+    xml = xml.getroot().find("annotations")
+    unicode_annotations = {}
+    if xml is not None:
+        for a in xml.findall("annotation"):
+            cp = a.attrib.get("cp", "")
+            if cp in unicode_annotations:
+                unicode_annotations[cp]["name"] = a.text or ""
+            else:
+                unicode_annotations[cp] = {"tags": (a.text or "").replace(" | ", ", ")}
+    log.info(f"Loaded {len(unicode_annotations)} annotations from '{unicode_annotations_file}'.")
     for e in unicode_emojis:
-        if e.unicode not in emojis_set:
-            emojis.append(e)
-        else:
-            duplicates += 1
-    log.info(f"Skipped {duplicates} duplicate symbols from UnicodeData.txt.")
-    log.info(f"{len(unicode_emojis) - duplicates} symbols remain.")
+        if e.char in unicode_annotations:
+            ann = unicode_annotations[e.char]
+            if "name" in ann and ann["name"]:
+                e.name = ann["name"]
+            if "tags" in ann and ann["tags"]:
+                e.tags = ann["tags"]
+
+    emojis.extend(unicode_emojis)
     log.info(f"{len(emojis)} emojis and symbols collected.")
 
     groups = get_grouped_emojis(emojis)
@@ -429,6 +454,7 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
 
     # now fix locale names - they are still EN
     fix_locale_names(lc_map, emojis)
+    fix_locale_names(lc_map, groups)
 
     # write cache files
     emoji_cache_file = get_cache_file("emojis-cache.txt")
@@ -498,9 +524,11 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]] 
 
 
 def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
-    result = get_cached_emojis_groups(config)
-    if result is not None:
-        return result
+    if os.getenv("EMOJI_KBD_DEV", "").split(",").count("no_cache") == 0:
+        result = get_cached_emojis_groups(config)
+        if result is not None:
+            return result
+    log.info("Rebuild of emoji cache.")
     return get_emojis_groups_build_cache(config)
 
 

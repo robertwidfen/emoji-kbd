@@ -11,6 +11,7 @@ from tools import get_conf_file
 class BoardConfig:
     layout: str = "US"
     default: str = "⟲"
+    locale: str = "en"
 
 
 @dataclass
@@ -42,9 +43,9 @@ class LayoutConfig:
 class SourcesConfig:
     noto_color_emoji: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"  # fmt: skip
     noto_color_emoji_win32: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"  # fmt: skip
-    emojibase_locale: str = "en"
     emojibase: str = "https://github.com/milesj/emojibase/raw/refs/heads/master/packages/data"  # fmt: skip
     unicode_data: str = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"  # fmt: skip
+    unicode_annotations: str = "https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/common/annotations/"  # fmt: skip
 
 
 @dataclass

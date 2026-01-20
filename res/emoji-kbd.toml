@@ -3,6 +3,8 @@
 layout = "DE"
 # by emoji, e.g. "", "⟲", "🔎", "😀", "👍️", ...
 default = "⟲"
+# check emojibase and unicode_annotations links in [sources] for available ones
+locale = "de"
 
 [terminal]
 width = 47
@@ -63,9 +65,9 @@ A DF H KLÖ
 [sources]
 noto_color_emoji = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"
 noto_color_emoji_win32 = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"
-emojibase_locale = "de"
 emojibase = "https://github.com/milesj/emojibase/raw/refs/heads/master/packages/data"
 unicode_data = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"
+unicode_annotations = "https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/common/annotations/"
 
 [logging]
 log_mode = "w"

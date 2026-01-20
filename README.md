@@ -265,7 +265,9 @@ For everything else - change the code 😉 or wait until it is added.
 
 ## Development
 
-When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from `res/emoji-kbd.toml` and all other files go to `.local` in the repo.
+When the environment variable `EMOJI_KBD_DEV` is set to a value the config file is taken from 
+`res/emoji-kbd.toml` and all other files go to `.local` in the repo. It can be set also to a 
+comma separated list of words, currently only "no_cache", to disable use of cache.
 
 ## Alternatives
 
