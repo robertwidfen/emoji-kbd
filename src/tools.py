@@ -41,7 +41,7 @@ def download(url, local_filename):
     try:
         log.info(f"Downloading '{url}'...")
         urllib.request.urlretrieve(url, local_filename)
-        log.info(f"File '{local_filename}' downloaded successfully.")
+        log.info(f"Saved download successfully to '{local_filename}'.")
     except Exception as e:
         log.error(f"Error downloading the file: {e}")
         raise e
@@ -82,20 +82,26 @@ def get_conf_file(filename: str) -> str:
 
 def get_state_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        return str(Path(".local") / filename)
-    state_dir = Path(os.getenv("XDG_STATE_HOME", Path.home() / ".local/state")) / "emoji-kbd"
-    state_dir.mkdir(parents=True, exist_ok=True)
-    path = str(state_dir / filename)
+        path = str(Path(".local") / filename)
+    else:
+        state_home = os.getenv("XDG_STATE_HOME", Path.home() / ".local" / "state")
+        state_dir = Path(state_home) / "emoji-kbd"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        path = str(state_dir / filename)
     log.info(f"State file: {path}")
     return path
 
+cache_file_set = set()
 
 def get_cache_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        return str(Path(".local") / filename)
-    cache_dir = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "emoji-kbd"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    path = str(cache_dir / filename)
+        path = str(Path(".local") / filename)
+    else:
+        cache_home = os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")
+        cache_dir = Path(cache_home) / "emoji-kbd"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        path = str(cache_dir / filename)
+    cache_file_set.add(path)
     log.info(f"Cache file: {path}")
     return path
 

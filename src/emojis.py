@@ -385,17 +385,15 @@ def fix_locale_names(lc_map, emojis: list[Emoji]):
             fix_locale_names(lc_map, e.emojis)
 
 def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emoji]]:
-    emojibase_data = get_cache_file("emojibase")
-    os.makedirs(emojibase_data, exist_ok=True)
-
     locales = {"en"}
     locales.add(config.sources.emojibase_locale)
     for locale in locales:
         for db in ("data.raw.json", "messages.raw.json"):
             url = f"{config.sources.emojibase}/{locale}/{db}"
-            local_file = f"{emojibase_data}/{locale}-{db}"
+            local_file = get_cache_file(f"emojibase/{locale}-{db}")
             download_if_missing(url, local_file)
     locale = config.sources.emojibase_locale
+    emojibase_data = get_cache_file("emojibase/")
     (base_emojis, lc_map) = read_emojibase_data(emojibase_data, locale)
     log.info(f"Emojibase file '{emojibase_data}' with {len(base_emojis)} emojis loaded.")
     variants = 0
@@ -433,7 +431,7 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
     fix_locale_names(lc_map, emojis)
 
     # write cache files
-    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
+    emoji_cache_file = get_cache_file("emojis-cache.txt")
     with open(emoji_cache_file, "w", encoding="utf-8") as f:
         for e in emojis:
             f.write(f"{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n")
@@ -443,7 +441,7 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
                     f.write(f"\t\t{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n")
                     assert len(e.emojis) == 0
 
-    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
+    group_cache_file = get_cache_file("groups-cache.txt")
     with open(group_cache_file, "w", encoding="utf-8") as f:
         for g in groups:
             emojis_in_group = ",".join(e.unicode for e in g.emojis)
@@ -454,10 +452,19 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
     return (emojis, groups)
 
 
-def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
+def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]] | None:
+    group_cache_file = get_cache_file("groups-cache.txt")
+    emoji_cache_file = get_cache_file("emojis-cache.txt")
+    if not (os.path.exists(emoji_cache_file) and os.path.exists(group_cache_file)):
+        return None
+
+    # add emojibase data also to cache file_set
+    emojibase_data = get_cache_file("emojibase")
+    for path in os.listdir(emojibase_data):
+        get_cache_file(f"emojibase/{path}")
+
     groups: list[Emoji] = []
     group_map: dict[str, Emoji] = {}
-    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
     with open(group_cache_file, encoding="utf-8") as f:
         for line in f:
             (char, emojis_str) = line.strip().split(";")
@@ -468,7 +475,6 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     log.info(f"Emoji group cache file '{group_cache_file}' loaded.")
 
     emojis: list[Emoji] = []
-    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
     with open(emoji_cache_file, encoding="utf-8") as f:
         for line in f:
             is_variant = line.startswith("\t")
@@ -492,13 +498,10 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
 
 
 def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
-    emoji_cache_file = get_cache_file("emoji-kbd-cache-emojis.txt")
-    group_cache_file = get_cache_file("emoji-kbd-cache-groups.txt")
-
-    if not (os.path.exists(emoji_cache_file) and os.path.exists(group_cache_file)):
-        get_emojis_groups_build_cache(config)
-
-    return get_cached_emojis_groups(config)
+    result = get_cached_emojis_groups(config)
+    if result is not None:
+        return result
+    return get_emojis_groups_build_cache(config)
 
 
 def main():
