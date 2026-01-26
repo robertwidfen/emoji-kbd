@@ -3,20 +3,21 @@ import logging as log
 import os
 import shutil
 import subprocess
-import requests
 from pathlib import Path
+
+import requests
 
 
 def add_emoji_to_unicode_data(file_path: str):
     with (
-        open(file_path, encoding="utf-8") as csvfile,
+        open(file_path, encoding="utf-8") as infile,
         open(
-            os.path.dirname(file_path) + f"/e{os.path.basename(file_path)}",
+            Path(file_path).parent / f"e{Path(file_path).name}",
             mode="w",
             encoding="utf-8",
         ) as outfile,
     ):
-        reader = csv.reader(csvfile, delimiter=";")
+        reader = csv.reader(infile, delimiter=";")
         for row in reader:
             if len(row) < 3:
                 continue
@@ -32,7 +33,7 @@ def add_emoji_to_unicode_data(file_path: str):
             char = chr(unicode)
 
             try:
-                outfile.write(f"{char},{','.join(row)}\n")
+                outfile.write(f"{char},{';'.join(row)}\n")
             except UnicodeEncodeError:
                 log.error(f"Encoding error at '{unicode}'.")
 
@@ -60,12 +61,12 @@ def download(url, local_filename):
 
 
 def download_if_missing(url: str, local_filename: str) -> bool:
-    if not os.path.exists(local_filename):
+    if not Path(local_filename).exists():
         try:
             download(url, local_filename)
         except Exception as e:
             raise ValueError(f"Failed to download '{url}' to '{local_filename}'.") from e
-    return os.path.exists(local_filename)
+    return Path(local_filename).exists()
 
 
 def run_command(command: list[str], input: str | None = None):
@@ -94,31 +95,36 @@ def get_conf_file(filename: str) -> str:
 
 def get_state_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = str(Path(".local") / "state" / filename)
+        path = Path(".local") / "state" / filename
     else:
         state_home = os.getenv("XDG_STATE_HOME", Path.home() / ".local" / "state")
         state_dir = Path(state_home) / "emoji-kbd"
-        state_dir.mkdir(parents=True, exist_ok=True)
-        path = str(state_dir / filename)
+        path = state_dir / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
     log.info(f"State file: {path}")
-    return path
+    return str(path)
 
 
 def get_cache_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = str(Path(".local") / "cache" / filename)
+        path = Path(".local") / "cache" / filename
     else:
         cache_home = os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")
         cache_dir = Path(cache_home) / "emoji-kbd"
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        path = str(cache_dir / filename)
+        path = cache_dir / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
     log.info(f"Cache file: {path}")
-    return path
+    return str(path)
 
 
-if __name__ == "__main__":
+def main():
     log.basicConfig(
+        force=True,
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    add_emoji_to_unicode_data(".local/UnicodeData.txt")
+    add_emoji_to_unicode_data(".local/cache/unicode-data.txt")
+
+
+if __name__ == "__main__":
+    main()
