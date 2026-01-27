@@ -9,6 +9,7 @@
 - Grouping of people emojis differing just by gender 🎅🤶🧑‍🎄 
 - Terminal 📟️ version available.
 - Localization 🏳️‍🌈 where available.
+- Custom keyboard layouts.
 - Cross ⚔️ platform.
 
 ## 🎯 Why Choose Emoji Kbd?
@@ -253,7 +254,13 @@ python src/guidmn.py get
 
 ## ⚙️ Customization
 
-Edit `~/.config/emoji-kbd/emoji-kbd.toml`
+Copy `.res/emoji-kbd.toml` or parts to `~/.config/emoji-kbd/emoji-kbd.toml` and edit it.
+
+For example change the locale to DE by:
+```toml
+[board]
+locale = "de"
+```
 
 For everything else - change the code 😉 or wait until it is added.
 
