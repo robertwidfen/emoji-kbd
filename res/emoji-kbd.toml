@@ -1,10 +1,10 @@
 [board]
 # one from below layouts
-layout = "DE"
+layout = "US"
 # by emoji, e.g. "", "⟲", "🔎", "😀", "👍️", ...
 default = "⟲"
 # check emojibase and unicode_annotations links in [sources] for available ones
-locale = "de"
+locale = "en"
 
 [terminal]
 width = 47
