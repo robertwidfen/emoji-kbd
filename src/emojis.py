@@ -354,15 +354,18 @@ def squash_gender_emojis(emojis: list[Emoji]) -> list[Emoji]:
                         group=e.group,
                         subgroup=e.subgroup,
                     )
+                    emoji_group.mark = "🟤"
+                    e.mark = ""
                     emoji_group.append(e)
                     emoji_group.emojis.extend(e.emojis)
                     e.emojis.clear()
-                    # ugly hack to remember position of group
+                    # ugly hack to remember position of group pos
                     squash_emoji_groups[name].append(len(squashed_emojis))
                     squashed_emojis.append(emoji_group)
                     continue
                 # other emojis are added as variants
-                first_pos = squash_emoji_groups[name][-1]
+                first_pos = squash_emoji_groups[name][-1]  # group pos
+                e.mark = ""
                 squashed_emojis[first_pos].append(e)
                 squashed_emojis[first_pos].emojis.extend(e.emojis)
                 e.emojis.clear()
