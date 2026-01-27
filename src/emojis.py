@@ -318,7 +318,11 @@ def normalize_group(emoji: Emoji) -> GroupPattern:
 
 
 def strip_gender(s: str) -> str:
-    s = re.sub(r"(er)? ?(person|man|woman):? ?", "", s)
+    s = re.sub(r"^(family:) .*$", "family", s)
+    s = re.sub(r"^(kiss:) .*$", "kiss", s)
+    s = re.sub(r"^(couple with heart:) .*$", "with heart", s)
+    s = re.sub(r"^(people|women|men|woman and man) ?", "people ", s)
+    s = re.sub(r"(er)? ?(person|man|woman|couple):? ?", "", s)
     s = re.sub(r"^(person|prince|princess)$", "with crown", s)
     s = re.sub(r"^(Santa|Mrs.|Mx) Claus$", "Mx Claus", s)
     s = re.sub(r"^(child|boy|girl)$", "child", s)
