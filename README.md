@@ -128,6 +128,7 @@ If your window manager supports it, a left click in left half of status allows f
 
 Inserted emojis will be put to the recent list.
 
+Items will be added without variants (skin tone, gender, …).
 
 Every item has a score and items are sorted by score when new ones are added.
 
@@ -256,24 +257,24 @@ To change the hotkey, edit `scripts/emoji-kbd.ahk` and modify the `#.::` line.
 
 ## ⚙️ Customization
 
-Copy `res/emoji-kbd.toml` or parts to `~/.config/emoji-kbd/emoji-kbd.toml` and edit:
+See `res/emoji-kbd.toml` for all available options.
 
-**Change locale:**
+Copy `res/emoji-kbd.toml` or parts to `~/.config/emoji-kbd/emoji-kbd.toml` and edit it.
+
+For example, change the locale and layout (case-sensitive) as follows:
 ```toml
 [board]
-locale = "de"  # Options: "en", "de", or any supported locale
-layout = "de"  # Options: "us", "de", "bone-corne"
+locale = "de"
+layout = "DE"
 ```
 
-**Customize keyboard layouts:**
+**Add own layout:** 
 ```toml
 [[layout]]
 …
 ```
 
-See `res/emoji-kbd.toml` for all available options.
-
-For everything else - change the code 😉
+For everything else - change the code 😉.
 
 ## 🔍 Troubleshooting
 
