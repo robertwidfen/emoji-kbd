@@ -1,7 +1,6 @@
 import csv
 import logging as log
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -79,17 +78,13 @@ def run_command(command: list[str], input: str | None = None):
         log.error(f"{command} failed with: {e}")
 
 
-def get_conf_file(filename: str) -> str:
-    if os.environ.get("EMOJI_KBD_DEV"):
+def get_conf_file(filename: str, default=False) -> str:
+    if default or os.environ.get("EMOJI_KBD_DEV"):
         return str(Path("res") / filename)
     config_dir = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / "emoji-kbd"
     config_dir.mkdir(parents=True, exist_ok=True)
-    default_config = Path(__file__).parent.parent / "res" / filename
-    if not (config_dir / filename).exists() and default_config.exists():
-        shutil.copy(default_config, config_dir / filename)
-        log.info(f"Copied default config from {default_config}")
     path = str(config_dir / filename)
-    log.info(f"Config file: {path}")
+    log.info(f"Config file: '{path}'")
     return path
 
 
@@ -101,7 +96,7 @@ def get_state_file(filename: str) -> str:
         state_dir = Path(state_home) / "emoji-kbd"
         path = state_dir / filename
     path.parent.mkdir(parents=True, exist_ok=True)
-    log.info(f"State file: {path}")
+    log.info(f"State file: '{path}'")
     return str(path)
 
 
@@ -113,7 +108,7 @@ def get_cache_file(filename: str) -> str:
         cache_dir = Path(cache_home) / "emoji-kbd"
         path = cache_dir / filename
     path.parent.mkdir(parents=True, exist_ok=True)
-    log.info(f"Cache file: {path}")
+    log.info(f"Cache file: '{path}'")
     return str(path)
 
 

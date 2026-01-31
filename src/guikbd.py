@@ -667,7 +667,8 @@ def main():
     try:
         config = load_config()
     except Exception as e:
-        config = Config()  # load default config to show window
+        # load default config to show window
+        config = Config(**{})
         log.error(f"Failed to load configuration: {e}")
         config_error = e
 

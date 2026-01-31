@@ -1,6 +1,6 @@
 import logging as log
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, get_args, get_origin
 
@@ -9,27 +9,27 @@ from tools import get_conf_file
 
 @dataclass
 class BoardConfig:
-    layout: str = "US"
-    default: str = "⟲"
-    locale: str = "en"
+    layout: str
+    default: str
+    locale: str
 
 
 @dataclass
 class TerminalConfig:
-    width: int = 47
-    height: int = 12
-    font_size: int = 20
-    close_cmd: str = "./scripts/emoji-kbd-term-hl-close"
+    width: int
+    height: int
+    font_size: int
+    close_cmd: str
 
 
 @dataclass
 class GuiConfig:
-    width: int = 600
-    height: int = 280
-    key_font_size: float = 0.2
-    mark_font_size: float = 0.2
-    emoji_font_size: float = 0.56
-    emoji_font_size2: float = 0.8
+    width: int
+    height: int
+    key_font_size: float
+    mark_font_size: float
+    emoji_font_size: float
+    emoji_font_size2: float
 
 
 @dataclass
@@ -41,60 +41,27 @@ class LayoutConfig:
 
 @dataclass
 class SourcesConfig:
-    noto_color_emoji: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji.ttf"  # fmt: skip
-    noto_color_emoji_win32: str = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf"  # fmt: skip
-    emojibase: str = "https://github.com/milesj/emojibase/raw/refs/heads/master/packages/data"  # fmt: skip
-    unicode_data: str = "https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt"  # fmt: skip
-    unicode_annotations: str = "https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/common/annotations/"  # fmt: skip
+    noto_color_emoji: str
+    noto_color_emoji_win32: str
+    emojibase: str
+    unicode_data: str
+    unicode_annotations: str
 
 
 @dataclass
 class LoggingConfig:
-    log_mode: Literal["w", "a"] = "w"
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
-
-
-default_layouts = [
-    LayoutConfig(
-        name="US",
-        char="🇺🇸",
-        kbd="""
-1234567890-=
-QWERTYUIOP[]
-ASDFGHJKL;'
-ZXCVBNM,./
-""",
-    ),
-    LayoutConfig(
-        name="DE",
-        char="🇩🇪",
-        kbd="""
-1234567890ß´
-QWERTZUIOPÜ+
-ASDFGHJKLÖÄ#
-<YXCVBNM,.-
-""",
-    ),
-    LayoutConfig(
-        name="Bone Corne",
-        char="🦴",
-        kbd="""
-JDUAX PHLMW
-CTIEO BNRSG
-?,VFQ YKZ.-
-""",
-    ),
-]
+    log_mode: Literal["w", "a"]
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
 @dataclass
 class Config:
-    board: BoardConfig = field(default_factory=BoardConfig)
-    terminal: TerminalConfig = field(default_factory=TerminalConfig)
-    gui: GuiConfig = field(default_factory=GuiConfig)
-    layout: list[LayoutConfig] = field(default_factory=lambda: default_layouts.copy())
-    sources: SourcesConfig = field(default_factory=SourcesConfig)
-    logging: LoggingConfig = field(default_factory=LoggingConfig)
+    board: BoardConfig
+    terminal: TerminalConfig
+    gui: GuiConfig
+    layout: list[LayoutConfig]
+    sources: SourcesConfig
+    logging: LoggingConfig
 
     def get_layout(self, name: str | None = None) -> str:
         if name is None:
@@ -105,10 +72,11 @@ class Config:
         raise ValueError(f"Layout '{name}' not found in configuration.")
 
 
-default_path = get_conf_file("emoji-kbd.toml")
+config_path = get_conf_file("emoji-kbd.toml")
+default_config_path = get_conf_file("emoji-kbd.toml", default=True)
 
 
-def __load_config(config_path: str = default_path) -> Config:
+def __load_config(config_path: str = config_path) -> Config:
     """Load configuration from TOML file.
 
     Raises:
@@ -117,14 +85,32 @@ def __load_config(config_path: str = default_path) -> Config:
         KeyError: If section/key does not exit
         ValueError: If field type does not match
     """
-    path = Path(config_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
-
+    # Load defaults from res/emoji-kbd.toml first
+    default_config_data = {}
+    path = Path(default_config_path)
     with open(path, "rb") as f:
-        data = tomllib.load(f)
+        default_config_data = tomllib.load(f)
 
-    config = Config()
+    # Load user config if present
+    path = Path(config_path)
+    if path.exists() and config_path != default_config_path:
+        with open(path, "rb") as f:
+            user_config_data = tomllib.load(f)
+
+        # Merge: user config overrides defaults
+        for key, value in user_config_data.items():
+            if key == "layout" and key in default_config_data:
+                # For layout, replace completely (user layouts override defaults)
+                default_config_data[key] = value
+            else:
+                # For other sections, merge recursively
+                if key in default_config_data and isinstance(default_config_data[key], dict):
+                    default_config_data[key].update(value)
+                else:
+                    default_config_data[key] = value
+
+    data = default_config_data
+    config_dict = {}
 
     for key, value in data.items():
         if key not in Config.__dataclass_fields__:
@@ -136,7 +122,7 @@ def __load_config(config_path: str = default_path) -> Config:
                 items = []
                 for item in value:
                     items.append(item_type(**item))
-                config.__setattr__(key, items)
+                config_dict[key] = items
             else:  # single dataclass
                 for sub_key in value:
                     if sub_key not in field_type.__annotations__:
@@ -158,13 +144,13 @@ def __load_config(config_path: str = default_path) -> Config:
                                 f"Invalid type for key '{sub_key}' in section '{key}'. "
                                 f"Expected {expected_type.__name__}, got {type(actual_value).__name__}."
                             )
-                config.__setattr__(key, field_type(**value))
+                config_dict[key] = field_type(**value)
         else:
-            config.__setattr__(key, value)
+            config_dict[key] = value
 
-    return config
+    return Config(**config_dict)
 
-def load_config(config_path: str = default_path) -> Config:
+def load_config(config_path: str = config_path) -> Config:
     try:
         return __load_config(config_path)
     except Exception as e:
@@ -184,7 +170,7 @@ if __name__ == "__main__":
         # Example: python config.py terminal.width
         # Example: python config.py layout[0].name
         query = sys.argv[1]
-        config_file = sys.argv[2] if len(sys.argv) > 2 else default_path
+        config_file = sys.argv[2] if len(sys.argv) > 2 else config_path
 
         try:
             config = load_config(config_file)
