@@ -3,10 +3,9 @@ cd "$(dirname "$0")/.."
 source .venv/bin/activate
 
 if ! hyprctl clients -j | jq -e '.[] | select(.title == "Emoji Kbd")' > /dev/null; then
-    if ! python src/config.py; then
+    if ! python src/config.py > /dev/null; then
         kitty --title "Emoji Kbd" -o remember_window_size=no \
             -o initial_window_width=80c -o initial_window_height=24c \
-            -o font_size=12 \
             --hold=yes -e python src/config.py
         exit 0
     fi
@@ -18,6 +17,10 @@ if ! hyprctl clients -j | jq -e '.[] | select(.title == "Emoji Kbd")' > /dev/nul
         -o font_size=${font_size} \
         --hold=yes -e python src/termkbd.py --daemon &
 else
-    hyprctl dispatch movetoworkspacesilent '+0,title:^Emoji Kbd$'
-    hyprctl dispatch focuswindow 'title:^Emoji Kbd$'
+    MINOR_VERSION=$(hyprctl version | grep -oP 'Tag: v0\.\K[0-9]+')
+    if [ "$MINOR_VERSION" -lt 55 ]; then
+        hyprctl dispatch -- "hl.dsp.workspace.toggle_special('emoji')"
+    else
+        hyprctl dispatch -- 'hl.dsp.window.move({ workspace = hl.get_active_workspace().id, window = "title:^(Emoji Kbd)$", follow = true })'
+    fi
 fi

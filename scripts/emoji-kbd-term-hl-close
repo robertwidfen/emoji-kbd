@@ -1,6 +1,17 @@
 #!/bin/bash
 cd "$(dirname "$0")/.."
 
-wl-copy -n
-hyprctl dispatch movetoworkspacesilent "special:emoji,title:^Emoji Kbd$"
-wtype -M Shift -k Insert -m Shift
+wl-copy -n 
+
+MINOR_VERSION=$(hyprctl version | grep -oP 'Tag: v0\.\K[0-9]+')
+
+if [ "$MINOR_VERSION" -lt 55 ]; then
+    hyprctl dispatch movetoworkspacesilent "special:emoji,title:^Emoji Kbd$"
+else
+    hyprctl dispatch -- 'hl.dsp.window.move({ workspace = "special:emoji", window = "title:^(Emoji Kbd)$", follow = false })'
+fi
+
+#wtype -M Shift -k Insert -m Shift
+#hyprctl dispatch -- "hl.dsp.send_shortcut({ mods = 'SHIFT', key = 'Insert', window = 'activewindow' })"
+wtype -M Ctrl -k v
+

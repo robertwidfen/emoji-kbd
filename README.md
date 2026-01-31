@@ -58,11 +58,23 @@ python src/guikbd.py
 sudo pacman -S python openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
 ```
 
-Add key binding to `~/.config/hypr/bindings.conf`:
+Hyprland < 0.55 - add key binding to `~/.config/hypr/bindings.conf`:
 ```
+unbind = SUPER, period 
 bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-gui-wl
 #bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-kitty-hl-open
 ```
+
+Hyprland >= 0.55 - add key binding to `~/.config/hypr/bindings.lua`:
+```
+hl.unbind("SUPER + period")
+hl.bind(
+    "SUPER + period",
+    hl.dsp.exec_cmd("/PATH_TO/scripts/emoji-kbd-kitty-hl-open"),
+    { description = "Emojis" }
+)
+```
+
 
 **Windows (11):**
 
