@@ -35,6 +35,26 @@ ZXCVBNM,./
 """
 
 [[layout]]
+name = "US-Dvorak"
+char = "🎵"
+kbd = """
+1234567890[]
+',.PYFGCRL/=
+AOEUIDHTNS-
+;QJKXBMWVZ.
+"""
+
+[[layout]]
+name = "US-Colemak"
+char = "🎹"
+kbd = """
+1234567890-=
+QWFPGJLUY;[]
+ARSTDHNEIO'
+ZXCVBKM,./
+"""
+
+[[layout]]
 name = "DE"
 char = "🇩🇪"
 kbd = """
@@ -45,7 +65,7 @@ ASDFGHJKLÖÄ#
 """
 
 [[layout]]
-name = "Bone Corne"
+name = "DE-Bone-Corne"
 char = "🦴"
 kbd = """
 JDUAX PHLMW
@@ -54,12 +74,22 @@ CTIEO BNRSG
 """
 
 [[layout]]
+name = "FR"
+char = "🇫🇷"
+kbd = """
+&é"'(-è_çà)=
+AZERTYUIOP^$
+QSDFGHJKLMù*
+<WXCVBN,;:!
+"""
+
+[[layout]]
 name = "Test"
 char = "🔬"
 kbd = """
  2 45678 0ß 
-QWE TZU OPÜ+
-A DF H KLÖ  
+!AE TZU OPÜ+
+a DF H KLÖ  
 """
 
 [sources]
