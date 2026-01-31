@@ -435,8 +435,8 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
     unicode_data = get_cache_file("unicode-data.txt")
     download_if_missing(config.sources.unicode_data, unicode_data)
     emojibase_set = set(e.unicode for e in base_emojis)
-    unicode_emojis = read_unicode_data(unicode_data, emojibase_set)
-    log.info(f"Loaded {len(unicode_emojis)} symbols from '{unicode_data}'.")
+    unicode_symbols = read_unicode_data(unicode_data, emojibase_set)
+    log.info(f"Loaded {len(unicode_symbols)} symbols from '{unicode_data}'.")
 
     unicode_annotations_file = get_cache_file(f"{config.board.locale}-annotations.xml")
     url = config.sources.unicode_annotations + f"{config.board.locale}.xml"
@@ -460,8 +460,8 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
             if "tags" in ann and ann["tags"]:
                 e.tags = ann["tags"]
 
-    emojis.extend(unicode_emojis)
-    log.info(f"{len(emojis)} emojis and symbols collected.")
+    emojis.extend(unicode_symbols)
+    log.info(f"{len(emojis) + variants} emojis and symbols collected.")
 
     groups = get_grouped_emojis(emojis)
     log.info(f"Grouped into {len(groups)} groups.")
@@ -480,14 +480,14 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
                 for e in e.emojis:
                     f.write(f"\t\t{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n")
                     assert len(e.emojis) == 0
+    log.info(f"Emoji cache with {len(emojis)} emojis written.")
 
     group_cache_file = get_cache_file("groups-cache.txt")
     with open(group_cache_file, "w", encoding="utf-8") as f:
         for g in groups:
             emojis_in_group = ",".join(e.unicode for e in g.emojis)
             f.write(f"{g.char};{emojis_in_group}\n")
-
-    log.info(f"Caches written to '{emoji_cache_file}' and '{group_cache_file}'.")
+    log.info(f"Group cache with {len(groups)} groups written.")
 
     return (emojis, groups)
 
@@ -507,7 +507,7 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]] 
             groups.append(g)
             for e in emojis_str.split(","):
                 group_map[e] = g
-    log.info(f"Emoji group cache file '{group_cache_file}' loaded.")
+    log.info(f"Emoji group cache file '{group_cache_file}' with {len(groups)} groups loaded.")
 
     emojis: list[Emoji] = []
     with open(emoji_cache_file, encoding="utf-8") as f:
@@ -527,7 +527,7 @@ def get_cached_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]] 
             else:
                 emojis.append(e)
                 group_map[e.unicode].append(e)
-    log.info(f"Emoji cache file '{emoji_cache_file}' loaded.")
+    log.info(f"Emoji cache file '{emoji_cache_file}' with {len(emojis)} emojis loaded.")
 
     return (emojis, groups)
 
