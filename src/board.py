@@ -4,15 +4,15 @@ from pathlib import Path
 from typing import Literal
 
 from config import Config
-from emojis import Emoji
+from emojis import Emoji, find_emoji_by_unicode
 from tools import get_cache_file, get_state_file
 
 
 class RecentGroup(Emoji):
-    def __init__(self, recent_file: str):
+    def __init__(self, recent_file: str, emojis: list[Emoji]):
         super().__init__(group="Recent List", char="⟲")
         self.recent_file = recent_file
-        self.load()
+        self.load(emojis)
         self.offset = 0
 
     def add(self, emoji: Emoji, no_sort: bool):
@@ -61,14 +61,18 @@ class RecentGroup(Emoji):
         self.emojis.remove(emoji)
         self.save()
 
-    def load(self):
+    def load(self, emojis: list[Emoji]):
         try:
             with open(self.recent_file, encoding="utf-8") as f:
                 recent_list = []
                 for line in f.readlines():
-                    (order, char, unicode, name, group, subgroup, tags) = line.strip().split(";", 6)
+                    (order, char, unicode) = line.strip().split(";", 3)[:3]
                     order = int(order)
-                    e = Emoji(*(char, unicode, group, subgroup, name, tags))
+                    e = find_emoji_by_unicode(emojis, unicode)
+                    if e is not None:
+                        e = e.clone()
+                    else:
+                        e = Emoji(char=char, unicode=unicode, name="Unknown Emoji")
                     if order >= 100:
                         e.mark = "⭐️"
                     elif order > 0:
@@ -79,7 +83,7 @@ class RecentGroup(Emoji):
                     e.order = order
                     recent_list.append(e)
                 # Remove duplicates while preserving order
-                recent_list = {e.char: e for e in reversed(recent_list)}
+                recent_list = {e.unicode: e for e in reversed(recent_list)}
                 recent_list = list(reversed(recent_list.values()))
                 # Ensure order
                 recent_list.sort(key=lambda e: e.order, reverse=True)
@@ -91,9 +95,7 @@ class RecentGroup(Emoji):
         try:
             with open(self.recent_file, "w", encoding="utf-8") as f:
                 for e in self.emojis:
-                    f.write(
-                        f"{e.order};{e.char};{e.unicode};{e.name};{e.group};{e.subgroup};{e.tags}\n"
-                    )
+                    f.write(f"{e.order};{e.char};{e.unicode}\n")
         except Exception as ex:
             log.error(f"Saving recent emojis: {ex}")
 
@@ -255,7 +257,7 @@ class Board:
 
         self._all_emojis: list[Emoji] = all_emojis
         self._main_emojis: list[BoardEmoji] = emoji_groups
-        self._recent = RecentGroup(get_state_file("recent.txt"))
+        self._recent = RecentGroup(get_state_file("recent.txt"), all_emojis)
         self._main_emojis.insert(0, self._recent)
         self._search_group = SearchGroup()
         self._main_emojis.insert(1, self._search_group)

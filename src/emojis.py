@@ -564,6 +564,15 @@ def get_emojis_groups(config: Config) -> tuple[list[Emoji], list[Emoji]]:
     return get_emojis_groups_build_cache(config)
 
 
+def find_emoji_by_unicode(emojis: list[Emoji], unicode: str) -> Emoji | None:
+    for e in emojis:
+        if e.unicode == unicode:
+            return e
+        for e in e.emojis:
+            if e.unicode == unicode:
+                return e
+
+
 def main():
     log.basicConfig(
         force=True,
