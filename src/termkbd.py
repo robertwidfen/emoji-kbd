@@ -18,7 +18,7 @@ class DoneException(Exception):
 
 missing_key_names = {
     # by sequence
-    # which kitty_protocol enabled these are note mapped to names
+    # with kitty_protocol enabled these are not mapped to names
     "\x1b[1;129A": "KEY_UP",
     "\x1b[1;129B": "KEY_DOWN",
     "\x1b[1;129C": "KEY_RIGHT",
@@ -60,7 +60,6 @@ class TerminalKeyboard:
 
         self.term_board: list[list[tuple[str, Emoji | None]]] = []
         self.term = Terminal()
-        self.make_term_board(self.board._emojis)
 
     def make_term_board(self, emojis: list[Emoji]):
         log.info("Making terminal board...")
