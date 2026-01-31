@@ -344,6 +344,7 @@ class KeyboardWidget(QWidget):
         key_text = event.text()
         is_shift = event.modifiers() == Qt.KeyboardModifier.ShiftModifier
         is_control = event.modifiers() == Qt.KeyboardModifier.ControlModifier
+        is_recent = self.board.is_recent
 
         if (
             source in (self, self.emoji_input_field)
@@ -392,7 +393,7 @@ class KeyboardWidget(QWidget):
                 self.emoji_input_field.setFocus()
             self.update()
 
-        elif key == Qt.Key.Key_Delete and source == self and is_shift:
+        elif is_recent and key == Qt.Key.Key_Delete and source == self and is_shift:
             if self.board.recent_delete():
                 self.show_status("Deleted from recent.")
                 self.update()
@@ -407,7 +408,7 @@ class KeyboardWidget(QWidget):
                     self.emoji_input_field.setFocus()
                     self.update()
             elif source is self:
-                if is_shift and self.board.is_recent:
+                if is_recent and is_shift:
                     self.board.recent_toggle_favorite()
                     self.update()
                 else:
