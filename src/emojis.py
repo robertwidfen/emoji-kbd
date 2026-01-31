@@ -114,7 +114,9 @@ def exclude_unicode(unicode: int) -> bool:
     return exclude_range or exclude_char
 
 
-def read_emojibase_data(file_path, locale) -> tuple[list[Emoji], dict[str, str | dict[str, str]]]:
+def read_emojibase_data(
+    file_path, locale
+) -> tuple[list[Emoji], dict[str, dict[str, str] | tuple[str, str]]]:
     import json
 
     # collect group and subgroup localizations
@@ -165,17 +167,19 @@ def read_emojibase_data(file_path, locale) -> tuple[list[Emoji], dict[str, str |
                 emoji.append(skin_emoji)
         emojis.append(emoji)
 
-    # map of hexcode:name and groups/subgroups
-    lc_map: dict[str, str | dict[str, str]] = {"groups": groups, "subgroups": subgroups}
+    # map of hexcode:(name, tag) and groups/subgroups:{}
+    lc_map: dict[str, dict[str, str] | tuple[str, str]] = {}
+    lc_map["groups"] = groups
+    lc_map["subgroups"] = subgroups
 
     # load localized names if necessary and add them to map
     if locale != "en":
         with open(file_path + f"/{locale}-data.raw.json", encoding="utf-8") as f:
             data = json.load(f)
         for item in data:
-            lc_map[item["hexcode"]] = item["label"]
+            lc_map[item["hexcode"]] = (item["label"], ", ".join(item.get("tags", "")))
             for item in item.get("skins", []):
-                lc_map[item["hexcode"]] = item["label"]
+                lc_map[item["hexcode"]] = (item["label"], ", ".join(item.get("tags", "")))
 
     return (emojis, lc_map)
 
@@ -400,7 +404,8 @@ def fix_locale_names(lc_map, emojis: list[Emoji]):
         e.group = lc_map["groups"].get(e.group, e.group)
         subgroup = e.subgroup.split(", ")
         e.subgroup = ", ".join([lc_map["subgroups"].get(sg, sg) for sg in subgroup])
-        e.name = lc_map.get(e.unicode, e.name)
+        if e.unicode in lc_map:
+            (e.name, e.tags) = lc_map[e.unicode]
         if e.emojis:
             fix_locale_names(lc_map, e.emojis)
 
@@ -447,7 +452,7 @@ def get_emojis_groups_build_cache(config: Config) -> tuple[list[Emoji], list[Emo
             else:
                 unicode_annotations[cp] = {"tags": (a.text or "").replace(" | ", ", ")}
     log.info(f"Loaded {len(unicode_annotations)} annotations from '{unicode_annotations_file}'.")
-    for e in unicode_emojis:
+    for e in unicode_symbols:
         if e.char in unicode_annotations:
             ann = unicode_annotations[e.char]
             if "name" in ann and ann["name"]:
