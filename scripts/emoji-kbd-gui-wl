@@ -3,7 +3,7 @@ cd "$(dirname "$0")/.."
 source .venv/bin/activate
 
 if [ -n "$EMOJI_KBD_DEV" ]; then
-    PORT_FILE=".local/emoji-kbd-daemon.port"
+    PORT_FILE=".local/state/emoji-kbd-daemon.port"
 else
     PORT_FILE="$HOME/.local/state/emoji-kbd/emoji-kbd-daemon.port"
 fi
