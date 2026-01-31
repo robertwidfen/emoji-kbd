@@ -1,52 +1,88 @@
 # Emoji Kbd <img src="res/emoji-kbd.svg" alt="Emoji Kbd" width="32" style="vertical-align: bottom; padding-bottom: 4px"/>
 
+![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)
+![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green)
+![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-lightgrey)
+
+Fast and efficient emoji picker with keyboard-driven navigation. Available as GUI and TUI.
+
 ## 🚀 Features
 
-- Packed with 3940 emojis 🤩 including 2030 skin tone variants and 5249 symbols Ω in 35 groups ⯒.
+- Packed with 3940 emojis 🤩 including 2030 variants (skin tones, gender, …) and 5249 symbols Α-Ω in 35 groups ⯒.
 - Fast keyboard ⌨️ and mouse 🖱️ navigation.
 - Combined favorites ⭐️ and recent ⟲ list.
 - Powerful search 🔎.
-- Grouping of people emojis differing just by gender 🎅🤶🧑‍🎄 
-- Terminal 📟️ version available.
+- Grouping of people emojis differing just by gender 🎅🤶🧑‍🎄.
+- TUI/Terminal 📟️ version available.
 - Localization 🏳️‍🌈 where available.
-- Custom keyboard layouts.
-- Cross ⚔️ platform.
-
-## 🎯 Why Choose Emoji Kbd?
-
-It is all about efficiency - the fewer keys you need to type the better.
-Emoji Kbd is made for efficiency.
-
-Three key presses are enough to get an emoji from the recent list:
-
-1. Press <kbd>Win-.</kbd> to open Emoji Kbd.
-2. Press the associated <kbd>key</kbd> of an emoji.
-3. Press <kbd>Enter</kbd> to close and insert.
+- Customizable keyboard layouts (US, DE, Bone Corne, …).
+- Cross-platform: Linux (Wayland/Hyprland), Windows, …
 
 ## 🖼️ Screenshots
 
-The GUI with DE layout
+**GUI:**
 
 <video src="https://github.com/user-attachments/assets/93a74a6d-8692-4574-b4c1-11c6136bea9f" width="500" alt="GUI Demo" controls></video>
 
-Terminal - use kitty for best results - other terminals do not handle all graphemes,
-e.g ghostty works mostly, alacritty not so well - you will see miss alignment of columns,
-monochrome emojis, etc.
-
-You may also need to play with font config to get Noto Color Emoji available in your terminal.
+**TUI:**
 
 <video src="https://github.com/user-attachments/assets/48af346a-b527-45f0-903d-0144b973e36c" width="500" alt="Terminal Demo" controls></video>
+
+## 🎯 Why Choose Emoji Kbd?
+
+**Speed and efficiency.** Get any favorite emoji in just 3 keystrokes:
+
+1. <kbd>Win-.</kbd> — Open Emoji Kbd
+2. <kbd>key</kbd> — Select emoji (each emoji has a keyboard key assigned)
+3. <kbd>Enter</kbd> — Insert and close
+
+No mouse needed. No scrolling through categories. Just fast keyboard navigation.
+
+## 📦 Quick Start
+
+```bash
+# Clone and setup
+git clone https://github.com/robertwidfen/emoji-kbd
+cd emoji-kbd
+python -m venv .venv
+source .venv/bin/activate
+pip install -e . # or uv sync
+
+# Test run
+python src/guikbd.py
+```
+
+**Linux (Arch/Hyprland):**
+```bash
+# Install dependencies
+sudo pacman -S python openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
+```
+
+Add key binding to `~/.config/hypr/bindings.conf`:
+```
+bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-gui-wl
+#bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-kitty-hl-open
+```
+
+**Windows (11):**
+
+Run with AutoHotkey (overrides <kbd>Win-.</kbd>)
+```cmd
+scripts\emoji-kbd.ahk
+```
+
+See [Installation](#-installation) for detailed platform-specific setup.
 
 ## 👆 UI
 
 Top left is the emoji input field and on the right the search field.
 
-In the middle is a (key)board like overview of emoji groups or emojis.
-Each one has a <kbd>key</kbd> associated with it that opens the group or inserts the emoji.
+In the middle is a (key)board like overview of emoji groups resp. emojis.
+Each one has a <kbd>key</kbd> associated with it that opens the group or inserts the emoji into the input field.
 
-At the bottom is a status field showing information about the selected emoji.
+At the bottom is a status field showing information about the currently selected emoji.
 
-Closing will copy the content of the input field to the clipboard and print it to stdout.
+<kbd>Enter</kbd> in the input field will copy the content of the input field to the clipboard and and inserts it into your app.
 
 If your window manager supports it, a left click in left half of status allows for moving the window and in right half allows for resizing.
 
@@ -60,134 +96,111 @@ If your window manager supports it, a left click in left half of status allows f
 | <kbd>Ctrl-F</kbd>                                   | focus search                     |
 | <kbd>PageUp</kbd>/<kbd>PageDown</kbd>               | scroll page up/down              |
 | <kbd>Esc</kbd>                                      | back to previous board           |
-| **Input** and **Search**                                                               |
+| **> Input** and **🔎 Search**                                                          |
 | <kbd>Down</kbd>                                     | focus board                      |
 | <kbd>Tab</kbd>                                      | focus board and keep focus       |
-| **Input**                                                                              |
+| **> Input**                                                                            |
 | key on board                                        | select and insert emoji          |
-| <kbd>Enter</kbd>                                    | close and print result           |
+| <kbd>Enter</kbd>                                    | close and insert/print result    |
 | <kbd>Right</kbd> at end                             | focus search                     |
-| **Search**                                                                             |
+| **🔎 Search**                                                                          |
 | <kbd>Enter</kbd>                                    | insert first match               |
 | <kbd>Right</kbd> at end                             | select next match                |
 | <kbd>Left</kbd> at start                            | focus input                      |
-| **Board**                                                                              |
+| **⌨️ Board**                                                                           |
 | key on board                                        | select and insert emoji          |
 | <kbd>Space</kbd> + key on board                     | open variants                    |
-| <kbd>Enter</kbd>                                    | insert emoji                     |
+| <kbd>Enter</kbd>                                    | insert selected emoji            |
 | <kbd>Up</kbd> in first row                          | focus input                      |
-| **Recent Board** additional keys                                                       |
+| **⟲ Recent Board** additional keys                                                     |
 | <kbd>Shift-Left</kbd>/<kbd>Right</kbd>              | move selected left/right         |
 | <kbd>Shift-Enter</kbd>                              | toggles favorite state           |
 | <kbd>Space</kbd> + key on board                     | toggles favorite state           |
 | <kbd>Shift-Delete</kbd>                             | delete selected                  |
-| **Mouse** 🖱️                                                                           |
+| **🖱️ Mouse**                                                                           |
 | <kbd>LeftClick</kbd>                                | insert emoji                     |
 | <kbd>LeftClick</kbd> in upper right corner          | open variants                    |
 | <kbd>DoubleLeftClick</kbd>                          | insert emoji and close           |
 | <kbd>RightClick</kbd>                               | back to previous board           |
 | <kbd>Wheel</kbd>                                    | scroll pages                     |
 
-There are two ways to enter the board from the input or search field.
-- With <kbd>Tab</kbd> focus will be kept on board when inserting emoji.
-- With <kbd>Down</kbd> focus will return to input field when inserting emoji.
-
 ## ⟲ Recent List 
 
-Used emojis will be put automatically to the recent list.
+Inserted emojis will be put to the recent list.
 
-Items will be added without variants.
 
-Every item has a score and items are sorted by score when opening the recent board.
+Every item has a score and items are sorted by score when new ones are added.
 
-A score >= 100 makes an item a favorite and it will not change anymore.
+A score ≥ 100 makes an item a favorite and it will not change its score or position anymore.
 
 When an item is inserted into the input its score will increase by 10 and the score of all others - except favorites - decreases by 1.
 
 ## 🔎 Search 
 
-When entering search without a pattern it will display all available emojis.
+Enter the search field and type to filter emojis. 
+Results are sorted by relevance score.
+Search terms are separated by space.
 
-With a pattern it will show items matching by name or tag in the order of their score and select the first result.
+Empty search displays all available emojis.
 
-Special patterns are:
-- "#" prefix for tag search, e.g. "#heart"
-- "," to separate group,subgroup search, e.g. ",heart"
-- "+" prefix for hex code search
+**Search patterns:**
+
+| Pattern           | Example          | Matches             |
+|-------------------|------------------|---------------------|
+| Plain text        | `heart`          | ♥️💟😻💗🫀💓💔😍…  |
+| `#tag`            | `#love`          | 🤟😘🏩🥰😍😗😙😻…  |
+| `group,subgroup`  | `smileys,tongue` | 😋😛😜🤪😝🤑       |
+| `,subgroup`       | `,mammal`        | 🐵🐒🦍🦧🐶🐕️…      |
+| `+hexcode`        | `+221e`          | ∞                  |
+
 
 ## 🛠️ Requirements
 
-Install:
-
+**Core:**
 - Python 3.12+
+- [Noto Color Emoji](https://github.com/googlefonts/noto-emoji) font (auto-downloaded on first run)
 
-Other requirements will be downloaded automatically.
+**Platform-specific:**
 
-For displaying emojis the [Noto Color Emoji](https://github.com/googlefonts/noto-emoji/tree/main/fonts) font is used - otherwise flags and some other newer emojis will not display correctly.
+| Platform             | Dependencies                                          |
+|----------------------|-------------------------------------------------------|
+| **Linux (Hyprland)** | `nc`, `wl-copy`, `wtype`, `kitty`, `noto-fonts-emoji` |
+| **Windows**          | [AutoHotkey v2](https://autohotkey.com/)              |
 
-The emoji groups are built from:
-[Emojibase](https://github.com/milesj/emojibase/raw/refs/heads/master/packages/data)
-and
-[UnicodeData](https://www.unicode.org/Public/UCD/latest/ucd/).
+Required Python packages are installed automatically with `pip install -e .`
 
-## 🔧 Building
-
-```shell
-python -m venv .venv
-source .venv/Scripts/activate
-pip install -e . # or: uv sync
-python src/guikbd.py # for testing
-python src/termkbd.py # for testing
-```
+**Data sources which will be automatically downloaded:**
+- Emoji data: [Emojibase](https://github.com/milesj/emojibase) (MIT License)
+- Unicode data: [UnicodeData](https://www.unicode.org/Public/UCD/latest/ucd/) (Unicode License)
 
 ## 🔨 Installation
 
-Integration into your system works with one of the scripts in `scripts/*`.
+Choose your platform and follow the integration steps:
 
-### 💧 Linux Hyprland
+### 💧 Linux (Hyprland)
 
-Install:
-
-- `nc` (netcat)
-- `wl-copy`
-- `wtype`
-- `kitty`
-- `noto-fonts-emoji`
-
-In Arch by:
+Install dependencies - in Arch by:
 
 ```shell
 sudo pacman -S openbsd-netcat wl-clipboard wtype kitty noto-fonts-emoji
 ```
 
-Add hotkey to `~/.config/hypr/bindings.conf`
+Add hotkey to `~/.config/hypr/bindings.conf`:
 
-```shell
+```conf
 unbind = SUPER, period
-# bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-gui-wl
-bindd = SUPER, period, Emojis, exec, PATHTO/scripts/emoji-kbd-kitty-hl-open
+
+# Option 1: TUI if you have kitty installed
+bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-kitty-hl-open
+
+# Option 2: GUI
+# bindd = SUPER, period, Emojis, exec, /PATH_TO/scripts/emoji-kbd-gui-wl
 ```
 
-Add for fast opening (noanim) and floating window to `~/.config/hypr/hyprland.conf`
+Add window rules for fast opening (noanim) and floating window to `~/.config/hypr/hyprland.conf`:
 
-With hyprland <= 0.52:
-
-```shell
-windowrulev2 = tag -floating-window, title:^Emoji Kbd$
-windowrulev2 = tag -terminal, title:^Emoji Kbd$
-windowrulev2 = noanim, title:^Emoji Kbd$
-windowrulev2 = float, title:^Emoji Kbd$
-windowrulev2 = center, title:^Emoji Kbd$
-windowrulev2 = unset size, title:^Emoji Kbd$
-# you may also want to set/adjust the size
-#windowrulev2 = size 600 285, title:^Emoji Kbd$
-#windowrulev2 = minsize 500 200, title:^Emoji Kbd$
-#windowrulev2 = maxsize 800 400, title:^Emoji Kbd$
-```
-
-With hyprland >= 0.53:
-
-```shell
+**Hyprland ≥ 0.53:**
+```conf
 windowrule {
     name = Emoji Kbd
     match:title = ^(Emoji Kbd)$
@@ -197,7 +210,19 @@ windowrule {
     float = on
     center = on
     max_size = 800 600
+    min_size = 500 200
 }
+```
+
+**Hyprland ≤ 0.52:**
+```conf
+windowrulev2 = tag -floating-window, title:^Emoji Kbd$
+windowrulev2 = tag -terminal, title:^Emoji Kbd$
+windowrulev2 = noanim, title:^Emoji Kbd$
+windowrulev2 = float, title:^Emoji Kbd$
+windowrulev2 = center, title:^Emoji Kbd$
+windowrulev2 = unset size, title:^Emoji Kbd$
+windowrulev2 = size 600 285, title:^Emoji Kbd$
 ```
 
 Optionally copy `res/emoji-kbd.desktop` to `~/.local/share/applications/`
@@ -205,70 +230,84 @@ for a launcher entry and adjust the paths in the copied file.
 
 ### 🪟 Windows
 
-Install:
+**Setup:**
 
-- [Autohotkey v2](https://autohotkey.com/)
+1. Install [AutoHotkey v2](https://autohotkey.com/)
+2. *(Optional)* Install [Windows-compatible Noto Color Emoji](https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf) font
+   - If you already have Noto Color Emoji, replace it with the Windows-compatible version to avoid slow flag rendering
+3. Run `scripts\emoji-kbd.ahk` (double-click or add to startup)
 
-If you have Noto Color Emoji font already installed, make sure it is the
-[Windows compatible](https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf) one - otherwise flags render very slowly.
+**Default hotkey:** <kbd>Win-.</kbd> (overrides Windows emoji picker)
 
-First startup on windows might be slow due to downloading emoji databases and Noto font and you may get a warning that the daemon could not be started.
-Just wait a bit longer or check the logs.
+To change the hotkey, edit `scripts/emoji-kbd.ahk` and modify the `#.::` line.
 
-Run:
-
-```cmd
-scripts\emoji-kbd.ahk
-```
-
-It will overwrite <kbd>Win-.</kbd>, i.e. the Windows emoji picker.
-If you prefer another hotkey edit the script.
+> **First startup note:** Initial launch downloads emoji databases and Noto font. You might see a daemon startup warning. Check logs if issues persist.
 
 ### 📟 Terminal
 
-Only kitty fully supports displaying all emojis (flags, ..) and without misalignment!
+**Terminal compatibility:**
 
-Start terminal version:
-
-```shell
-python src/termkbd.py
-```
-
-or the daemon like terminal - using a kitty terminal which is hidden/shown by hyprland:
-
-```shell
-./scripts/emoji-kbd-kitty-hl-open
-```
-
-or start the gui:
-
-```shell
-python src/guikbd.py
-```
-
-or start the gui via daemon for faster opening - use "GET" to wait for result or "SHOW" to just show gui:
-
-```shell
-python src/guidmn.py get
-```
+| Terminal      | Emoji Support | Notes                                          |
+|---------------|---------------|------------------------------------------------|
+| **Kitty**     | ✅ Full       | Perfect rendering, all flags and graphemes     |
+| **Ghostty**   | ⚠️ Mostly     | Minor rendering issues                         |
+| **Alacritty** | ❌ Limited    | Misaligned columns, monochrome emojis          |
+| **Others**    | ❓            | Font configuration needed for Noto Color Emoji |
 
 ## ⚙️ Customization
 
-Copy `.res/emoji-kbd.toml` or parts to `~/.config/emoji-kbd/emoji-kbd.toml` and edit it.
+Copy `res/emoji-kbd.toml` or parts to `~/.config/emoji-kbd/emoji-kbd.toml` and edit:
 
-For example change the locale to DE by:
+**Change locale:**
 ```toml
 [board]
-locale = "de"
+locale = "de"  # Options: "en", "de", or any supported locale
+layout = "de"  # Options: "us", "de", "bone-corne"
 ```
 
-For everything else - change the code 😉 or wait until it is added.
+**Customize keyboard layouts:**
+```toml
+[[layout]]
+…
+```
 
-## Other Files
+See `res/emoji-kbd.toml` for all available options.
 
-- `~/.local/state/emoji-kbd/recent.txt` the recent list.
-- `~/.local/state/emoji-kbd/*.log` the log files.
-- `~/.cache/emoji-kbd/*` emoji databases and Noto font - delete these and start Emoji Kbd again to update to newer versions.
+For everything else - change the code 😉
+
+## 🔍 Troubleshooting
+
+**Issue: Emojis not displaying, monochrome, flags show as 🇦 🇧 🇨, …**
+- **Cause:** Missing or old Noto Color Emoji font.
+- **Fix Linux:** `sudo pacman -S noto-fonts-emoji` (Arch) or equivalent.
+- **Fix Windows:** Download [Windows-compatible Noto Color Emoji](https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji_WindowsCompatible.ttf).
+- **Fix Terminal:** Configure font fallback (fontconf, …) to use Noto font.
+
+**Issue: TUI misalignment**
+- **Cause:** Terminal doesn't handle complex graphemes.
+- **Fix:** Use Kitty terminal (recommended) or switch to GUI.
+
+**Issue: Slow first startup**
+- **Expected:** First run downloads ~5 MB of emoji data and Noto font on Windows. May cause startup warning on Windows.
+- **Fix:** Wait 30-60 seconds for downloads to complete. 
+- **Subsequent runs:** Uses cache (~ms startup).
+
+**Issue: <kbd>Win-.</kbd> not working (Windows)**
+- **Check:** AutoHotkey script is running (`scripts\emoji-kbd.ahk`)
+- **Check:** No other app is overriding <kbd>Win-.</kbd>
+
+**Emojis from news Unicode standard are missing**
+- **Clear cache to update emojis:** From the ⚙️ menu select ♻️ and restart.
+- **Update Noto font.**
+
+## 📁 File Locations
+
+| Path                                  | Purpose                            |
+|---------------------------------------|------------------------------------|
+| `~/.config/emoji-kbd/emoji-kbd.toml`  | User configuration                 |
+| `~/.local/state/emoji-kbd/recent.txt` | Recent/favorite emojis list        |
+| `~/.local/state/emoji-kbd/*.log`      | Log files                          |
+| `~/.cache/emoji-kbd/*`                | Emoji databases, caches, Noto font |
 
 ## Development
 
@@ -276,25 +315,65 @@ When the environment variable `EMOJI_KBD_DEV` is set to a value the config file 
 `res/emoji-kbd.toml` and all other files go to `.local` in the repo. It can be set also to a 
 comma separated list of words, currently only "no_cache", to disable use of cache.
 
-## Alternatives
+**Run terminal version for testing:**
+```bash
+python src/termkbd.py
+```
 
-I started to use emojis with Windows 10 but disliked the new picker from Windows 11 as it had a much smaller recent list.
+**Run kitty helper script:**
+```bash
+./scripts/emoji-kbd-kitty-hl-open
+```
 
+**GUI daemon:**
+Daemon mode keeps the app loaded in memory for instant opening.
+Communicates by socket. If not reachable starts a new daemon.
+```bash
+python src/guidmn.py get    # Wait for result
+python src/guidmn.py show   # Show only
+```
+
+**Check emoji grouping:**
+```bash
+python src/emojis.py
+```
+
+**Check and query config:**
+```bash
+python src/config.py
+python src/config.py board.layout
+```
+
+## 🔄 Comparison with Alternatives
+
+| Feature                 | Emoji Kbd      | Others             |
+|-------------------------|----------------|--------------------|
+| **Keyboard first**      | ✅             | ❌                 |
+| **Favorites** ⭐        | ✅             | ❌                 |
+| **Advanced Grouping** ⯒ | ✅             | ❌                 |
+| **Advanced Search** 🔎  | ✅             | ❌ Often just name |
+| **Cross Platform**      | ✅             | ❌ Often just one  |
+
+**Why Emoji Kbd?**
+- **Keyboard-first** design - navigate fast without mouse
+- **Favorites** for fast access by muscle memory
+- **Large recent list** with smart scoring
+- **Advanced search** by name, tags, (sub)groups, code
+- **Gender variant grouping** (🎅🤶🧑‍🎄)
+- **See meta data** code, name, group, subgroup, tags
+- **Cross-platform** Linux + Windows + …
+
+**Origin story:** I disliked the new picker from Windows 11 as it had a much smaller recent list than the Windows 10 version.
 Looking for alternatives I found <https://github.com/gilleswaeber/emoji-keyboard> from Gilles Weber and added the recent emojis board and was very happy with it for years.
 
 But when switching back to Linux for the desktop I could not find a proper alternative and thus made my own one - Emoji Kbd - inspired by emoji-keyboard.
 
-I like Walker, but not the emoji picker.
+## 🚧 Roadmap
 
-## Todos
-
-- Add more board layouts
-- https://raw.githubusercontent.com/unicode-org/cldr/refs/heads/main/common/annotations/de.xml
-- ...
+Kaomoji and GIFs will never be added. 😉
 
 ## Licenses
 
 - **Emoji Kbd**: [GPL-3.0-or-later](LICENSE)
 - **Emojibase**: Copyright (c) Miles Johnson. License: [MIT License](https://github.com/milesj/emojibase/blob/master/packages/data/LICENSE).
 - **UnicodeData**: Copyright © 1991-2026 Unicode, Inc. All rights reserved. Distributed under the [Unicode License Agreement](https://www.unicode.org/copyright.html).
-
