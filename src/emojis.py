@@ -299,15 +299,20 @@ class GroupPattern:
 
 
 group_patterns_compiled: list[GroupPattern] = []
-for p in group_patterns:
-    p = list(p)
-    p[2] = re.compile(p[2]) if p[2] else None  # type: ignore
-    p[3] = re.compile(p[3]) if p[3] else None  # type: ignore
-    group_patterns_compiled.append(GroupPattern(*p))  # type: ignore
+
+
+def get_group_patterns() -> list[GroupPattern]:
+    if not group_patterns_compiled:
+        for p in group_patterns:
+            p = list(p)
+            p[2] = re.compile(p[2]) if p[2] else None  # type: ignore
+            p[3] = re.compile(p[3]) if p[3] else None  # type: ignore
+            group_patterns_compiled.append(GroupPattern(*p))  # type: ignore
+    return group_patterns_compiled
 
 
 def normalize_group(emoji: Emoji) -> GroupPattern:
-    for p in group_patterns_compiled:
+    for p in get_group_patterns():
         if p.chars and emoji.char in p.chars:
             return p
         if p.group and not p.group.search(emoji.group):
@@ -318,18 +323,36 @@ def normalize_group(emoji: Emoji) -> GroupPattern:
     log.warning(
         f"No group for: '{emoji.char}': '{emoji.name}', '{emoji.group}' > '{emoji.subgroup}'"
     )
-    return group_patterns_compiled[-1]  # catch all
+    return get_group_patterns()[-1]  # catch all
+
+
+# A list of patterns to strip gender from emoji names.
+# FIXME move to config
+strip_gender_patterns = [
+    (r"^(family:) .*$", "family"),
+    (r"^(kiss:) .*$", "kiss"),
+    (r"^(couple with heart:) .*$", "with heart"),
+    (r"^(people|women|men|woman and man) ?", "people "),
+    (r"(er)? ?(person|man|woman|couple):? ?", ""),
+    (r"^(person|prince|princess)$", "with crown"),
+    (r"^(Santa|Mrs.|Mx) Claus$", "Mx Claus"),
+    (r"^(child|boy|girl)$", "child"),
+]
+
+
+strip_gender_patterns_compiled = []
+
+
+def get_strip_gender_patterns() -> list[tuple[re.Pattern, str]]:
+    if not strip_gender_patterns_compiled:
+        for pattern, replacement in strip_gender_patterns:
+            strip_gender_patterns_compiled.append((re.compile(pattern), replacement))
+    return strip_gender_patterns_compiled
 
 
 def strip_gender(s: str) -> str:
-    s = re.sub(r"^(family:) .*$", "family", s)
-    s = re.sub(r"^(kiss:) .*$", "kiss", s)
-    s = re.sub(r"^(couple with heart:) .*$", "with heart", s)
-    s = re.sub(r"^(people|women|men|woman and man) ?", "people ", s)
-    s = re.sub(r"(er)? ?(person|man|woman|couple):? ?", "", s)
-    s = re.sub(r"^(person|prince|princess)$", "with crown", s)
-    s = re.sub(r"^(Santa|Mrs.|Mx) Claus$", "Mx Claus", s)
-    s = re.sub(r"^(child|boy|girl)$", "child", s)
+    for pattern, replacement in get_strip_gender_patterns():
+        s = pattern.sub(replacement, s)
     if not s:
         s = "person"
     return s.strip()
