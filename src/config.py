@@ -9,9 +9,10 @@ from tools import get_conf_file
 
 @dataclass
 class BoardConfig:
+    locale: str
     layout: str
     default: str
-    locale: str
+    max_recent: int
 
 
 @dataclass

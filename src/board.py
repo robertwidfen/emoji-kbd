@@ -9,9 +9,10 @@ from tools import get_cache_file, get_state_file
 
 
 class RecentGroup(Emoji):
-    def __init__(self, recent_file: str, emojis: list[Emoji]):
+    def __init__(self, recent_file: str, emojis: list[Emoji], max_recent: int = 100):
         super().__init__(group="Recent List", char="⟲")
         self.recent_file = recent_file
+        self.max_recent = max_recent
         self.load(emojis)
         self.offset = 0
 
@@ -39,12 +40,12 @@ class RecentGroup(Emoji):
                 else:
                     e.mark = ""
                     e.order = 0
-        # sort and keep only top 100
+        # sort and keep only top entries
         if not no_sort:
             self.emojis.sort(key=lambda e: e.order, reverse=True)
-        # limit to 100 entries
-        if len(self.emojis) > 100:
-            del self.emojis[100:]
+        # limit to max_recent entries
+        if len(self.emojis) > self.max_recent:
+            del self.emojis[self.max_recent :]
         self.save()
 
     def toggle_favorite(self, emoji: Emoji):
@@ -257,7 +258,9 @@ class Board:
 
         self._all_emojis: list[Emoji] = all_emojis
         self._main_emojis: list[BoardEmoji] = emoji_groups
-        self._recent = RecentGroup(get_state_file("recent.txt"), all_emojis)
+        self._recent = RecentGroup(
+            get_state_file("recent.txt"), all_emojis, config.board.max_recent
+        )
         self._main_emojis.insert(0, self._recent)
         self._search_group = SearchGroup()
         self._main_emojis.insert(1, self._search_group)

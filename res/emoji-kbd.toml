@@ -1,10 +1,12 @@
 [board]
+# check emojibase and unicode_annotations links in [sources] for available ones
+locale = "us"
 # one from below layouts
 layout = "US"
 # by emoji, e.g. "", "⟲", "🔎", "😀", "👍️", ...
 default = "⟲"
-# check emojibase and unicode_annotations links in [sources] for available ones
-locale = "en"
+# how many recent emojis to store
+max_recent = 100
 
 [terminal]
 width = 47
