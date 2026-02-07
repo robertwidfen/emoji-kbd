@@ -90,7 +90,7 @@ def get_conf_file(filename: str, default=False) -> str:
 
 def get_state_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = Path(".local") / "state" / filename
+        path = Path(".local") / "state" / "emoji-kbd" / filename
     else:
         state_home = os.getenv("XDG_STATE_HOME", Path.home() / ".local" / "state")
         state_dir = Path(state_home) / "emoji-kbd"
@@ -102,7 +102,7 @@ def get_state_file(filename: str) -> str:
 
 def get_cache_file(filename: str) -> str:
     if os.environ.get("EMOJI_KBD_DEV"):
-        path = Path(".local") / "cache" / filename
+        path = Path(".local") / "cache" / "emoji-kbd" / filename
     else:
         cache_home = os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")
         cache_dir = Path(cache_home) / "emoji-kbd"
@@ -118,7 +118,7 @@ def main():
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    add_emoji_to_unicode_data(".local/cache/unicode-data.txt")
+    add_emoji_to_unicode_data(".local/cache/emoji-kbd/unicode-data.txt")
 
 
 if __name__ == "__main__":
