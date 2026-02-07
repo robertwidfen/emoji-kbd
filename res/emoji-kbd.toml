@@ -1,6 +1,6 @@
 [board]
 # check emojibase and unicode_annotations links in [sources] for available ones
-locale = "us"
+locale = "en"
 # one from below layouts
 layout = "US"
 # by emoji, e.g. "", "⟲", "🔎", "😀", "👍️", ...
