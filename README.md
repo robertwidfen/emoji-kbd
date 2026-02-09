@@ -373,7 +373,7 @@ But when switching back to Linux for the desktop I could not find a proper alter
 
 Kaomoji and GIFs will never be added. 😉
 
-## Licenses
+## ⚖️ Licenses
 
 - **Emoji Kbd**: [GPL-3.0-or-later](LICENSE)
 - **Emojibase**: Copyright (c) Miles Johnson. License: [MIT License](https://github.com/milesj/emojibase/blob/master/packages/data/LICENSE).
